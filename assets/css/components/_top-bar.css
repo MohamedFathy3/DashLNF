@@ -1,0 +1,13 @@
+.top-bar {
+    height: 63px;
+    z-index: 51;
+    @apply relative flex items-center xl:px-5;
+
+    .mobile-menu-toggler {
+        @apply flex h-[38px] w-[38px] items-center justify-center rounded-full border border-white/20;
+
+        .mobile-menu-toggler__icon {
+            @apply h-5 w-5 text-white;
+        }
+    }
+}

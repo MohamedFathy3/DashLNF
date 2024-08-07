@@ -1,0 +1,14 @@
+.source-preview {
+    @apply relative;
+
+    code {
+        &:before {
+            content: "HTML";
+            @apply absolute right-0 top-0 block rounded-bl bg-slate-200 bg-opacity-70 px-4 py-2 font-medium dark:bg-slate-300;
+        }
+
+        &.javascript:before {
+            content: "JS";
+        }
+    }
+}

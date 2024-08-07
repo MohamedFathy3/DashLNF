@@ -1,0 +1,241 @@
+.tabulator-print-fullscreen-hide:before {
+    content: "";
+    @apply fixed left-0 top-0 h-screen w-full bg-white;
+}
+
+.tabulator {
+    @apply overflow-hidden border-0 bg-transparent;
+
+    .tabulator-header {
+        @apply border-b border-t border-slate-200 bg-transparent font-medium text-current;
+
+        .tabulator-headers {
+            .tabulator-col {
+                @apply border-r-0 bg-transparent;
+
+                &:hover {
+                    @apply bg-slate-100;
+                }
+
+                .tabulator-col-content {
+                    @apply px-5 py-3;
+
+                    .tabulator-col-title {
+                        @apply pr-0;
+                    }
+
+                    .tabulator-arrow {
+                        top: -3px;
+                        border-left-width: 5px;
+                        border-right-width: 5px;
+                        @apply bottom-0 my-auto;
+                    }
+                }
+
+                &.tabulator-sortable[aria-sort="none"]
+                .tabulator-col-content
+                .tabulator-arrow {
+                    border-bottom-color: #cbd5e0;
+                }
+            }
+        }
+    }
+
+    .tabulator-row {
+        @apply border-b border-slate-200;
+
+        &:hover,
+        &.tabulator-row-even:hover {
+            @apply bg-slate-200;
+        }
+
+        &.tabulator-row-even {
+            @apply bg-slate-100;
+        }
+
+        .tabulator-cell {
+            @apply border-r-0 px-5 py-3;
+
+            &.tabulator-row-handle {
+                @apply px-0;
+            }
+
+            .tabulator-responsive-collapse-toggle {
+                @apply -mr-5 h-4 w-4 rounded-full bg-slate-400;
+            }
+        }
+
+        .tabulator-responsive-collapse {
+            @apply border-b-0 border-slate-200 p-3;
+
+            td {
+                @apply p-2;
+
+                strong {
+                    @apply font-medium;
+                }
+            }
+        }
+    }
+
+    .tabulator-footer {
+        @apply mt-2 border-t-0 bg-transparent p-0;
+        @include media-breakpoint-down(md) {
+            @apply whitespace-normal;
+        }
+
+        .tabulator-paginator {
+            @apply flex items-center;
+            @include media-breakpoint-down(md) {
+                @apply block text-left;
+            }
+
+            > label {
+                @apply font-normal text-slate-700;
+            }
+
+            .tabulator-page-size {
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgb(74, 85, 104)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-chevron-down'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+                background-size: 15px;
+                background-position: center right 0.6rem;
+                @apply ml-2 mr-auto appearance-none rounded-md border-slate-200 bg-white bg-no-repeat py-2 pl-3 pr-8;
+                @include media-breakpoint-down(md) {
+                    @apply mr-3;
+                }
+            }
+
+            .tabulator-page {
+                min-width: 40px;
+                @apply btn inline-flex items-center justify-center border-transparent font-normal text-slate-700;
+                @include media-breakpoint-down(sm) {
+                    @apply mr-0 px-1;
+                }
+
+                &:hover {
+                    @apply bg-slate-200 text-slate-700;
+                }
+
+                &.active {
+                    @apply bg-slate-100 font-medium;
+
+                    &:hover {
+                        @apply bg-slate-100;
+                    }
+                }
+
+                &[data-page="first"],
+                &[data-page="prev"],
+                &[data-page="next"],
+                &[data-page="last"] {
+                    @apply w-5 text-transparent;
+                }
+
+                &[data-page="first"] {
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' stroke='%232d3748' stroke-width='1.1' fill='none' stroke-linecap='round' stroke-linejoin='round' class='css-i6dzq1'%3E%3Cpolyline points='11 17 6 12 11 7'%3E%3C/polyline%3E%3Cpolyline points='18 17 13 12 18 7'%3E%3C/polyline%3E%3C/svg%3E");
+                    background-size: 50%;
+                    @apply bg-center bg-no-repeat;
+                }
+
+                &[data-page="prev"] {
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' stroke='%232d3748' stroke-width='1.1' fill='none' stroke-linecap='round' stroke-linejoin='round' class='css-i6dzq1'%3E%3Cpolyline points='15 18 9 12 15 6'%3E%3C/polyline%3E%3C/svg%3E");
+                    background-size: 45%;
+                    @apply bg-center bg-no-repeat;
+                }
+
+                &[data-page="next"] {
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' stroke='%232d3748' stroke-width='1.1' fill='none' stroke-linecap='round' stroke-linejoin='round' class='css-i6dzq1'%3E%3Cpolyline points='9 18 15 12 9 6'%3E%3C/polyline%3E%3C/svg%3E");
+                    background-size: 45%;
+                    @apply bg-center bg-no-repeat;
+                }
+
+                &[data-page="last"] {
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' stroke='%232d3748' stroke-width='1.1' fill='none' stroke-linecap='round' stroke-linejoin='round' class='css-i6dzq1'%3E%3Cpolyline points='13 17 18 12 13 7'%3E%3C/polyline%3E%3Cpolyline points='6 17 11 12 6 7'%3E%3C/polyline%3E%3C/svg%3E");
+                    background-size: 50%;
+                    @apply bg-center bg-no-repeat;
+                }
+            }
+        }
+    }
+
+    .tabulator-tableHolder .tabulator-placeholder span {
+        @apply text-sm font-normal text-slate-500;
+    }
+
+    .tabulator-loader {
+        background: #ffffffbd;
+
+        .tabulator-loader-msg {
+            @apply bg-transparent text-base font-normal;
+
+            &.tabulator-loading {
+                @apply border-0 text-slate-700;
+            }
+
+            &.tabulator-error {
+                @apply border-0 text-danger;
+            }
+        }
+    }
+}
+
+.dark {
+    .tabulator {
+        .tabulator-header {
+            @apply border-darkmode-400 text-slate-300;
+
+            .tabulator-headers .tabulator-col:hover {
+                @apply bg-darkmode-300;
+            }
+        }
+
+        .tabulator-table {
+            @apply bg-transparent text-slate-200;
+
+            .tabulator-row {
+                @apply border-transparent bg-transparent;
+
+                &:hover,
+                &.tabulator-row-even:hover {
+                    @apply bg-darkmode-700;
+                }
+
+                &.tabulator-row-even {
+                    @apply bg-darkmode-400;
+                }
+            }
+        }
+
+        .tabulator-footer {
+            .tabulator-paginator {
+                > label {
+                    @apply text-slate-200;
+                }
+
+                .tabulator-page-size {
+                    @apply border-darkmode-600 bg-darkmode-300 text-slate-200;
+                }
+
+                .tabulator-page {
+                    @apply bg-transparent text-slate-200;
+
+                    &:hover {
+                        @apply bg-darkmode-700 text-slate-300;
+                    }
+
+                    &.active,
+                    &.active:hover {
+                        @apply bg-darkmode-300;
+                    }
+                }
+            }
+        }
+
+        .tabulator-loader {
+            @apply bg-black/30;
+
+            .tabulator-loader-msg.tabulator-loading {
+                @apply text-slate-200;
+            }
+        }
+    }
+}

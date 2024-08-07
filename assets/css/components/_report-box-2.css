@@ -1,0 +1,18 @@
+.report-box-2 {
+    @apply relative;
+
+    &:before {
+        content: "";
+        width: 90%;
+        box-shadow: 0px 3px 5px #0000000b;
+        @apply absolute inset-x-0 mx-auto mt-3 h-full rounded-lg border border-slate-200 bg-slate-50 dark:border-darkmode-500/60 dark:bg-darkmode-600/70;
+    }
+
+    .report-box-2__main-icon {
+        @apply h-[2.7rem] w-[2.7rem];
+    }
+
+    .report-box-2__indicator {
+        @apply flex items-center pl-1.5 pr-1;
+    }
+}

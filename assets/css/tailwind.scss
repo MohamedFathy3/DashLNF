@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.btn-sm {
+  @apply text-[0.8rem] py-1.5 px-4;
+}
+.btn {
+  @apply font-light whitespace-nowrap
+}
+
+.btn-secondary {
+  @apply bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-500
+}
+
+.dp__input {
+  @apply form-control form-control-rounded font-normal;
+}
