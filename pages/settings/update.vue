@@ -4,7 +4,7 @@ import { ColorPicker } from 'vue3-colorpicker';
 definePageMeta({
     middleware: 'auth',
 });
-const { data, refresh, execute } = await useApiFetch(`/api/setting/sections`, {
+const { data, refresh, execute } = await useApiFetch(`/api/setting-section`, {
     lazy: true,
     immediate: false,
     transform: (data) => data.data,
@@ -14,7 +14,6 @@ const formLoading = ref(false);
 const editMode = ref(false);
 const fieldItemId = ref(null);
 const selectedSection = ref([]);
-
 const buttonStyles = [
     { name: 'Primary', id: 'primary' },
     { name: 'Secondary', id: 'secondary' },
@@ -27,14 +26,12 @@ const buttonTargets = [
     { name: 'Self (Same Tab)', id: '_self' },
     { name: 'New Tab', id: '_blank' },
 ];
-
 const initFetchData = async () => {
     await execute();
 };
 const setSelectedSection = async (index) => {
     selectedSection.value = data.value[index];
 };
-
 onMounted(async () => {
     loadingPage.value = true;
     await initFetchData();
@@ -42,7 +39,6 @@ onMounted(async () => {
     loadingPage.value = false;
 });
 const isOpen = ref(false);
-
 async function openModal(item, fieldId) {
     formLoading.value = true;
     if (item) {
@@ -58,7 +54,6 @@ async function openModal(item, fieldId) {
 const removeItem = (index, id) => {
     selectedSection.value.children.find((_) => _.id === id).value.splice(index, 1);
 };
-
 const handleModalSubmit = async () => {
     const childrenValue = selectedSection.value.children.map((child) => {
         let settingValue = child.value;
@@ -96,7 +91,6 @@ const handleModalSubmit = async () => {
 
 const menus = ref([]);
 const emailTemplates = ref([]);
-
 const fetchMenus = async () => {
     const { data, error } = await useApiFetch(`/api/menu/index`, {
         method: 'POST',

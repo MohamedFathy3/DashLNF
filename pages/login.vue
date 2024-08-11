@@ -20,7 +20,7 @@ async function login() {
         <ToastList />
         <div class="w-full min-h-screen p-5 md:p-20 flex items-center justify-center">
             <div class="w-96 intro-y">
-                <LNFNetworkLogo alt="LNF Consol Dashboard" class="w-64 text-white mx-auto" />
+                <div class="text-white text-4xl font-extrabold text-center">LNF <span class="font-medium opacity-75">Dashboard</span></div>
                 <form @submit.prevent="login">
                     <div
                         class="!rounded-3xl box px-5 py-8 mt-4 max-w-[450px] relative before:content-[''] before:z-[-1] before:w-[95%] before:h-full before:bg-slate-200/65 before:border before:border-slate-200/25 before:-mt-5 before:absolute before:rounded-2xl before:mx-auto before:inset-x-0 before:dark:bg-darkmode-600/70 before:dark:border-darkmode-500/60"

@@ -46,7 +46,7 @@ const {
     data: rows,
     pending,
     refresh,
-} = await useApiFetch('/api/news/index', {
+} = await useApiFetch('/api/article/index', {
     method: 'POST',
     body: serverParams,
     lazy: true,
@@ -129,7 +129,7 @@ const rules = ref({
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
-    const { data, error } = await useApiFetch(`/api/news/${id}`, {
+    const { data, error } = await useApiFetch(`/api/article/${id}`, {
         lazy: true,
     });
     if (data.value) {
@@ -170,7 +170,7 @@ async function openModal(id = null) {
 }
 
 async function updateItem() {
-    const { data, error } = await useApiFetch(`/api/news/${item.value.id}`, {
+    const { data, error } = await useApiFetch(`/api/article/${item.value.id}`, {
         method: 'PATCH',
         body: item,
         lazy: true,
@@ -186,7 +186,7 @@ async function updateItem() {
 }
 
 async function addItem() {
-    const { data, error } = await useApiFetch(`/api/news`, {
+    const { data, error } = await useApiFetch(`/api/article`, {
         method: 'POST',
         body: item,
         lazy: true,
@@ -218,7 +218,7 @@ async function handleModalSubmit() {
 async function deleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/news/delete`, {
+        const { data, error } = await useApiFetch(`/api/article/delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -235,7 +235,7 @@ async function deleteItems() {
 async function forceDeleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/news/force-delete`, {
+        const { data, error } = await useApiFetch(`/api/article/force-delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -252,7 +252,7 @@ async function forceDeleteItems() {
 async function restoreItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/news/restore`, {
+        const { data, error } = await useApiFetch(`/api/article/restore`, {
             body: { items: selectedRows.value },
             method: 'POST',
             lazy: true,
@@ -355,10 +355,10 @@ async function restoreItems() {
                             </div>
                         </td>
                         <td>
-                            <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'news')" />
+                            <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'article')" />
                         </td>
                         <td>
-                            <FormSwitch :id="'row-featured-' + row.id" v-model="row.featured" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'featured', 'news')" />
+                            <FormSwitch :id="'row-featured-' + row.id" v-model="row.featured" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'featured', 'article')" />
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                         <td class="text-right">

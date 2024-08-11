@@ -113,7 +113,7 @@ const item = ref({
     name: null,
     orderId: null,
     active: true,
-    subMenus: [],
+    menuItems: [],
 });
 const children = ref({
     name: null,
@@ -154,7 +154,7 @@ const fetchItem = async (id) => {
     }
 };
 const fetchChildItem = async (id) => {
-    const { data, error } = await useApiFetch(`/api/sub-menu/${id}`, {
+    const { data, error } = await useApiFetch(`/api/menu-item/${id}`, {
         lazy: true,
     });
     if (data.value) {
@@ -167,7 +167,7 @@ const fetchChildItem = async (id) => {
 const resetItemValues = async () => {
     item.value = {
         name: null,
-        subMenus: [],
+        menuItems: [],
         orderId: null,
         active: true,
     };
@@ -316,7 +316,7 @@ async function restoreItems() {
 async function deleteChild(id, menuId) {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/sub-menu/delete/${id}`, {
+        const { data, error } = await useApiFetch(`/api/menu-item/delete/${id}`, {
             method: 'DELETE',
             lazy: true,
         });
@@ -331,7 +331,7 @@ async function deleteChild(id, menuId) {
 }
 
 async function updateChildItem() {
-    const { data, error } = await useApiFetch(`/api/sub-menu/${children.value?.id}`, {
+    const { data, error } = await useApiFetch(`/api/menu-item/${children.value?.id}`, {
         method: 'PATCH',
         body: children,
         lazy: true,
@@ -346,7 +346,7 @@ async function updateChildItem() {
     }
 }
 async function addChildItem() {
-    const { data, error } = await useApiFetch(`/api/sub-menu`, {
+    const { data, error } = await useApiFetch(`/api/menu-item`, {
         method: 'POST',
         body: children,
         lazy: true,
@@ -507,7 +507,7 @@ async function handleChildModalSubmit() {
                                 </button>
                             </div>
                             <div class="mt-5 lg:px-6 space-y-1.5">
-                                <template v-for="subItem in item.subMenus" :key="subItem.orderId">
+                                <template v-for="subItem in item.menuItems" :key="subItem.orderId">
                                     <div v-if="!subItem.parentId" class="py-2 px-6 border grid grid-cols-5 bg-slate-50 rounded-full items-center">
                                         <div class="font-semibold text-xs whitespace-nowrap col-span-2">
                                             <div class="flex items-center">
@@ -520,7 +520,7 @@ async function handleChildModalSubmit() {
                                             </div>
                                         </div>
                                         <div>
-                                            <FormSwitch :id="'child-active-' + subItem.id" v-model="subItem.active" @change="useToggleSwitch(subItem.id, 'active', 'sub-menu')" />
+                                            <FormSwitch :id="'child-active-' + subItem.id" v-model="subItem.active" @change="useToggleSwitch(subItem.id, 'active', 'menu-item')" />
                                         </div>
                                         <div class="text-sm">{{ subItem.orderId }}</div>
                                         <div class="flex items-center space-x-2 text-xs justify-end">
@@ -550,7 +550,7 @@ async function handleChildModalSubmit() {
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <FormSwitch :id="'child-active-' + child.id" v-model="child.active" @change="useToggleSwitch(child.id, 'active', 'sub-menu')" />
+                                                    <FormSwitch :id="'child-active-' + child.id" v-model="child.active" @change="useToggleSwitch(child.id, 'active', 'menu-item')" />
                                                 </div>
                                                 <div class="text-sm">{{ child.orderId }}</div>
                                                 <div class="flex items-center space-x-2 text-xs justify-end">
@@ -589,7 +589,7 @@ async function handleChildModalSubmit() {
                                     :errors="s$.parentId.$errors"
                                     labelvalue="name"
                                     keyvalue="id"
-                                    :select-data="item.subMenus"
+                                    :select-data="item.menuItems"
                                     class="col-span-12 sm:col-span-4"
                                     label="Parent Menu Item"
                                     name="menu-items-list"

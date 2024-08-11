@@ -278,8 +278,8 @@ const { data: pageSections } = await useApiFetch(`/api/page-section/index`, {
 
 function addRow() {
     item.value.pageSections.push({
-        page_section_id: null,
-        order_id: null,
+        pageSectionId: null,
+        orderId: null,
     });
 }
 function removeRow(index) {

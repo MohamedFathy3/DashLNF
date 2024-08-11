@@ -269,7 +269,7 @@ const setting = useSettingsStore();
         <!-- Page Title & Action Buttons -->
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
-                <Icon name="solar:asteroid-linear" class="size-5 opacity-75" />
+                <Icon name="solar:chat-round-call-line-duotone" class="size-5 opacity-75" />
                 <div>{{ serverParams.deleted ? 'Deleted Affiliates' : 'Affiliates' }}</div>
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
@@ -341,9 +341,9 @@ const setting = useSettingsStore();
                             <input :checked="isSelected(row.id)" type="checkbox" class="form-check-input" @change="toggleRowSelection(row.id)" />
                         </td>
                         <td class="font-normal">
-                            <div>{{ row.admin?.name }}</div>
-                            <div class="font-light text-xs opacity-75 mt-0.5 transition-all hover:text-warning cursor-pointer" @click="useClipboard('https://' + setting.network.domain + '/application-form?ref=' + row.id)">
-                                {{ 'https://' + setting.network.domain + '/application-form?ref=' + row.id }}
+                            <div>{{ row.admin?.name ?? row.name }}</div>
+                            <div class="font-light text-xs opacity-75 mt-0.5 transition-all hover:text-warning cursor-pointer" @click="useClipboard('https://lnfederation.com/application-form?ref=' + row.id)">
+                                {{ 'https://lnfederation.com/application-form?ref=' + row.id }}
                             </div>
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
@@ -378,6 +378,7 @@ const setting = useSettingsStore();
             </template>
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
+                    <Form v-model="item.adminId" :disabled="item.superAdmin" :select-data="admins" labelvalue="name" keyvalue="id" :errors="v$.adminId.$errors" class="lg:col-span-12" label="Admin" name="admin-id" placeholder="Admin" />
                     <FormSelectField v-model="item.adminId" :disabled="item.superAdmin" :select-data="admins" labelvalue="name" keyvalue="id" :errors="v$.adminId.$errors" class="lg:col-span-12" label="Admin" name="admin-id" placeholder="Admin" />
                 </div>
             </template>

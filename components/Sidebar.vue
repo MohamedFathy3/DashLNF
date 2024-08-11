@@ -65,7 +65,7 @@ const menuItems = ref([
                 permission: ['list-menu'],
             },
             {
-                name: 'Articles',
+                name: 'News',
                 path: '/website-data/articles',
                 icon: 'solar:document-text-linear',
                 subMenus: [],
