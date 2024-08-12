@@ -124,9 +124,11 @@ const toggleRowSelection = (id) => {
 };
 const item = ref({
     adminId: null,
+    name: null,
 });
 const rules = ref({
-    adminId: { required },
+    adminId: {},
+    name: { required },
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
@@ -143,6 +145,7 @@ const fetchItem = async (id) => {
 const resetItemValues = async () => {
     item.value = {
         adminId: null,
+        name: null,
     };
 };
 async function closeModal() {
@@ -378,8 +381,8 @@ const setting = useSettingsStore();
             </template>
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
-                    <Form v-model="item.adminId" :disabled="item.superAdmin" :select-data="admins" labelvalue="name" keyvalue="id" :errors="v$.adminId.$errors" class="lg:col-span-12" label="Admin" name="admin-id" placeholder="Admin" />
-                    <FormSelectField v-model="item.adminId" :disabled="item.superAdmin" :select-data="admins" labelvalue="name" keyvalue="id" :errors="v$.adminId.$errors" class="lg:col-span-12" label="Admin" name="admin-id" placeholder="Admin" />
+                    <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
+                    <FormSelectField v-model="item.adminId" :select-data="admins" labelvalue="name" keyvalue="id" :errors="v$.adminId.$errors" class="lg:col-span-12" label="Admin" name="admin-id" placeholder="Admin" />
                 </div>
             </template>
             <template #footer>

@@ -151,7 +151,7 @@ const toggleRowSelection = (id) => {
 const item = ref({
     title: null,
     subTitle: null,
-    des: null,
+    description: null,
     type: null,
     active: true,
 
@@ -178,7 +178,7 @@ const item = ref({
 const rules = ref({
     title: { required: item.value.type !== 'benefits-grid' && item.value.type !== 'benefits-list' ? required : {} },
     subTitle: {},
-    des: {},
+    description: {},
     type: { required },
     active: {},
 
@@ -215,7 +215,7 @@ const resetItemValues = async () => {
     item.value = {
         title: null,
         subTitle: null,
-        des: null,
+        description: null,
         type: null,
         active: true,
 
@@ -437,8 +437,8 @@ async function restoreItems() {
                             <div class="flex items-center gap-3">
                                 <NuxtImg v-if="row.image" :src="row.imageUrl" class="h-10 !rounded-md w-20 object-cover shrink-0" />
                                 <div>
-                                    <div class="font-normal">{{ useStripHtml(row.title) }}</div>
-                                    <div class="text-sm opacity-75 mt-0.5">{{ sectionTypes.find((t) => t.value === row.type).name }}</div>
+                                    <div v-if="row.title" class="font-normal">{{ useStripHtml(row.title) }}</div>
+                                    <div class="text-sm opacity-75 mt-0.5">{{ sectionTypes.find((t) => t.value === row.type)?.name }}</div>
                                 </div>
                             </div>
                         </td>
@@ -538,12 +538,12 @@ async function restoreItems() {
                                 item.type !== 'events-list' &&
                                 item.type !== 'faqs-list'
                             "
-                            v-model="item.des"
-                            :errors="v$.des.$errors"
+                            v-model="item.description"
+                            :errors="v$.description.$errors"
                             class="col-span-12"
                             label="Description"
                             type="textarea"
-                            name="des"
+                            name="description"
                             placeholder="Description"
                         />
 

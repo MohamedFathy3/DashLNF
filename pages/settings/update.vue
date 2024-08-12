@@ -155,7 +155,7 @@ const getSelectData = (dataType) => {
             </div>
         </div>
         <div v-if="!loadingPage" class="grid gap-5 lg:grid-cols-12 text-sm">
-            <div class="lg:col-span-4">
+            <div class="lg:col-span-3">
                 <ul class="space-y-2 p-5 bg-white rounded-2xl">
                     <template v-for="(section, index) in data" :key="section.id">
                         <li>
@@ -168,7 +168,7 @@ const getSelectData = (dataType) => {
                 </ul>
             </div>
 
-            <div class="lg:col-span-8 bg-white rounded-2xl p-5 flex flex-col gap-5 h-full justify-between">
+            <div class="lg:col-span-9 bg-white rounded-2xl p-5 flex flex-col gap-5 h-full justify-between">
                 <div class="grow flex flex-col gap-5">
                     <template v-for="field in selectedSection.children" :key="field.id">
                         <template v-if="field.type === 'text' || field.type === 'number' || field.type === 'textarea'">

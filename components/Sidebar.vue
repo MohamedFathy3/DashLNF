@@ -9,9 +9,9 @@ defineProps({
 const emit = defineEmits(['toggleSidebar']);
 const menuItems = ref([
     'Overview',
-    { name: 'Network Overview', path: '/', icon: 'solar:monitor-linear', subMenus: [], permission: [] },
+    { name: 'Overview', path: '/', icon: 'solar:monitor-linear', subMenus: [], permission: [] },
     {
-        name: 'Network Reports',
+        name: 'Reports',
         path: '/reports',
         icon: 'solar:chart-linear',
         permission: ['list-vote', 'list-logs'],
@@ -41,7 +41,7 @@ const menuItems = ref([
         name: 'Website Data',
         path: '/website-data',
         icon: 'solar:file-text-line-duotone',
-        permission: ['list-page', 'list-section', 'list-menu', 'list-article', 'list-event', 'list-slider', 'list-testimonial', 'list-partner', 'list-team', 'list-incoterm', 'list-faq', 'list-benefit', 'list-message'],
+        permission: ['list-page', 'list-section', 'list-menu', 'list-article', 'list-event', 'list-partner', 'list-faq', 'list-term', 'list-service', 'list-policy', , 'list-team', 'list-message'],
         subMenus: [
             {
                 name: 'Pages',
@@ -91,6 +91,34 @@ const menuItems = ref([
                 icon: 'solar:question-square-linear',
                 subMenus: [],
                 permission: ['list-faq'],
+            },
+            {
+                name: 'Terms & Conditions',
+                path: '/website-data/terms-and-conditions',
+                icon: 'solar:question-square-linear',
+                subMenus: [],
+                permission: ['list-term'],
+            },
+            {
+                name: 'Services',
+                path: '/website-data/services',
+                icon: 'solar:star-circle-linear',
+                subMenus: [],
+                permission: ['list-service'],
+            },
+            {
+                name: 'Policies',
+                path: '/website-data/policies',
+                icon: 'solar:menu-dots-square-outline',
+                subMenus: [],
+                permission: ['list-policy'],
+            },
+            {
+                name: 'Board Members',
+                path: '/website-data/team',
+                icon: 'solar:users-group-two-rounded-linear',
+                subMenus: [],
+                permission: ['list-team'],
             },
             {
                 name: 'Contact Messages',

@@ -1,5 +1,5 @@
 <script setup>
-import { required } from '@vuelidate/validators';
+import { numeric, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 definePageMeta({
@@ -13,7 +13,6 @@ const sortByList = ref([
 const filter = ref({
     name: null,
 });
-
 const serverParams = ref({
     filters: {},
     orderBy: 'id',
@@ -44,9 +43,9 @@ const resetServerParams = async () => {
 };
 const {
     data: rows,
-    status,
+    pending,
     refresh,
-} = await useApiFetch('/api/page/index', {
+} = await useApiFetch('/api/team/index', {
     method: 'POST',
     body: serverParams,
     lazy: true,
@@ -109,23 +108,25 @@ const toggleRowSelection = (id) => {
 };
 const item = ref({
     name: null,
+    title: null,
+    network: null,
+    image: null,
     position: null,
-    pageSections: [],
-    slug: null,
-    des: null,
     active: true,
+    showHome: true,
 });
 const rules = ref({
     name: { required },
-    position: {},
-    pageSections: {},
-    slug: {},
-    des: {},
+    title: { required },
+    network: { required },
+    image: {},
+    position: { numeric },
     active: {},
+    showHome: {},
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
-    const { data, error } = await useApiFetch(`/api/page/${id}`, {
+    const { data, error } = await useApiFetch(`/api/team/${id}`, {
         lazy: true,
     });
     if (data.value) {
@@ -138,11 +139,12 @@ const fetchItem = async (id) => {
 const resetItemValues = async () => {
     item.value = {
         name: null,
+        title: null,
+        network: null,
+        image: null,
         position: null,
-        pageSections: [],
-        slug: null,
-        des: null,
         active: true,
+        showHome: true,
     };
 };
 async function closeModal() {
@@ -164,7 +166,7 @@ async function openModal(id = null) {
 }
 
 async function updateItem() {
-    const { data, error } = await useApiFetch(`/api/page/${item.value.id}`, {
+    const { data, error } = await useApiFetch(`/api/team/${item.value.id}`, {
         method: 'PATCH',
         body: item,
         lazy: true,
@@ -180,7 +182,7 @@ async function updateItem() {
 }
 
 async function addItem() {
-    const { data, error } = await useApiFetch(`/api/page`, {
+    const { data, error } = await useApiFetch(`/api/team`, {
         method: 'POST',
         body: item,
         lazy: true,
@@ -212,7 +214,7 @@ async function handleModalSubmit() {
 async function deleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/page/delete`, {
+        const { data, error } = await useApiFetch(`/api/team/delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -229,7 +231,7 @@ async function deleteItems() {
 async function forceDeleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/page/force-delete`, {
+        const { data, error } = await useApiFetch(`/api/team/force-delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -246,7 +248,7 @@ async function forceDeleteItems() {
 async function restoreItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/page/restore`, {
+        const { data, error } = await useApiFetch(`/api/team/restore`, {
             body: { items: selectedRows.value },
             method: 'POST',
             lazy: true,
@@ -260,31 +262,6 @@ async function restoreItems() {
         }
     }
 }
-
-const sectionsServerParams = ref({
-    filters: {},
-    orderBy: 'id',
-    orderByDirection: 'desc',
-    perPage: 25,
-    paginate: false,
-    deleted: false,
-});
-const { data: pageSections } = await useApiFetch(`/api/page-section/index`, {
-    body: sectionsServerParams,
-    method: 'POST',
-    lazy: true,
-    transform: (pageSections) => pageSections.data,
-});
-
-function addRow() {
-    item.value.pageSections.push({
-        pageSectionId: null,
-        position: null,
-    });
-}
-function removeRow(index) {
-    item.value.pageSections.splice(index, 1);
-}
 </script>
 <template>
     <div class="flex flex-col gap-8">
@@ -292,7 +269,7 @@ function removeRow(index) {
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
                 <Icon name="solar:asteroid-linear" class="size-5 opacity-75" />
-                <div>{{ serverParams.deleted ? 'Deleted Pages' : 'Pages' }}</div>
+                <div>{{ serverParams.deleted ? 'Deleted Teams' : 'Teams' }}</div>
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">
@@ -352,27 +329,40 @@ function removeRow(index) {
                         <input v-model="allSelected" type="checkbox" class="form-check-input" @change="selectAllRows" />
                     </th>
                     <th class="text-left">Name</th>
-                    <th>Position</th>
-                    <th>Active</th>
+                    <th class="text-center">Position</th>
+                    <th class="text-center">Active</th>
+                    <th class="text-center">Home</th>
                     <th v-if="serverParams.deleted">Deleted At</th>
                     <th class="text-right">Action</th>
                 </tr>
             </thead>
             <tbody>
-                <template v-if="status !== 'pending' && rows">
-                    <tr v-for="row in rows.data" :key="row.id">
+                <template v-if="!pending && rows">
+                    <tr v-for="row in rows.data" :key="row.id" class="text-sm">
                         <td>
                             <input :checked="isSelected(row.id)" type="checkbox" class="form-check-input" @change="toggleRowSelection(row.id)" />
                         </td>
-                        <td class="font-normal">
-                            <div>{{ row.name }}</div>
-                            <div class="font-light text-sm opacity-75">{{ row.slug }}</div>
+                        <td>
+                            <div class="flex items-start gap-3">
+                                <NuxtImg :src="row.imageUrl" class="h-10 !rounded-full w-10 object-cover shrink-0" />
+                                <div>
+                                    <div class="opacity-75 font-medium">{{ row.name }}</div>
+                                    <span v-if="row.title" class="capitalize py-0.5 mt-0.5 whitespace-nowrap px-3 text-xs bg-slate-200 rounded-full">{{ row.title }}</span>
+                                </div>
+                            </div>
                         </td>
                         <td class="text-center">
-                            <div>{{ row.position }}</div>
+                            {{ row.position }}
                         </td>
                         <td>
-                            <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'page')" />
+                            <div class="flex items-center place-content-center">
+                                <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'team')" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex items-center place-content-center">
+                                <FormSwitch :id="'row-show-home-' + row.id" v-model="row.showHome" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'show_home', 'team')" />
+                            </div>
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                         <td class="text-right">
@@ -387,15 +377,26 @@ function removeRow(index) {
                 </template>
                 <template v-else>
                     <tr v-for="i in serverParams.perPage" :key="i">
-                        <td colspan="5">
+                        <td colspan="7">
                             <div class="h-12 !opacity-50 animate-pulse" />
+                        </td>
+                    </tr>
+                </template>
+                <template v-if="!pending && rows && rows.data.length === 0">
+                    <tr>
+                        <td colspan="7">
+                            <div class="text-center">
+                                <Icon name="solar:cloud-check-line-duotone" class="size-20 opacity-50" />
+                                <div class="text-sm mt-5 opacity-75">No Data found</div>
+                            </div>
                         </td>
                     </tr>
                 </template>
             </tbody>
         </table>
         <!-- Pagination -->
-        <TablePagination :pending="status === 'pending'" :rows="rows" :page="serverParams.page" @change-page="changePage" />
+        <TablePagination :pending="pending" :rows="rows" :page="serverParams.page" @change-page="changePage" />
+
         <TheModal :open-modal="isOpen" size="5xl" @close-modal="closeModal()">
             <template #header>
                 <div class="flex justify-between items-center">
@@ -405,36 +406,16 @@ function removeRow(index) {
             </template>
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
-                    <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-6" label="Name" name="name" placeholder="Name" />
-                    <FormInputField v-model="item.slug" :errors="v$.slug.$errors" class="lg:col-span-6" label="Slug" name="slug" placeholder="Slug" />
-                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-12" label="Order" name="order-id" placeholder="Order Number" />
-                    <FormInputField v-model="item.des" :errors="v$.des.$errors" class="lg:col-span-12" label="Description" name="des" placeholder="Description" type="textarea" />
-                    <div class="col-span-12">
-                        <div class="space-y-4">
-                            <div v-for="(section, index) in item.pageSections" :key="index" class="grid xl:grid-cols-4 grid-cols-1 gap-6">
-                                <FormSelectField
-                                    v-model="section.pageSectionId"
-                                    :clearable="false"
-                                    labelvalue="title"
-                                    class="col-span-2"
-                                    keyvalue="id"
-                                    :select-data="pageSections"
-                                    :name="'page-section-' + index"
-                                    :placeholder="'Section ' + (index + 1)"
-                                />
-                                <FormInputField v-model="section.position" type="number" :placeholder="'Order ID ' + (index + 1)" :name="'section-order-id-' + index" />
-                                <div>
-                                    <button type="button" class="btn btn-danger btn-sm btn-rounded px-4" @click="removeRow(index)">
-                                        <Icon name="solar:close-circle-linear" class="w-5 h-5 mr-2" />
-                                        <span>Remove</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <button type="button" class="btn btn-success btn-sm btn-rounded px-4" @click="addRow">
-                                <Icon name="solar:add-circle-outline" class="w-5 h-5 mr-2" />
-                                <span>Add New</span>
-                            </button>
-                        </div>
+                    <div class="lg:col-span-4">
+                        <FormUploader v-model="item.image" :errors="v$.image.$errors" :allowed-types="['image']" label="Profile Image" name="image" />
+                    </div>
+                    <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5">
+                        <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-6" label="Name" name="name" placeholder="Name" />
+                        <FormInputField v-model="item.title" :errors="v$.title.$errors" class="lg:col-span-6" label="Job Title" name="title" placeholder="Job Title" />
+                        <FormInputField v-model="item.network" :errors="v$.network.$errors" class="lg:col-span-12" label="Network Name" name="network" placeholder="Network Name" />
+                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Order" name="order-id" placeholder="Order Number" type="number" />
+                        <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="'active" label="Active" class="lg:col-span-3" />
+                        <FormSwitch v-model="item.showHome" :errors="v$.showHome.$errors" name="'show-home" label="Show In Home" class="lg:col-span-3" />
                     </div>
                 </div>
             </template>
