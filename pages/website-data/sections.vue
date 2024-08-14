@@ -8,7 +8,7 @@ definePageMeta({
 const selectedRows = ref([]);
 const sortByList = ref([
     { name: 'Sort By ID', value: 'id' },
-    { name: 'Sort By Name', value: 'name' },
+    { name: 'Sort By Name', value: 'title' },
 ]);
 const filter = ref({
     name: null,
@@ -69,7 +69,7 @@ const isOpen = ref(false);
 const editMode = ref(false);
 const resetServerParams = async () => {
     filter.value = {
-        name: null,
+        title: null,
     };
     serverParams.value = {
         filters: {},
@@ -391,7 +391,7 @@ async function restoreItems() {
         </div>
         <!-- Filter & Search -->
         <div class="grid lg:grid-cols-12 gap-5 items-center p-5 bg-white border rounded-2xl">
-            <FormInputField v-model="filter.name" rounded class="xl:col-span-4 lg:col-span-4" placeholder="Name" />
+            <FormInputField v-model="filter.title" rounded class="xl:col-span-4 lg:col-span-4" placeholder="Title" />
             <FormSelectField v-model="serverParams.orderBy" :clearable="false" class="xl:col-span-4 lg:col-span-4" labelvalue="name" keyvalue="value" placeholder="Sort Direction" :select-data="sortByList" />
             <FormSelectField
                 v-model="serverParams.orderByDirection"
