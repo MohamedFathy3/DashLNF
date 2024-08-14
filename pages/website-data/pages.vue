@@ -175,7 +175,7 @@ async function updateItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -191,7 +191,7 @@ async function addItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -200,6 +200,7 @@ async function handleModalSubmit() {
     const result = await v$.value.$validate();
     if (!result) {
         formLoading.value = false;
+        useToast({ title: 'Error', message: 'Please fill all required inputs', type: 'error', duration: 5000 });
         return false;
     }
     if (editMode.value === true) {
@@ -407,7 +408,7 @@ function removeRow(index) {
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
                     <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-6" label="Name" name="name" placeholder="Name" />
                     <FormInputField v-model="item.slug" :errors="v$.slug.$errors" class="lg:col-span-6" label="Slug" name="slug" placeholder="Slug" />
-                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-12" label="Order" name="order-id" placeholder="Order Number" />
+                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-12" label="Position" type="number" name="order-id" placeholder="Position Number" />
                     <FormInputField v-model="item.des" :errors="v$.des.$errors" class="lg:col-span-12" label="Description" name="des" placeholder="Description" type="textarea" />
                     <div class="col-span-12">
                         <div class="space-y-4">

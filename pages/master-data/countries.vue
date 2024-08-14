@@ -180,7 +180,7 @@ async function updateItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -196,7 +196,7 @@ async function addItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -205,6 +205,7 @@ async function handleModalSubmit() {
     const result = await v$.value.$validate();
     if (!result) {
         formLoading.value = false;
+        useToast({ title: 'Error', message: 'Please fill all required inputs', type: 'error', duration: 5000 });
         return false;
     }
     if (editMode.value === true) {
@@ -399,7 +400,7 @@ async function restoreItems() {
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
                         <FormInputField v-model="item.key" :errors="v$.key.$errors" class="lg:col-span-6" label="Key" name="key" placeholder="Key" />
                         <FormInputField v-model="item.code" :errors="v$.code.$errors" class="lg:col-span-6" label="Code" name="code" placeholder="Code" />
-                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-12" label="Order" name="order-id" placeholder="Order Number" />
+                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-12" label="Position" type="number" name="order-id" placeholder="Position Number" />
                     </div>
                 </div>
             </template>

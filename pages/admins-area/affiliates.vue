@@ -179,7 +179,7 @@ async function updateItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -195,7 +195,7 @@ async function addItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -204,6 +204,7 @@ async function handleModalSubmit() {
     const result = await v$.value.$validate();
     if (!result) {
         formLoading.value = false;
+        useToast({ title: 'Error', message: 'Please fill all required inputs', type: 'error', duration: 5000 });
         return false;
     }
     if (editMode.value === true) {

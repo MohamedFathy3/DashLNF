@@ -227,7 +227,7 @@ async function updateItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -243,7 +243,7 @@ async function addItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -252,6 +252,7 @@ async function handleModalSubmit() {
     const result = await v$.value.$validate();
     if (!result) {
         formLoading.value = false;
+        useToast({ title: 'Error', message: 'Please fill all required inputs', type: 'error', duration: 5000 });
         return false;
     }
     if (editMode.value === true) {
@@ -319,7 +320,7 @@ async function restoreItems() {
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
                 <Icon name="solar:asteroid-linear" class="size-5 opacity-75" />
-                <div>{{ serverParams.deleted ? 'Deleted News' : 'News' }}</div>
+                <div>{{ serverParams.deleted ? 'Deleted Events' : 'Events' }}</div>
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">
@@ -471,7 +472,7 @@ async function restoreItems() {
                             labelvalue="name"
                             keyvalue="id"
                         />
-                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Order" name="order-id" placeholder="Order Number" type="number" />
+                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Position" name="order-id" placeholder="Position Number" type="number" />
                         <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="'active" label="Active" class="lg:col-span-3" />
                         <FormSwitch v-model="item.featured" :errors="v$.featured.$errors" name="'featured" label="Featured" class="lg:col-span-3" />
                     </div>

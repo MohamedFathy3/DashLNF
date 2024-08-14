@@ -231,7 +231,7 @@ async function updateItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 async function addItem() {
@@ -246,7 +246,7 @@ async function addItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 async function handleModalSubmit() {
@@ -254,6 +254,7 @@ async function handleModalSubmit() {
     const result = await v$.value.$validate();
     if (!result) {
         formLoading.value = false;
+        useToast({ title: 'Error', message: 'Please fill all required inputs', type: 'error', duration: 5000 });
         return false;
     }
     if (editMode.value === true) {
@@ -386,24 +387,24 @@ async function handleChildModalSubmit() {
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">
-                    <button v-if="serverParams.deleted" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="forceDeleteItems">
+                    <button v-if="serverParams.deleted" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" type="button" @click="forceDeleteItems">
                         <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                         Delete Permanently
                     </button>
-                    <button v-else class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="deleteItems">
+                    <button v-else class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" type="button" @click="deleteItems">
                         <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                         Delete Items
                     </button>
-                    <button v-if="serverParams.deleted" class="btn btn-success btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="restoreItems">
+                    <button v-if="serverParams.deleted" class="btn btn-success btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" type="button" @click="restoreItems">
                         <Icon name="solar:restart-circle-outline" class="size-5 opacity-75" />
                         Restore Items
                     </button>
                 </template>
-                <button :disabled="serverParams.deleted" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="openModal()">
+                <button :disabled="serverParams.deleted" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" type="button" @click="openModal()">
                     <Icon name="solar:add-square-linear" class="size-5 opacity-75" />
                     Add New
                 </button>
-                <button class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="toggleDeleted">
+                <button class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" type="button" @click="toggleDeleted">
                     <Icon :name="serverParams.deleted ? 'solar:hamburger-menu-line-duotone' : 'solar:trash-bin-minimalistic-line-duotone'" class="size-5 opacity-75" />
                     {{ serverParams.deleted ? 'Items List' : 'Deleted Items' }}
                 </button>
@@ -425,11 +426,11 @@ async function handleChildModalSubmit() {
                     { name: 'A : Z', value: 'asc' },
                 ]"
             />
-            <button class="xl:col-span-6 lg:col-span-6 btn btn-rounded btn-sm btn-primary gap-3 w-full" @click="refresh">
+            <button class="xl:col-span-6 lg:col-span-6 btn btn-rounded btn-sm btn-primary gap-3 w-full" type="button" @click="refresh">
                 <Icon name="solar:rounded-magnifer-line-duotone" class="size-5 shrink-0" />
                 Filter
             </button>
-            <button class="xl:col-span-6 lg:col-span-6 btn btn-rounded btn-sm btn-secondary gap-3 w-full" @click="resetServerParams">
+            <button class="xl:col-span-6 lg:col-span-6 btn btn-rounded btn-sm btn-secondary gap-3 w-full" type="button" @click="resetServerParams">
                 <Icon name="solar:restart-circle-outline" class="size-5 shrink-0" />
                 Reset
             </button>
@@ -463,7 +464,7 @@ async function handleChildModalSubmit() {
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                         <td class="text-right">
                             <div>
-                                <button :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
+                                <button :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" type="button" @click="openModal(row.id)">
                                     <Icon name="solar:pen-new-round-outline" class="size-4" />
                                     Edit
                                 </button>
@@ -493,7 +494,7 @@ async function handleChildModalSubmit() {
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
                     <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-6" label="Name" name="name" placeholder="Name" />
-                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Order" name="order-id" placeholder="Order Number" />
+                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Position" type="number" name="order-id" placeholder="Position Number" />
                     <template v-if="editMode">
                         <div class="border-t col-span-12 py-5">
                             <div class="flex items-center justify-between gap-5 py-2 px-5 rounded-l-full bg-gradient-to-r from-slate-50 via-transparent to-transparent">
@@ -525,11 +526,11 @@ async function handleChildModalSubmit() {
                                         <div class="text-sm">{{ subItem.position }}</div>
                                         <div class="flex items-center space-x-2 text-xs justify-end">
                                             <div class="flex justify-center items-center gap-3">
-                                                <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-secondary btn-rounded" @click="openChildModal(subItem.id)">
+                                                <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-secondary btn-rounded" type="button" @click="openChildModal(subItem.id)">
                                                     <Icon name="solar:pen-new-round-outline" class="w-4 h-4" />
                                                     <span>Edit</span>
                                                 </button>
-                                                <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-outline-danger btn-rounded" @click="deleteChild(subItem.id, subItem.menuId)">
+                                                <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-outline-danger btn-rounded" type="button" @click="deleteChild(subItem.id, subItem.menuId)">
                                                     <Icon name="solar:close-circle-outline" class="w-4 h-4" />
                                                     <span>Remove</span>
                                                 </button>
@@ -555,11 +556,11 @@ async function handleChildModalSubmit() {
                                                 <div class="text-sm">{{ child.position }}</div>
                                                 <div class="flex items-center space-x-2 text-xs justify-end">
                                                     <div class="flex justify-center items-center gap-3">
-                                                        <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-secondary btn-rounded" @click="openChildModal(child.id)">
+                                                        <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-secondary btn-rounded" type="button" @click="openChildModal(child.id)">
                                                             <Icon name="solar:pen-new-round-outline" class="w-4 h-4" />
                                                             <span>Edit</span>
                                                         </button>
-                                                        <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-outline-danger btn-rounded" @click="deleteChild(child.id, child.menuId)">
+                                                        <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-outline-danger btn-rounded" type="button" @click="deleteChild(child.id, child.menuId)">
                                                             <Icon name="solar:close-circle-outline" class="w-4 h-4" />
                                                             <span>Remove</span>
                                                         </button>
@@ -595,7 +596,7 @@ async function handleChildModalSubmit() {
                                     name="menu-items-list"
                                     placeholder="Parent Menu Item"
                                 />
-                                <FormInputField v-model="children.position" :errors="s$.position.$errors" type="number" class="col-span-12 sm:col-span-4" label="Order" name="order-id" placeholder="Order" />
+                                <FormInputField v-model="children.position" :errors="s$.position.$errors" type="number" class="col-span-12 sm:col-span-4" label="Position" name="order-id" placeholder="Position" />
                                 <FormInputField v-model="children.icon" :errors="s$.icon.$errors" class="col-span-12 sm:col-span-4" label="Icon" name="icon" placeholder="Icon" />
                                 <FormSwitch v-model="children.type" :errors="s$.type.$errors" class="col-span-12 sm:col-span-6" :label="children.type ? 'Internal' : 'External'" name="type-input" />
                                 <FormSwitch v-model="children.active" :errors="s$.active.$errors" class="col-span-12 sm:col-span-6" label="Active" name="active-input" />

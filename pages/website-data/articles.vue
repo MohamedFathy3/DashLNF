@@ -181,7 +181,7 @@ async function updateItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -197,7 +197,7 @@ async function addItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -206,6 +206,7 @@ async function handleModalSubmit() {
     const result = await v$.value.$validate();
     if (!result) {
         formLoading.value = false;
+        useToast({ title: 'Error', message: 'Please fill all required inputs', type: 'error', duration: 5000 });
         return false;
     }
     if (editMode.value === true) {
@@ -397,7 +398,7 @@ async function restoreItems() {
                     </div>
                     <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5">
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
-                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Order" name="order-id" placeholder="Order Number" />
+                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Position" type="number" name="order-id" placeholder="Position Number" />
                         <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="'active" label="Active" class="lg:col-span-3" />
                         <FormSwitch v-model="item.featured" :errors="v$.featured.$errors" name="'featured" label="Featured" class="lg:col-span-3" />
                         <FormDatePicker v-model="item.publishDate" :errors="v$.publishDate.$errors" label="Publish Date" class="lg:col-span-12" />
