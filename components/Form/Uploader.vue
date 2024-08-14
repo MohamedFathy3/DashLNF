@@ -51,6 +51,7 @@ const types = {
     document: ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/pdf'],
     archive: ['application/zip', 'application/x-7z-compressed', 'application/gzip', 'application/vnd.rar'],
 };
+
 function getSubtypes(category) {
     const subtypes = [];
     const categoryTypes = types[category];
@@ -73,6 +74,7 @@ function resetErrors() {
     maxFileTypeMessage.value = false;
     validationError.value = false;
 }
+
 function validateFile($event) {
     const fileInput = $event instanceof DragEvent ? $event.dataTransfer?.files?.[0] : $event.target instanceof HTMLInputElement ? $event.target.files?.[0] : undefined;
     resetErrors();
@@ -102,6 +104,7 @@ function validateFile($event) {
 
     return isValid;
 }
+
 function validateFiles($event) {
     const fileInputs = $event instanceof DragEvent ? $event.dataTransfer?.files : $event.target instanceof HTMLInputElement ? $event.target.files : undefined;
     resetErrors();
@@ -201,6 +204,7 @@ async function onUploadFile($event) {
         uploading.value = false;
     }
 }
+
 async function onUploadFiles($event) {
     if (!validateFiles($event)) {
         validationError.value = true;
@@ -360,10 +364,12 @@ const {
 const selectedMediaFiles = ref([]);
 const formLoading = ref(false);
 const isOpen = ref(false);
+
 async function closeModal() {
     isOpen.value = false;
     selectedMediaFiles.value = [];
 }
+
 async function openModal() {
     formLoading.value = true;
     selectedMediaFiles.value = [];
@@ -371,6 +377,7 @@ async function openModal() {
     isOpen.value = true;
     formLoading.value = false;
 }
+
 function formatBytes(bytes) {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -378,6 +385,7 @@ function formatBytes(bytes) {
     const i = parseInt(Math.floor(Math.log(bytes) / Math.log(k)));
     return Math.round(100 * (bytes / Math.pow(k, i))) / 100 + ' ' + sizes[i];
 }
+
 const changePage = async (value) => {
     const pageNumber = parseInt(value);
     if (!isNaN(pageNumber)) {
@@ -576,7 +584,7 @@ const insertMedia = async () => {
                         <div class="text-sm space-y-2">
                             <label :for="name" class="relative btn btn-sm btn-primary whitespace-nowrap">
                                 <span>Upload a file</span>
-                                <input :id="name" :name="name" type="file" class="sr-only" @change="onUploadFile" />
+                                <input :id="name" :name="name" type="file" class="sr-only" multiple @change="onUploadFiles" />
                             </label>
                             <p class="pl-1">or drag and drop</p>
                         </div>
