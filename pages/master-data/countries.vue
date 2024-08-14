@@ -137,7 +137,7 @@ const fetchItem = async (id) => {
         item.value = data.value.data;
     }
     if (error.value) {
-        useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
     }
 };
 const resetItemValues = async () => {
@@ -180,7 +180,7 @@ async function updateItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -196,7 +196,7 @@ async function addItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
     }
 }
 
@@ -227,7 +227,7 @@ async function deleteItems() {
             await refresh();
         }
         if (error.value) {
-            useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+            useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
         }
     }
 }
@@ -244,7 +244,7 @@ async function forceDeleteItems() {
             await refresh();
         }
         if (error.value) {
-            useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+            useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
         }
     }
 }
@@ -261,7 +261,7 @@ async function restoreItems() {
             await refresh();
         }
         if (error.value) {
-            useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+            useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
         }
     }
 }

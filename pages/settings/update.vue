@@ -85,7 +85,7 @@ const handleModalSubmit = async () => {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
     }
 };
 
@@ -107,7 +107,7 @@ const fetchMenus = async () => {
         menus.value = data.value.data;
     }
     if (error.value) {
-        useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
     }
 };
 const fetchEmailTemplates = async () => {
@@ -128,7 +128,7 @@ const fetchEmailTemplates = async () => {
         emailTemplates.value = data.value.data;
     }
     if (error.value) {
-        useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
     }
 };
 onMounted(async () => {
