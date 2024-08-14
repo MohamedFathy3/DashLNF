@@ -46,7 +46,7 @@ const {
     data: rows,
     pending,
     refresh,
-} = await useApiFetch('/api/termsCondition/index', {
+} = await useApiFetch('/api/terms-condition/index', {
     method: 'POST',
     body: serverParams,
     lazy: true,
@@ -121,7 +121,7 @@ const rules = ref({
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
-    const { data, error } = await useApiFetch(`/api/termsCondition/${id}`, {
+    const { data, error } = await useApiFetch(`/api/terms-condition/${id}`, {
         lazy: true,
     });
     if (data.value) {
@@ -160,7 +160,7 @@ async function openModal(id = null) {
 }
 
 async function updateItem() {
-    const { data, error } = await useApiFetch(`/api/termsCondition/${item.value?.id}`, {
+    const { data, error } = await useApiFetch(`/api/terms-condition/${item.value?.id}`, {
         method: 'PATCH',
         body: item,
         lazy: true,
@@ -176,7 +176,7 @@ async function updateItem() {
 }
 
 async function addItem() {
-    const { data, error } = await useApiFetch(`/api/termsCondition`, {
+    const { data, error } = await useApiFetch(`/api/terms-condition`, {
         method: 'POST',
         body: item,
         lazy: true,
@@ -208,7 +208,7 @@ async function handleModalSubmit() {
 async function deleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/termsCondition/delete`, {
+        const { data, error } = await useApiFetch(`/api/terms-condition/delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -226,7 +226,7 @@ async function deleteItems() {
 async function forceDeleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/termsCondition/force-delete`, {
+        const { data, error } = await useApiFetch(`/api/terms-condition/force-delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -244,7 +244,7 @@ async function forceDeleteItems() {
 async function restoreItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/termsCondition/restore`, {
+        const { data, error } = await useApiFetch(`/api/terms-condition/restore`, {
             body: { items: selectedRows.value },
             method: 'POST',
             lazy: true,
