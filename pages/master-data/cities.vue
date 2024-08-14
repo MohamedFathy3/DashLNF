@@ -113,7 +113,7 @@ const toggleRowSelection = (id) => {
 };
 const item = ref({
     name: null,
-    orderId: null,
+    position: null,
     countryId: null,
     lat: null,
     lng: null,
@@ -121,7 +121,7 @@ const item = ref({
 });
 const rules = ref({
     name: { required },
-    orderId: {},
+    position: {},
     countryId: { required },
     lat: {},
     lng: {},
@@ -142,7 +142,7 @@ const fetchItem = async (id) => {
 const resetItemValues = async () => {
     item.value = {
         name: null,
-        orderId: null,
+        position: null,
         countryId: null,
         lat: null,
         lng: null,
@@ -416,7 +416,7 @@ async function restoreItems() {
                     />
                     <FormInputField v-model="item.lat" :errors="v$.lat.$errors" class="lg:col-span-6" label="Latitude" name="lat" placeholder="Latitude" />
                     <FormInputField v-model="item.lng" :errors="v$.lng.$errors" class="lg:col-span-6" label="longitude" name="lng" placeholder="longitude" />
-                    <FormInputField v-model="item.orderId" :errors="v$.orderId.$errors" class="lg:col-span-12" label="Order" name="order-id" placeholder="Order Number" />
+                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-12" label="Order" name="order-id" placeholder="Order Number" />
                 </div>
             </template>
             <template #footer>

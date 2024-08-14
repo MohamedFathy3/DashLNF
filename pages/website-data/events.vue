@@ -127,7 +127,7 @@ const item = ref({
     countries: null, // Number
     featured: false,
     active: true,
-    orderId: null, // Number
+    position: null, // Number
     countryId: null,
     city: null, // ID from Cities
     duration: null, // number
@@ -150,7 +150,7 @@ const rules = ref({
     countries: { numeric },
     featured: { numeric },
     active: {},
-    orderId: { numeric },
+    position: { numeric },
     countryId: { required },
     city: { required },
     duration: { numeric },
@@ -189,7 +189,7 @@ const resetItemValues = async () => {
         countries: null,
         featured: false,
         active: true,
-        orderId: null,
+        position: null,
         countryId: null,
         city: null,
         duration: null,
@@ -471,7 +471,7 @@ async function restoreItems() {
                             labelvalue="name"
                             keyvalue="id"
                         />
-                        <FormInputField v-model="item.orderId" :errors="v$.orderId.$errors" class="lg:col-span-6" label="Order" name="order-id" placeholder="Order Number" type="number" />
+                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Order" name="order-id" placeholder="Order Number" type="number" />
                         <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="'active" label="Active" class="lg:col-span-3" />
                         <FormSwitch v-model="item.featured" :errors="v$.featured.$errors" name="'featured" label="Featured" class="lg:col-span-3" />
                     </div>

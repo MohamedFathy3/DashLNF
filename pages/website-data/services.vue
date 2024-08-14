@@ -113,7 +113,7 @@ const item = ref({
     icon: null,
     networks: [],
     contents: [],
-    orderId: null,
+    position: null,
     image: null,
 });
 const rules = ref({
@@ -123,7 +123,7 @@ const rules = ref({
     image: { required: requiredIf(() => item.value.icon === null) },
     networks: {},
     contents: {},
-    orderId: { numeric },
+    position: { numeric },
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
@@ -144,7 +144,7 @@ const resetItemValues = async () => {
         icon: null,
         networks: [],
         contents: [],
-        orderId: null,
+        position: null,
         image: null,
     };
 };
@@ -284,7 +284,7 @@ const children = ref({
     parentId: null,
     active: true,
     image: null,
-    orderId: null,
+    position: null,
 });
 const childrenRules = ref({
     name: { required },
@@ -292,7 +292,7 @@ const childrenRules = ref({
     detail: { required: requiredIf(() => children.value.type !== 'divider') },
     parentId: { required: requiredIf(() => children.value.type === 'list-item') },
     image: { required: requiredIf(() => children.value.type === 'image') },
-    orderId: {},
+    position: {},
 });
 const s$ = useVuelidate(childrenRules, children);
 const fetchChildItem = async (id) => {
@@ -314,7 +314,7 @@ const resetChildrenValues = async () => {
         active: true,
         parentId: null,
         image: null,
-        orderId: null,
+        position: null,
     };
 };
 async function closeChildModal() {
@@ -487,7 +487,7 @@ const contentTypes = ref([
                             <div class="opacity-75 font-light text-xs mt-0.5">{{ row.slug }}</div>
                         </td>
                         <td class="text-center">
-                            {{ row.orderId }}
+                            {{ row.position }}
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                         <td class="text-right">
@@ -537,7 +537,7 @@ const contentTypes = ref([
                     <div class="lg:col-span-8 grid grid-cols-12 gap-5">
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
                         <FormInputField v-model="item.icon" :errors="v$.icon.$errors" class="lg:col-span-12" label="Icon Name" name="icon" placeholder="Icon Name" />
-                        <FormInputField v-model="item.orderId" :errors="v$.orderId.$errors" class="lg:col-span-12" label="Order" name="order-id" placeholder="Order Number" type="number" />
+                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-12" label="Order" name="order-id" placeholder="Order Number" type="number" />
                     </div>
                     <FormInputField v-model="item.shortDes" :errors="v$.shortDes.$errors" class="lg:col-span-12" label="Short Description" name="shortDes" placeholder="Short Description" type="textarea" />
                     <div class="p-5 border lg:col-span-12 rounded-xl">
@@ -567,7 +567,7 @@ const contentTypes = ref([
                                 </button>
                             </div>
                             <div class="mt-5 lg:px-6 space-y-1.5">
-                                <template v-for="subItem in item.contents" :key="subItem.orderId">
+                                <template v-for="subItem in item.contents" :key="subItem.position">
                                     <div v-if="!subItem.parentId" class="py-2 px-6 border grid grid-cols-5 gap-5 bg-slate-50 rounded-full items-center">
                                         <div class="font-semibold text-xs whitespace-nowrap col-span-2">
                                             <div class="flex items-center">
@@ -580,7 +580,7 @@ const contentTypes = ref([
                                         <div>
                                             <FormSwitch :id="'child-active-' + subItem.id" v-model="subItem.active" @change="useToggleSwitch(subItem.id, 'active', 'content')" />
                                         </div>
-                                        <div class="text-sm">{{ subItem.orderId }}</div>
+                                        <div class="text-sm">{{ subItem.position }}</div>
                                         <div class="flex items-center space-x-2 text-xs justify-end">
                                             <div class="flex justify-center items-center gap-3">
                                                 <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-secondary btn-rounded" @click="openChildModal(subItem.id)">
@@ -608,7 +608,7 @@ const contentTypes = ref([
                                                 <div>
                                                     <FormSwitch :id="'child-active-' + child.id" v-model="child.active" @change="useToggleSwitch(child.id, 'active', 'content')" />
                                                 </div>
-                                                <div class="text-sm">{{ child.orderId }}</div>
+                                                <div class="text-sm">{{ child.position }}</div>
                                                 <div class="flex items-center space-x-2 text-xs justify-end">
                                                     <div class="flex justify-center items-center gap-3">
                                                         <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-secondary btn-rounded" @click="openChildModal(child.id)">
@@ -665,7 +665,7 @@ const contentTypes = ref([
                                 />
                                 <FormUploader v-if="['image', 'section-with-image'].includes(children?.type)" v-model="children.image" :errors="s$.image.$errors" :allowed-types="['image']" class="lg:col-span-12" label="Image" name="image" />
                                 <FormInputField v-model="children.detail" :errors="s$.detail.$errors" class="lg:col-span-12" label="Detail" name="detail" placeholder="Detail" :type="children.type === 'paragraph' ? 'textarea' : 'text'" />
-                                <FormInputField v-model="children.orderId" :errors="s$.orderId.$errors" type="number" class="lg:col-span-9" label="Order" name="order-id" placeholder="Order" />
+                                <FormInputField v-model="children.position" :errors="s$.position.$errors" type="number" class="lg:col-span-9" label="Order" name="order-id" placeholder="Order" />
                                 <FormSwitch v-model="children.active" class="lg:col-span-3" label="Active" name="active-input" />
                             </div>
                         </template>

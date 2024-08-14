@@ -110,16 +110,14 @@ const toggleRowSelection = (id) => {
 const item = ref({
     name: null,
     des: null,
-    networks: [],
     active: true,
-    orderId: null,
+    position: null,
 });
 const rules = ref({
     name: { required },
-    networks: {},
     des: {},
     active: {},
-    orderId: { numeric },
+    position: { numeric },
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
@@ -137,9 +135,8 @@ const resetItemValues = async () => {
     item.value = {
         name: null,
         des: null,
-        networks: [],
         active: true,
-        orderId: null,
+        position: null,
     };
 };
 async function closeModal() {
@@ -156,7 +153,6 @@ async function openModal(id = null) {
     } else {
         editMode.value = false;
     }
-    await networkStatus();
     formLoading.value = false;
     isOpen.value = true;
 }
@@ -258,20 +254,6 @@ async function restoreItems() {
         }
     }
 }
-
-async function networkStatus() {
-    const itemNetworks = item.value.networks.map((n) => n.networkId);
-    settingStore.networks.forEach((network) => {
-        const networkExist = itemNetworks.includes(network.id);
-        if (!networkExist) {
-            const newNetworkStatus = {
-                networkId: network.id,
-                active: false,
-            };
-            item.value.networks.push(newNetworkStatus);
-        }
-    });
-}
 </script>
 <template>
     <div class="flex flex-col gap-8">
@@ -355,7 +337,7 @@ async function networkStatus() {
                             <div class="opacity-75 font-medium line-clamp-1">{{ row.name }}</div>
                         </td>
                         <td class="text-center">
-                            {{ row.orderId }}
+                            {{ row.position }}
                         </td>
                         <td>
                             <div class="flex items-center place-content-center">
@@ -406,21 +388,8 @@ async function networkStatus() {
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
                     <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
                     <FormRichTextEditor v-model="item.des" :errors="v$.des.$errors" label="Description" name="des" class="col-span-12" />
-                    <div class="p-5 border lg:col-span-12 rounded-xl">
-                        <div class="form-label opacity-75 font-light px-4 bg-gradient-to-r from-slate-100 to-transparent w-full rounded-lg py-2">Network Active Status</div>
-                        <div class="mt-3 flex items-center justify-between gap-5">
-                            <template v-for="activeNetwork in item.networks" :key="activeNetwork.networkId">
-                                <FormSwitch
-                                    v-model="activeNetwork.active"
-                                    class="col-span-12 sm:col-span-4"
-                                    flex-title
-                                    :label="settingStore.networks.find((n) => n.id === activeNetwork.networkId)?.name"
-                                    :name="settingStore.networks.find((n) => n.id === activeNetwork.networkId)?.slug + 'active-switch'"
-                                />
-                            </template>
-                        </div>
-                    </div>
-                    <FormInputField v-model="item.orderId" :errors="v$.orderId.$errors" class="lg:col-span-9" label="Order" name="order-id" placeholder="Order Number" type="number" />
+                    <FormSwitch v-model="item.active" class="col-span-12 sm:col-span-4" flex-title label="Active" name="active-toggle" />
+                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-9" label="Order" name="order-id" placeholder="Order Number" type="number" />
                     <FormSwitch v-model="item.active" name="'active" label="Global Active" class="lg:col-span-3" />
                 </div>
             </template>

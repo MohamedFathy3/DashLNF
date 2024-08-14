@@ -95,12 +95,12 @@ const toggleRowSelection = (id) => {
 };
 const item = ref({
     name: null,
-    orderId: null,
+    position: null,
     active: true,
 });
 const rules = ref({
     name: { required },
-    orderId: {},
+    position: {},
     active: {},
 });
 const v$ = useVuelidate(rules, item);
@@ -118,7 +118,7 @@ const fetchItem = async (id) => {
 const resetItemValues = async () => {
     item.value = {
         name: null,
-        orderId: null,
+        position: null,
         active: true,
     };
 };

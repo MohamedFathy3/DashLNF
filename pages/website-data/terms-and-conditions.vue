@@ -46,7 +46,7 @@ const {
     data: rows,
     pending,
     refresh,
-} = await useApiFetch('/api/faq/index', {
+} = await useApiFetch('/api/termsCondition/index', {
     method: 'POST',
     body: serverParams,
     lazy: true,
@@ -110,20 +110,18 @@ const toggleRowSelection = (id) => {
 const item = ref({
     name: null,
     des: null,
-    networks: [],
     active: true,
-    orderId: null,
+    position: null,
 });
 const rules = ref({
     name: { required },
-    networks: {},
     des: {},
     active: {},
-    orderId: { numeric },
+    position: { numeric },
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
-    const { data, error } = await useApiFetch(`/api/faq/${id}`, {
+    const { data, error } = await useApiFetch(`/api/termsCondition/${id}`, {
         lazy: true,
     });
     if (data.value) {
@@ -137,17 +135,18 @@ const resetItemValues = async () => {
     item.value = {
         name: null,
         des: null,
-        networks: [],
         active: true,
-        orderId: null,
+        position: null,
     };
 };
+
 async function closeModal() {
     isOpen.value = false;
     editMode.value = false;
     v$.value.$reset();
     await resetItemValues();
 }
+
 async function openModal(id = null) {
     formLoading.value = true;
     if (id !== null) {
@@ -156,13 +155,12 @@ async function openModal(id = null) {
     } else {
         editMode.value = false;
     }
-    await networkStatus();
     formLoading.value = false;
     isOpen.value = true;
 }
 
 async function updateItem() {
-    const { data, error } = await useApiFetch(`/api/faq/${item.value?.id}`, {
+    const { data, error } = await useApiFetch(`/api/termsCondition/${item.value?.id}`, {
         method: 'PATCH',
         body: item,
         lazy: true,
@@ -178,7 +176,7 @@ async function updateItem() {
 }
 
 async function addItem() {
-    const { data, error } = await useApiFetch(`/api/faq`, {
+    const { data, error } = await useApiFetch(`/api/termsCondition`, {
         method: 'POST',
         body: item,
         lazy: true,
@@ -210,7 +208,7 @@ async function handleModalSubmit() {
 async function deleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/faq/delete`, {
+        const { data, error } = await useApiFetch(`/api/termsCondition/delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -224,10 +222,11 @@ async function deleteItems() {
         }
     }
 }
+
 async function forceDeleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/faq/force-delete`, {
+        const { data, error } = await useApiFetch(`/api/termsCondition/force-delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -241,10 +240,11 @@ async function forceDeleteItems() {
         }
     }
 }
+
 async function restoreItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/faq/restore`, {
+        const { data, error } = await useApiFetch(`/api/termsCondition/restore`, {
             body: { items: selectedRows.value },
             method: 'POST',
             lazy: true,
@@ -258,20 +258,6 @@ async function restoreItems() {
         }
     }
 }
-
-async function networkStatus() {
-    const itemNetworks = item.value.networks.map((n) => n.networkId);
-    settingStore.networks.forEach((network) => {
-        const networkExist = itemNetworks.includes(network.id);
-        if (!networkExist) {
-            const newNetworkStatus = {
-                networkId: network.id,
-                active: false,
-            };
-            item.value.networks.push(newNetworkStatus);
-        }
-    });
-}
 </script>
 <template>
     <div class="flex flex-col gap-8">
@@ -279,7 +265,7 @@ async function networkStatus() {
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
                 <Icon name="solar:asteroid-linear" class="size-5 opacity-75" />
-                <div>{{ serverParams.deleted ? 'Deleted FAQs' : 'FAQs' }}</div>
+                <div>{{ serverParams.deleted ? 'Deleted Terms & Conditions' : 'Terms & Conditions' }}</div>
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">
@@ -355,11 +341,11 @@ async function networkStatus() {
                             <div class="opacity-75 font-medium line-clamp-1">{{ row.name }}</div>
                         </td>
                         <td class="text-center">
-                            {{ row.orderId }}
+                            {{ row.position }}
                         </td>
                         <td>
                             <div class="flex items-center place-content-center">
-                                <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'faq')" />
+                                <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'termsCondition')" />
                             </div>
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
@@ -406,21 +392,8 @@ async function networkStatus() {
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
                     <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
                     <FormRichTextEditor v-model="item.des" :errors="v$.des.$errors" label="Description" name="des" class="col-span-12" />
-                    <div class="p-5 border lg:col-span-12 rounded-xl">
-                        <div class="form-label opacity-75 font-light px-4 bg-gradient-to-r from-slate-100 to-transparent w-full rounded-lg py-2">Network Active Status</div>
-                        <div class="mt-3 flex items-center justify-between gap-5">
-                            <template v-for="activeNetwork in item.networks" :key="activeNetwork.networkId">
-                                <FormSwitch
-                                    v-model="activeNetwork.active"
-                                    class="col-span-12 sm:col-span-4"
-                                    flex-title
-                                    :label="settingStore.networks.find((n) => n.id === activeNetwork.networkId)?.name"
-                                    :name="settingStore.networks.find((n) => n.id === activeNetwork.networkId)?.slug + 'active-switch'"
-                                />
-                            </template>
-                        </div>
-                    </div>
-                    <FormInputField v-model="item.orderId" :errors="v$.orderId.$errors" class="lg:col-span-9" label="Order" name="order-id" placeholder="Order Number" type="number" />
+                    <FormSwitch v-model="item.active" class="col-span-12 sm:col-span-4" flex-title label="Active" name="active-toggle" />
+                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-9" label="Order" name="order-id" placeholder="Order Number" type="number" />
                     <FormSwitch v-model="item.active" name="'active" label="Global Active" class="lg:col-span-3" />
                 </div>
             </template>

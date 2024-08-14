@@ -119,7 +119,7 @@ const resetItemValues = async () => {
         code: null,
         des: null,
         active: true,
-        orderId: null,
+        position: null,
         image: null,
     };
 };

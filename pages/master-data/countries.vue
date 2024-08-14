@@ -115,7 +115,7 @@ const toggleRowSelection = (id) => {
 const item = ref({
     name: null,
     key: null,
-    orderId: null,
+    position: null,
     code: null,
     active: true,
     image: null,
@@ -123,7 +123,7 @@ const item = ref({
 const rules = ref({
     name: { required },
     key: { required },
-    orderId: { numeric },
+    position: { numeric },
     code: { required },
     active: {},
     image: {},
@@ -144,7 +144,7 @@ const resetItemValues = async () => {
     item.value = {
         name: null,
         key: null,
-        orderId: null,
+        position: null,
         code: null,
         active: true,
         image: null,
@@ -399,7 +399,7 @@ async function restoreItems() {
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
                         <FormInputField v-model="item.key" :errors="v$.key.$errors" class="lg:col-span-6" label="Key" name="key" placeholder="Key" />
                         <FormInputField v-model="item.code" :errors="v$.code.$errors" class="lg:col-span-6" label="Code" name="code" placeholder="Code" />
-                        <FormInputField v-model="item.orderId" :errors="v$.orderId.$errors" class="lg:col-span-12" label="Order" name="order-id" placeholder="Order Number" />
+                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-12" label="Order" name="order-id" placeholder="Order Number" />
                     </div>
                 </div>
             </template>

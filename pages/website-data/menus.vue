@@ -111,7 +111,7 @@ const toggleRowSelection = (id) => {
 };
 const item = ref({
     name: null,
-    orderId: null,
+    position: null,
     active: true,
     menuItems: [],
 });
@@ -121,13 +121,13 @@ const children = ref({
     active: true,
     icon: null,
     type: true,
-    orderId: null,
+    position: null,
     parentId: null,
     menuId: null,
 });
 const rules = ref({
     name: { required },
-    orderId: {},
+    position: {},
     active: {},
 });
 const childrenRules = ref({
@@ -135,7 +135,7 @@ const childrenRules = ref({
     link: { required },
     active: {},
     type: { required },
-    orderId: {},
+    position: {},
     icon: {},
     parentId: { numeric },
     menuId: { required },
@@ -168,7 +168,7 @@ const resetItemValues = async () => {
     item.value = {
         name: null,
         menuItems: [],
-        orderId: null,
+        position: null,
         active: true,
     };
 };
@@ -179,7 +179,7 @@ const resetChildrenValues = async () => {
         active: true,
         icon: null,
         type: true,
-        orderId: null,
+        position: null,
         parentId: null,
         menuId: null,
     };
@@ -493,7 +493,7 @@ async function handleChildModalSubmit() {
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
                     <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-6" label="Name" name="name" placeholder="Name" />
-                    <FormInputField v-model="item.orderId" :errors="v$.orderId.$errors" class="lg:col-span-6" label="Order" name="order-id" placeholder="Order Number" />
+                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Order" name="order-id" placeholder="Order Number" />
                     <template v-if="editMode">
                         <div class="border-t col-span-12 py-5">
                             <div class="flex items-center justify-between gap-5 py-2 px-5 rounded-l-full bg-gradient-to-r from-slate-50 via-transparent to-transparent">
@@ -507,7 +507,7 @@ async function handleChildModalSubmit() {
                                 </button>
                             </div>
                             <div class="mt-5 lg:px-6 space-y-1.5">
-                                <template v-for="subItem in item.menuItems" :key="subItem.orderId">
+                                <template v-for="subItem in item.menuItems" :key="subItem.position">
                                     <div v-if="!subItem.parentId" class="py-2 px-6 border grid grid-cols-5 bg-slate-50 rounded-full items-center">
                                         <div class="font-semibold text-xs whitespace-nowrap col-span-2">
                                             <div class="flex items-center">
@@ -522,7 +522,7 @@ async function handleChildModalSubmit() {
                                         <div>
                                             <FormSwitch :id="'child-active-' + subItem.id" v-model="subItem.active" @change="useToggleSwitch(subItem.id, 'active', 'menu-item')" />
                                         </div>
-                                        <div class="text-sm">{{ subItem.orderId }}</div>
+                                        <div class="text-sm">{{ subItem.position }}</div>
                                         <div class="flex items-center space-x-2 text-xs justify-end">
                                             <div class="flex justify-center items-center gap-3">
                                                 <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-secondary btn-rounded" @click="openChildModal(subItem.id)">
@@ -552,7 +552,7 @@ async function handleChildModalSubmit() {
                                                 <div>
                                                     <FormSwitch :id="'child-active-' + child.id" v-model="child.active" @change="useToggleSwitch(child.id, 'active', 'menu-item')" />
                                                 </div>
-                                                <div class="text-sm">{{ child.orderId }}</div>
+                                                <div class="text-sm">{{ child.position }}</div>
                                                 <div class="flex items-center space-x-2 text-xs justify-end">
                                                     <div class="flex justify-center items-center gap-3">
                                                         <button :disabled="formLoading" class="gap-1.5 btn btn-sm btn-secondary btn-rounded" @click="openChildModal(child.id)">
@@ -595,7 +595,7 @@ async function handleChildModalSubmit() {
                                     name="menu-items-list"
                                     placeholder="Parent Menu Item"
                                 />
-                                <FormInputField v-model="children.orderId" :errors="s$.orderId.$errors" type="number" class="col-span-12 sm:col-span-4" label="Order" name="order-id" placeholder="Order" />
+                                <FormInputField v-model="children.position" :errors="s$.position.$errors" type="number" class="col-span-12 sm:col-span-4" label="Order" name="order-id" placeholder="Order" />
                                 <FormInputField v-model="children.icon" :errors="s$.icon.$errors" class="col-span-12 sm:col-span-4" label="Icon" name="icon" placeholder="Icon" />
                                 <FormSwitch v-model="children.type" :errors="s$.type.$errors" class="col-span-12 sm:col-span-6" :label="children.type ? 'Internal' : 'External'" name="type-input" />
                                 <FormSwitch v-model="children.active" :errors="s$.active.$errors" class="col-span-12 sm:col-span-6" label="Active" name="active-input" />

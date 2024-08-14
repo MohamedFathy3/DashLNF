@@ -109,7 +109,7 @@ const toggleRowSelection = (id) => {
 };
 const item = ref({
     name: null,
-    orderId: null,
+    position: null,
     active: true,
     image: null,
     featured: null,
@@ -119,7 +119,7 @@ const item = ref({
 });
 const rules = ref({
     name: { required },
-    orderId: {},
+    position: {},
     active: {},
     image: {},
     featured: {},
@@ -142,7 +142,7 @@ const fetchItem = async (id) => {
 const resetItemValues = async () => {
     item.value = {
         name: null,
-        orderId: null,
+        position: null,
         active: true,
         image: null,
         featured: null,
@@ -397,7 +397,7 @@ async function restoreItems() {
                     </div>
                     <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5">
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
-                        <FormInputField v-model="item.orderId" :errors="v$.orderId.$errors" class="lg:col-span-6" label="Order" name="order-id" placeholder="Order Number" />
+                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Order" name="order-id" placeholder="Order Number" />
                         <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="'active" label="Active" class="lg:col-span-3" />
                         <FormSwitch v-model="item.featured" :errors="v$.featured.$errors" name="'featured" label="Featured" class="lg:col-span-3" />
                         <FormDatePicker v-model="item.publishDate" :errors="v$.publishDate.$errors" label="Publish Date" class="lg:col-span-12" />

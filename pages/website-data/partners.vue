@@ -108,7 +108,7 @@ const toggleRowSelection = (id) => {
 };
 const item = ref({
     name: null,
-    orderId: null,
+    position: null,
     active: true,
     des: null,
     link: null,
@@ -116,7 +116,7 @@ const item = ref({
 });
 const rules = ref({
     name: { required },
-    orderId: { numeric },
+    position: { numeric },
     active: {},
     des: {},
     link: {},
@@ -137,7 +137,7 @@ const fetchItem = async (id) => {
 const resetItemValues = async () => {
     item.value = {
         name: null,
-        orderId: null,
+        position: null,
         active: true,
         des: null,
         link: null,
@@ -387,7 +387,7 @@ async function restoreItems() {
                     <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5">
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
                         <FormInputField v-model="item.link" :errors="v$.link.$errors" class="lg:col-span-12" label="Link" name="link" placeholder="Link" />
-                        <FormInputField v-model="item.orderId" :errors="v$.orderId.$errors" class="lg:col-span-9" label="Order" name="order-id" placeholder="Order Number" type="number" />
+                        <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-9" label="Order" name="order-id" placeholder="Order Number" type="number" />
                         <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="'active" label="Active" class="lg:col-span-3" />
                     </div>
                     <FormRichTextEditor v-model="item.des" :errors="v$.des.$errors" label="Description" class="col-span-12" name="des" />

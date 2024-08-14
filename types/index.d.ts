@@ -98,7 +98,7 @@ type Person = {
     title: string;
     jobTitle: string | null;
     userId: number;
-    orderId: number;
+    position: number;
     imageUrl: string;
 };
 
@@ -236,7 +236,7 @@ type Conference = {
     venue: string;
     virtual: boolean;
     active: boolean;
-    orderId: number;
+    position: number;
     earlyBirdActive: boolean;
     earlyBirdEndDate: string;
     regDeadlineDate: string;
@@ -278,7 +278,7 @@ type Continent = {
     id: number;
     name: string;
     active: boolean;
-    orderId: number;
+    position: number;
     countries: string;
     createdAt: string;
     updatedAt: string;
@@ -292,7 +292,7 @@ type Network = {
     domain: string;
     active: boolean;
     collection: boolean;
-    orderId: string;
+    position: string;
     imageUrl: string;
     image: Media;
     settings?: NetworkSetting[];
@@ -305,7 +305,7 @@ type MemberNetwork = {
     domain: string;
     active: boolean;
     collection: boolean;
-    orderId: string;
+    position: string;
     imageUrl: string;
     image: Media;
     fpp: boolean;
@@ -338,7 +338,7 @@ type Resource = {
     active: boolean;
     name: string;
     slug: string;
-    orderId: number;
+    position: number;
     createdAt: boolean;
     updatedAt: string;
     deletedAt: string | null;
@@ -377,7 +377,7 @@ type Country = {
     active: boolean;
     imageUrl: string;
     image: Media;
-    orderId: number;
+    position: number;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -387,7 +387,7 @@ type City = {
     id: number;
     name: string;
     country: Country;
-    orderId: number;
+    position: number;
     countryName: string;
     countryId: number;
     lat: string;
@@ -427,7 +427,7 @@ type Dietary = {
     name: string;
     slug: string;
     active: boolean;
-    orderId: number;
+    position: number;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
@@ -478,7 +478,7 @@ type Spouse = {
     delegate: string;
     tshirtSizeId: number;
     tshirtSize: string;
-    orderId: number;
+    position: number;
     extraDietaries: string;
     dietaries: Dietary[];
     imageUrl: string;
