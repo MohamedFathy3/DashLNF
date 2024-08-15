@@ -12,6 +12,10 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    errors: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const editor = useEditor({
@@ -69,7 +73,7 @@ onBeforeUnmount(() => {
             <span>{{ label }}</span>
             <span v-if="label && required" class="ml-1 text-sm text-danger">*</span>
         </label>
-        <div class="rounded-xl border bg-slate-50">
+        <div class="rounded-xl border bg-slate-50" :class="errors.length > 0 && '!border-danger'">
             <div v-if="editor" class="p-2 flex items-center gap-1.5 flex-wrap">
                 <button type="button" class="editor-button" :disabled="!editor.can().chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" @click="editor.chain().focus().toggleBold().run()">
                     <Icon name="oui:editor-bold" class="size-5" />
@@ -147,6 +151,11 @@ onBeforeUnmount(() => {
             </div>
             <TiptapEditorContent :editor="editor" />
         </div>
+        <template v-if="errors.length > 0">
+            <ul class="mt-1">
+                <li v-for="(error, errorIndex) in errors" :key="errorIndex" class="text-sm text-danger">{{ error.$message }}</li>
+            </ul>
+        </template>
     </div>
 </template>
 <style scoped>

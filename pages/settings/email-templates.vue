@@ -16,7 +16,7 @@ const filter = ref({
 
 const serverParams = ref({
     filters: {
-        type: 'network',
+        name: null,
     },
     orderBy: 'id',
     orderByDirection: 'desc',
@@ -31,7 +31,6 @@ const editMode = ref(false);
 const resetServerParams = async () => {
     filter.value = {
         name: null,
-        type: 'network',
     };
     serverParams.value = {
         filters: {},
@@ -47,7 +46,7 @@ const resetServerParams = async () => {
 };
 const {
     data: rows,
-    pending,
+    status,
     refresh,
 } = await useApiFetch('/api/email-template/index', {
     method: 'POST',
@@ -114,7 +113,6 @@ const item = ref({
     name: null,
     slug: null,
     subject: null,
-    type: 'network',
     body: '',
     bcc: null,
     source: null,
@@ -124,7 +122,6 @@ const rules = ref({
     slug: { required },
     subject: { required },
     body: { required },
-    type: {},
     bcc: {},
     source: {},
 });
@@ -145,7 +142,6 @@ const resetItemValues = async () => {
         name: null,
         slug: null,
         subject: null,
-        type: 'network',
         body: '',
         bcc: null,
         source: null,
@@ -352,7 +348,7 @@ const config = useRuntimeConfig();
                 </tr>
             </thead>
             <tbody>
-                <template v-if="!pending && rows">
+                <template v-if="status !== 'pending' && rows">
                     <tr v-for="row in rows.data" :key="row.id" class="text-sm">
                         <td>
                             <input :checked="isSelected(row.id)" type="checkbox" class="form-check-input" @change="toggleRowSelection(row.id)" />
@@ -382,7 +378,7 @@ const config = useRuntimeConfig();
             </tbody>
         </table>
         <!-- Pagination -->
-        <TablePagination :pending="pending" :rows="rows" :page="serverParams.page" @change-page="changePage" />
+        <TablePagination :pending="status === 'pending'" :rows="rows" :page="serverParams.page" @change-page="changePage" />
 
         <TheModal :open-modal="isOpen" size="5xl" @close-modal="closeModal()">
             <template #header>
