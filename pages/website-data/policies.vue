@@ -8,7 +8,7 @@ definePageMeta({
 const selectedRows = ref([]);
 const sortByList = ref([
     { name: 'Sort By ID', value: 'id' },
-    { name: 'Sort By Name', value: 'name' },
+    { name: 'Sort By Title', value: 'title' },
 ]);
 const filter = ref({
     name: null,
@@ -28,7 +28,7 @@ const isOpen = ref(false);
 const editMode = ref(false);
 const resetServerParams = async () => {
     filter.value = {
-        name: null,
+        title: null,
     };
     serverParams.value = {
         filters: {},
@@ -108,15 +108,15 @@ const toggleRowSelection = (id) => {
     }
 };
 const item = ref({
-    name: null,
-    des: null,
+    title: null,
     active: true,
+    description: null,
     position: null,
 });
 const rules = ref({
-    name: { required },
-    des: {},
+    title: { required },
     active: {},
+    description: {},
     position: { numeric },
 });
 const v$ = useVuelidate(rules, item);
@@ -133,9 +133,9 @@ const fetchItem = async (id) => {
 };
 const resetItemValues = async () => {
     item.value = {
-        name: null,
-        des: null,
+        title: null,
         active: true,
+        description: null,
         position: null,
     };
 };
@@ -295,7 +295,7 @@ async function restoreItems() {
         </div>
         <!-- Filter & Search -->
         <div class="grid lg:grid-cols-12 gap-5 items-center p-5 bg-white border rounded-2xl">
-            <FormInputField v-model="filter.name" rounded class="xl:col-span-4 lg:col-span-4" placeholder="Name" />
+            <FormInputField v-model="filter.title" rounded class="xl:col-span-4 lg:col-span-4" placeholder="Name" />
             <FormSelectField v-model="serverParams.orderBy" :clearable="false" class="xl:col-span-4 lg:col-span-4" labelvalue="name" keyvalue="value" placeholder="Sort Direction" :select-data="sortByList" />
             <FormSelectField
                 v-model="serverParams.orderByDirection"
@@ -339,14 +339,14 @@ async function restoreItems() {
                             <input :checked="isSelected(row.id)" type="checkbox" class="form-check-input" @change="toggleRowSelection(row.id)" />
                         </td>
                         <td>
-                            <div class="opacity-75 font-medium line-clamp-1">{{ row.name }}</div>
+                            <div class="opacity-75 font-medium line-clamp-1">{{ row.title }}</div>
                         </td>
                         <td class="text-center">
                             {{ row.position }}
                         </td>
                         <td>
                             <div class="flex items-center place-content-center">
-                                <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'policy')" />
+                                <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'termsCondition')" />
                             </div>
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
@@ -391,11 +391,10 @@ async function restoreItems() {
             </template>
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
-                    <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
-                    <FormRichTextEditor v-model="item.des" :errors="v$.des.$errors" label="Description" name="des" class="col-span-12" />
+                    <FormInputField v-model="item.title" :errors="v$.title.$errors" class="lg:col-span-12" label="Title" name="title" placeholder="Title" />
+                    <FormRichTextEditor v-model="item.description" :errors="v$.description.$errors" label="Description" name="description" class="col-span-12" />
                     <FormSwitch v-model="item.active" class="col-span-12 sm:col-span-4" flex-title label="Active" name="active-toggle" />
                     <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-9" label="Position" name="order-id" placeholder="Position Number" type="number" />
-                    <FormSwitch v-model="item.active" name="'active" label="Global Active" class="lg:col-span-3" />
                 </div>
             </template>
             <template #footer>
