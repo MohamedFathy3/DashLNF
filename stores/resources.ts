@@ -11,7 +11,7 @@ export const useResourceStore = defineStore('resource', () => {
     const fetchResources = async () => {
         const { data: res, error } = await useApiFetch(`/api/fetch-resources`, {
             lazy: true,
-            transform: (res) => (res as ApiResponse).data as any,
+            transform: (res) => (res as ApiResponse) as any,
         });
         if (res.value) {
             setCountries((res.value as any).countries as Country[]);

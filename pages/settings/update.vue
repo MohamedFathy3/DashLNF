@@ -71,7 +71,6 @@ const handleModalSubmit = async () => {
             image: child.type === 'uploader' ? settingValue : null,
         };
     });
-    console.log(childrenValue);
 
     const { data, error } = await useApiFetch(`/api/setting/section-update`, {
         method: 'POST',

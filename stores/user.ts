@@ -17,7 +17,6 @@ export const useUserStore = defineStore('user', () => {
         if (userData.value) {
             setUser((userData.value as ApiResponse).data as Admin);
             setToken((userData.value as ApiResponse).token as string);
-            console.log(path);
             if (path) {
                 navigateTo(path);
             } else {

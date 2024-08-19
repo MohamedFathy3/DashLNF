@@ -203,7 +203,6 @@ async function updateMember() {
     if (data.value) {
         useToast({ title: 'Success', message: data.value.message, type: 'success', duration: 5000 });
         const recordId = data.value.data.id;
-        console.log('Company ID', recordId);
         emit('success', recordId);
         emit('close');
         await closeModal();
