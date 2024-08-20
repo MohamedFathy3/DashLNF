@@ -339,7 +339,7 @@ const resources = useResourceStore();
         <!-- Filter & Search -->
         <div class="grid lg:grid-cols-12 gap-5 items-center p-5 bg-white border rounded-2xl">
             <FormInputField v-model="filter.name" rounded class="lg:col-span-6" placeholder="Name" />
-            <FormSelectField v-model="filter.countyId" labelvalue="name" keyvalue="id" imgvalue="imageUrl" :select-data="resources.countries" rounded class="lg:col-span-6" placeholder="Country" />
+            <FormSelectField v-model="filter.countryId" labelvalue="name" keyvalue="id" imgvalue="imageUrl" :select-data="resources.countries" rounded class="lg:col-span-6" placeholder="Country" />
             <FormSelectField v-model="serverParams.orderBy" :clearable="false" class="lg:col-span-6 xl:col-span-4" labelvalue="name" keyvalue="value" placeholder="Sort Direction" :select-data="sortByList" />
             <FormSelectField
                 v-model="serverParams.orderByDirection"
