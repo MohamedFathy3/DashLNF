@@ -36,12 +36,12 @@ const menuItems = ref([
             { name: 'Cities', path: '/master-data/cities', icon: 'solar:map-linear', subMenus: [], permission: ['list-city'] },
         ],
     },
-    'Network Options',
+    'Website Options',
     {
         name: 'Website Data',
         path: '/website-data',
         icon: 'solar:file-text-line-duotone',
-        permission: ['list-page', 'list-section', 'list-menu', 'list-article', 'list-event', 'list-partner', 'list-faq', 'list-term', 'list-service', 'list-policy', , 'list-team', 'list-message'],
+        permission: ['list-page', 'list-section', 'list-menu', 'list-article', 'list-event', 'list-partner', 'list-faq', 'list-term', 'list-service', 'list-policy', 'list-team', 'list-message'],
         subMenus: [
             {
                 name: 'Pages',
@@ -128,6 +128,14 @@ const menuItems = ref([
                 permission: ['list-message'],
             },
         ],
+    },
+    'Members Data',
+    {
+        name: 'Applications',
+        path: '/members-data/applications',
+        icon: 'solar:users-group-two-rounded-outline',
+        permission: ['list-member', 'list-member'],
+        subMenus: [],
     },
     'Settings',
     {

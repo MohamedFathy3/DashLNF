@@ -524,7 +524,7 @@ async function restoreItems() {
                             placeholder="Sub Title"
                         />
 
-                        <FormInputField
+                        <FormRichTextEditor
                             v-if="
                                 item.type !== 'contact-form' &&
                                 item.type !== 'network-directory' &&
@@ -541,11 +541,9 @@ async function restoreItems() {
                             "
                             v-model="item.description"
                             :errors="v$.description.$errors"
-                            class="col-span-12"
                             label="Description"
-                            type="textarea"
                             name="description"
-                            placeholder="Description"
+                            class="col-span-12"
                         />
 
                         <FormSwitch
