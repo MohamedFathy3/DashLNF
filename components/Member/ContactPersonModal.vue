@@ -1,16 +1,11 @@
 <script setup>
-import { required } from '@vuelidate/validators';
+import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 const formLoading = ref(false);
 const loadingModal = ref(true);
 const editMode = ref(false);
-const resources = useResourceStore();
 const props = defineProps({
     personId: {
-        type: Number,
-        default: null,
-    },
-    memberId: {
         type: Number,
         default: null,
     },
@@ -24,28 +19,26 @@ const item = ref({
     title: null,
     userId: null,
     image: null,
-    name: null,
-    email: null,
-    birthDate: null,
+    passport: null,
+    firstName: null,
+    lastName: null,
     jobTitle: null,
-    phoneKeyId: null,
-    phone: null,
-    cellKeyId: null,
-    cell: null,
+    phoneNumber: null,
+    cellNumber: null,
+    email: null,
 });
 const rules = ref({
     id: {},
     title: { required },
     userId: { required },
+    passport: { required },
     image: {},
-    name: { required },
-    email: { required },
-    birthDate: {},
+    firstName: { required },
+    lastName: { required },
     jobTitle: { required },
-    phoneKeyId: {},
-    phone: {},
-    cellKeyId: {},
-    cell: {},
+    phoneNumber: {},
+    cellNumber: { required },
+    email: { email },
 });
 const v$ = useVuelidate(rules, item);
 const emit = defineEmits(['refresh', 'close']);
@@ -55,14 +48,13 @@ const resetPersonValues = async () => {
         title: null,
         userId: null,
         image: null,
-        name: null,
-        email: null,
-        birthDate: null,
+        passport: null,
+        firstName: null,
+        lastName: null,
         jobTitle: null,
-        phoneKeyId: null,
-        phone: null,
-        cellKeyId: null,
-        cell: null,
+        phoneNumber: null,
+        cellNumber: null,
+        email: null,
     };
 };
 async function closeModal() {
@@ -72,7 +64,7 @@ async function closeModal() {
     formLoading.value = false;
 }
 const fetchItem = async (id) => {
-    const { data, error } = await useApiFetch(`/api/contact-person/${id}`);
+    const { data, error } = await useApiFetch(`/api/contact-people/${id}`);
     if (data.value) {
         item.value = data.value.data;
     }
@@ -81,7 +73,7 @@ const fetchItem = async (id) => {
     }
 };
 async function updateItem() {
-    const { data, error } = await useApiFetch(`/api/contact-person/${item.value.id}`, {
+    const { data, error } = await useApiFetch(`/api/contact-people/${item.value.id}`, {
         method: 'PATCH',
         body: item,
         lazy: true,
@@ -96,7 +88,7 @@ async function updateItem() {
     }
 }
 async function addItem() {
-    const { data, error } = await useApiFetch(`/api/contact-person`, {
+    const { data, error } = await useApiFetch(`/api/contact-people`, {
         method: 'POST',
         body: item,
         lazy: true,
@@ -110,23 +102,21 @@ async function addItem() {
         useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
     }
 }
-const { data: activeMembers } = await useApiFetch(`/api/get/member`, {
-    method: 'POST',
-    body: {
-        type: 'all',
-    },
-    lazy: true,
-});
 async function handleModalSubmit() {
+    console.log('Before');
     formLoading.value = true;
     const result = await v$.value.$validate();
+    console.log(v$.value);
     if (!result) {
         formLoading.value = false;
         return false;
     }
+    console.log('here');
     if (editMode.value === true) {
+        console.log('Update');
         await updateItem();
     } else {
+        console.log('Add');
         await addItem();
     }
 }
@@ -152,8 +142,8 @@ onMounted(async () => {
         </template>
         <template #content>
             <div v-if="!loadingModal" class="grid lg:grid-cols-12 gap-5 items-start">
-                <div class="lg:col-span-4">
-                    <FormUploader v-model="item.image" :allowed-types="['image']" label="Profile Image" name="image" />
+                <div class="lg:col-span-4 space-y-5">
+                    <FormUploader v-model="item.image" :errors="v$.image.$errors" :allowed-types="['image']" label="Profile Image" name="image" />
                 </div>
                 <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5 items-center">
                     <FormSelectField
@@ -171,53 +161,14 @@ onMounted(async () => {
                         name="person-title"
                         placeholder="Title"
                     />
-                    <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-8" label="Name" name="name" placeholder="Name" />
+                    <FormInputField v-model="item.firstName" :errors="v$.firstName.$errors" class="lg:col-span-4" label="First Name" name="first-name" placeholder="First Name" />
+                    <FormInputField v-model="item.lastName" :errors="v$.lastName.$errors" class="lg:col-span-4" label="Last Name" name="last-name" placeholder="Last Name" />
                     <FormInputField v-model="item.jobTitle" :errors="v$.jobTitle.$errors" class="lg:col-span-6" label="Job Title" name="job-title" placeholder="Job Title" />
-                    <FormDatePicker v-model="item.birthDate" :time-picker="false" :errors="v$.birthDate.$errors" class="lg:col-span-6" label="Birth Date" name="birth-date" />
                     <FormInputField v-model="item.email" :errors="v$.email.$errors" class="lg:col-span-6" label="Email" name="email" placeholder="Email" />
-                    <FormSelectField
-                        v-model="item.userId"
-                        :errors="v$.userId.$errors"
-                        labelvalue="name"
-                        secondlabelvalue="countryName"
-                        thirdlabelvalue="city"
-                        imgvalue="imageUrl"
-                        keyvalue="id"
-                        :select-data="activeMembers.data"
-                        class="lg:col-span-6"
-                        name="member"
-                        placeholder="Member"
-                        label="Member"
-                    />
+                    <FormInputField v-model="item.phoneNumber" :errors="v$.phoneNumber.$errors" class="lg:col-span-6" label="Phone Number" name="person-phone-number" placeholder="Person Phone Number" />
+                    <FormInputField v-model="item.cellNumber" :errors="v$.cellNumber.$errors" class="lg:col-span-6" label="Cell Number" name="person-cell-number" placeholder="Person Cell Number" />
                 </div>
-                <FormSelectField
-                    v-model="item.phoneKeyId"
-                    labelvalue="key"
-                    keyvalue="id"
-                    imgvalue="imageUrl"
-                    :select-data="resources.countries"
-                    :errors="v$.phoneKeyId.$errors"
-                    prefix="+"
-                    class="lg:col-span-3"
-                    label="Country Key"
-                    name="person-phone-key"
-                    placeholder="Country Key"
-                />
-                <FormInputField v-model="item.phone" :errors="v$.phone.$errors" class="lg:col-span-3" label="Phone Number" name="person-phone-number" placeholder="Company Phone Number" />
-                <FormSelectField
-                    v-model="item.cellKeyId"
-                    labelvalue="key"
-                    keyvalue="id"
-                    imgvalue="imageUrl"
-                    :select-data="resources.countries"
-                    :errors="v$.cellKeyId.$errors"
-                    prefix="+"
-                    class="lg:col-span-3"
-                    label="Country Key"
-                    name="person-cell-key"
-                    placeholder="Country Key"
-                />
-                <FormInputField v-model="item.cell" :errors="v$.cell.$errors" class="lg:col-span-3" label="Cell Number" name="person-cell-number" placeholder="Company Cell Number" />
+                <FormUploader v-model="item.passport" :errors="v$.passport.$errors" class="lg:col-span-12" :allowed-types="['image', 'document']" label="Passport" name="passport" />
             </div>
             <div v-else class="p-5 text-center animate-pulse">Loading Data...</div>
         </template>

@@ -48,7 +48,7 @@ const types = {
     svg: ['image/svg+xml'],
     audio: ['audio/mpeg', 'audio/aac', 'audio/wav'],
     video: ['video/mp4', 'video/webm', 'video/mpeg', 'video/x-msvideo'],
-    document: ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/pdf'],
+    document: ['application/msword', 'application/pdf'],
     archive: ['application/zip', 'application/x-7z-compressed', 'application/gzip', 'application/vnd.rar'],
 };
 

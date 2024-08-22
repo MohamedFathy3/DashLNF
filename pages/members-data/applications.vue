@@ -5,6 +5,8 @@ import useVuelidate from '@vuelidate/core';
 definePageMeta({
     middleware: 'auth',
 });
+const years = useYearArray(199);
+
 const selectedRows = ref([]);
 const sortByList = ref([
     { name: 'Sort By ID', value: 'id' },
@@ -127,9 +129,18 @@ const item = ref({
     fpp: null,
     email: null,
     refId: null,
+    active: false,
+    showHome: false,
+    status: 'pending',
     image: null,
     contactPersons: [],
 });
+const membershipStatues = ref([
+    { name: 'Pending', value: 'pending' },
+    { name: 'Approved', value: 'approved' },
+    { name: 'Suspended', value: 'suspended' },
+    { name: 'Blacklisted', value: 'blacklisted' },
+]);
 const rules = ref({
     id: {},
     name: {},
@@ -146,6 +157,9 @@ const rules = ref({
     profile: {},
     fpp: {},
     email: {},
+    active: {},
+    showHome: {},
+    status: {},
     refId: {},
     image: {},
     contactPersons: {},
@@ -180,6 +194,9 @@ const resetItemValues = async () => {
         fpp: null,
         email: null,
         refId: null,
+        active: false,
+        showHome: false,
+        status: 'pending',
         image: null,
         contactPersons: [],
     };
@@ -370,7 +387,7 @@ const resources = useResourceStore();
                         <input v-model="allSelected" type="checkbox" class="form-check-input" @change="selectAllRows" />
                     </th>
                     <th class="text-left">Name</th>
-                    <th>Submission Date</th>
+                    <th class="whitespace-nowrap">Submission Date</th>
                     <th v-if="serverParams.deleted">Deleted At</th>
                     <th class="text-right">Action</th>
                 </tr>
@@ -386,11 +403,11 @@ const resources = useResourceStore();
                                 <NuxtImg :src="row.imageUrl" class="h-10 !rounded-md w-16 object-cover shrink-0" />
                                 <div>
                                     <div>{{ row.name }}</div>
-                                    <div class="text-sm opacity-75 mt-0.5 flex items-center">
-                                        <NuxtImg :src="row.country?.imageUrl" class="h-4 w-6 mr-1.5" :alt="row.country?.name" :tite="row.country?.name" />
-                                        <div>{{ row.country?.name }}</div>
-                                        <div v-if="row.state">, {{ row.state }}</div>
-                                        <div v-if="row.city">, {{ row.city }}</div>
+                                    <div class="text-sm opacity-75 mt-0.5 flex items-center whitespace-nowrap">
+                                        <NuxtImg :src="row.country?.imageUrl" class="h-4 w-6 mr-1.5 shrink-0" :alt="row.country?.name" :tite="row.country?.name" />
+                                        <div class="max-w-32 truncate">{{ row.country?.name }}</div>
+                                        <div v-if="row.state" class="max-w-24 truncate">, {{ row.state }}</div>
+                                        <div v-if="row.city" class="max-w-24 truncate">, {{ row.city }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -405,7 +422,7 @@ const resources = useResourceStore();
                             <div>
                                 <button :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
                                     <Icon name="solar:pen-new-round-outline" class="size-4" />
-                                    View
+                                    Edit
                                 </button>
                             </div>
                         </td>
@@ -432,25 +449,49 @@ const resources = useResourceStore();
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
                     <div class="lg:col-span-4">
-                        <!--                        <FormUploader v-model="item.image" :allowed-types="['image', 'svg']" label="Flag" name="image" />-->
-                        <NuxtImg v-if="item.image" class="h-36 w-full object-contain" :src="item.imageUrl" :alt="item.name" />
-                        <div class="h-36 bg-slate-50 text-center flex place-content-center items-center">No Logo</div>
+                        <FormUploader v-model="item.image" :allowed-types="['image', 'svg']" label="Flag" name="image" />
+                        <!--                        <NuxtImg v-if="item.image" class="h-36 w-full object-contain" :src="item.imageUrl" :alt="item.name" />-->
+                        <!--                        <div class="h-36 bg-slate-50 text-center flex place-content-center items-center">No Logo</div>-->
                     </div>
                     <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5 items-center">
-                        <FormInputField v-model="item.name" disabled :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
-                        <FormInputField v-model="item.email" disabled :errors="v$.email.$errors" class="lg:col-span-12" label="Email" name="email" placeholder="Email" />
-                        <FormInputField v-model="item.addressLineOne" disabled :errors="v$.addressLineOne.$errors" class="lg:col-span-12" label="Address Line One" name="address-line-one" placeholder="Name" />
-                        <FormInputField v-model="item.addressLineTwo" disabled :errors="v$.addressLineTwo.$errors" class="lg:col-span-12" label="Address Line Two" name="address-line-two" placeholder="Name" />
-                        <FormInputField v-model="item.city" disabled :errors="v$.city.$errors" class="lg:col-span-4" label="City" name="city" placeholder="City" />
-                        <FormInputField v-model="item.state" disabled :errors="v$.state.$errors" class="lg:col-span-4" label="State" name="state" placeholder="State" />
-                        <FormInputField v-model="item.postalCode" disabled :errors="v$.postalCode.$errors" class="lg:col-span-4" label="Postal Code" name="postal-code" placeholder="Postal Code" />
-                        <FormSelectField v-model="item.countryId" label="Country" disabled labelvalue="name" keyvalue="id" imgvalue="imageUrl" :select-data="resources.countries" rounded class="lg:col-span-6" name="country-id" placeholder="Country" />
-                        <FormInputField v-model="item.website" disabled :errors="v$.website.$errors" class="lg:col-span-6" label="Website" name="website" placeholder="Website" />
-                        <FormInputField v-model="item.phone" disabled :errors="v$.phone.$errors" class="lg:col-span-6" label="Phone" name="phone" placeholder="Phone" />
-                        <FormInputField v-model="item.membersCount" disabled :errors="v$.membersCount.$errors" class="lg:col-span-6" type="number" label="Members Count" name="members-count" placeholder="Members Count" />
-                        <FormInputField v-model="item.businessEst" disabled :errors="v$.businessEst.$errors" class="lg:col-span-6" label="Business Est. Year" name="business-est" placeholder="Business Est. Year" />
-                        <FormInputField v-model="item.fpp" disabled :errors="v$.fpp.$errors" class="lg:col-span-6" label="Has FPP" name="fpp" placeholder="Has FPP" />
-                        <FormInputField v-model="item.profile" disabled type="textarea" :errors="v$.profile.$errors" class="lg:col-span-12" label="Profile" name="profile" placeholder="Profile" />
+                        <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
+                        <FormInputField v-model="item.email" :errors="v$.email.$errors" class="lg:col-span-12" label="Email" name="email" placeholder="Email" />
+                        <FormInputField v-model="item.addressLineOne" :errors="v$.addressLineOne.$errors" class="lg:col-span-12" label="Address Line One" name="address-line-one" placeholder="Name" />
+                        <FormInputField v-model="item.addressLineTwo" :errors="v$.addressLineTwo.$errors" class="lg:col-span-12" label="Address Line Two" name="address-line-two" placeholder="Name" />
+                        <FormInputField v-model="item.city" :errors="v$.city.$errors" class="lg:col-span-4" label="City" name="city" placeholder="City" />
+                        <FormInputField v-model="item.state" :errors="v$.state.$errors" class="lg:col-span-4" label="State" name="state" placeholder="State" />
+                        <FormInputField v-model="item.postalCode" :errors="v$.postalCode.$errors" class="lg:col-span-4" label="Postal Code" name="postal-code" placeholder="Postal Code" />
+                        <FormSelectField v-model="item.countryId" label="Country" labelvalue="name" keyvalue="id" imgvalue="imageUrl" :select-data="resources.countries" rounded class="lg:col-span-6" name="country-id" placeholder="Country" />
+                        <FormInputField v-model="item.website" :errors="v$.website.$errors" class="lg:col-span-6" label="Website" name="website" placeholder="Website" />
+                        <FormInputField v-model="item.phone" :errors="v$.phone.$errors" class="lg:col-span-6" label="Phone" name="phone" placeholder="Phone" />
+                        <FormInputField v-model="item.membersCount" :errors="v$.membersCount.$errors" class="lg:col-span-6" type="number" label="Members Count" name="members-count" placeholder="Members Count" />
+                        <FormSelectField
+                            v-model="item.businessEst"
+                            :errors="v$.businessEst.$errors"
+                            labelvalue="name"
+                            keyvalue="id"
+                            :select-data="years"
+                            class="lg:col-span-6"
+                            label="Business Establish Year"
+                            name="company-business-est"
+                            placeholder="Business Establish Year"
+                        />
+                        <FormInputField v-model="item.fpp" :errors="v$.fpp.$errors" class="lg:col-span-6" label="Has FPP" name="fpp" placeholder="Has FPP" />
+                        <FormInputField v-model="item.profile" type="textarea" :errors="v$.profile.$errors" class="lg:col-span-12" label="Profile" name="profile" placeholder="Profile" />
+                        <FormSwitch v-model.number="item.active" class="lg:col-span-6" label="Active" name="membership-active" />
+                        <FormSwitch v-model.number="item.showHome" class="lg:col-span-6" label="Show Home" name="show-home" />
+                        <FormSelectField
+                            v-model="item.status"
+                            :errors="v$.status.$errors"
+                            labelvalue="name"
+                            keyvalue="value"
+                            :select-data="membershipStatues"
+                            class="lg:col-span-12"
+                            label="Status"
+                            name="network-membership-status"
+                            placeholder="Membership Status"
+                        />
+
                         <div class="lg:col-span-12 border-t p-5 bg-slate-50 text-sm">
                             <div class="font-medium">Representatives Details</div>
                             <div v-if="item.contactPersons.length > 0" class="mt-1.5 flex flex-col gap-3">
@@ -495,10 +536,10 @@ const resources = useResourceStore();
                         <Icon :name="formLoading ? 'svg-spinners:3-dots-fade' : 'solar:close-circle-linear'" class="w-5 h-5 mr-2" />
                         <span>Close</span>
                     </button>
-                    <!--                    <button :disabled="formLoading" class="btn-rounded btn-sm btn btn-primary px-4" type="button" @click="handleModalSubmit()">-->
-                    <!--                        <Icon :name="formLoading ? 'svg-spinners:3-dots-fade' : 'solar:check-circle-broken'" class="w-5 h-5 mr-2" />-->
-                    <!--                        <span v-html="editMode ? 'Update' : 'Save'" />-->
-                    <!--                    </button>-->
+                    <button :disabled="formLoading" class="btn-rounded btn-sm btn btn-primary px-4" type="button" @click="handleModalSubmit()">
+                        <Icon :name="formLoading ? 'svg-spinners:3-dots-fade' : 'solar:check-circle-broken'" class="w-5 h-5 mr-2" />
+                        <span v-html="editMode ? 'Update' : 'Save'" />
+                    </button>
                 </div>
             </template>
         </TheModal>
