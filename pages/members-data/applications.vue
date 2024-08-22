@@ -38,7 +38,7 @@ const resetServerParams = async () => {
     serverParams.value = {
         filters: {},
         orderBy: 'created_at',
-        orderByDirection: 'asc',
+        orderByDirection: 'desc',
         perPage: 25,
         page: 1,
         paginate: true,
