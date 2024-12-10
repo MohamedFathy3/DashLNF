@@ -86,6 +86,13 @@ const menuItems = ref([
                 permission: ['list-partner'],
             },
             {
+                name: 'Guidelines',
+                path: '/website-data/guidelines',
+                icon: 'solar:question-square-linear',
+                subMenus: [],
+                permission: ['list-guideline'],
+            },
+            {
                 name: 'FAQ',
                 path: '/website-data/faq',
                 icon: 'solar:question-square-linear',
