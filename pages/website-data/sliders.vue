@@ -374,8 +374,8 @@ async function restoreItems() {
                         </td>
                         <td>
                             <div class="flex items-center gap-3">
-                                <div v-if="row.imageUrl" class="h-10 w-24 shrink-0 inline-flex grow rounded-md overflow-hidden ring-2 ring-slate-50 object-cover">
-                                    <NuxtImg :src="row.imageUrl" :title="row.text" :alt="row.text" class="w-full h-full object-cover object-center" />
+                                <div v-if="row.imageUrl" class="h-10 w-24 shrink-0 rounded-md overflow-hidden ring-2 ring-slate-50 object-cover">
+                                    <NuxtImg :src="row.imageUrl" :title="row.text" :alt="row.text" class="w-full" />
                                 </div>
                                 <div>
                                     <div class="opacity-75 font-medium line-clamp-1">{{ row.text }}</div>
