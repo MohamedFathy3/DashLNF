@@ -44,6 +44,13 @@ const menuItems = ref([
         permission: ['list-guideline', 'list-page', 'list-section', 'list-menu', 'list-article', 'list-event', 'list-partner', 'list-faq', 'list-term', 'list-service', 'list-policy', 'list-team', 'list-message'],
         subMenus: [
             {
+                name: 'Sliders',
+                path: '/website-data/sliders',
+                icon: 'solar:slider-vertical-linear',
+                subMenus: [],
+                permission: ['list-slide'],
+            },
+            {
                 name: 'Pages',
                 path: '/website-data/pages',
                 icon: 'solar:pen-new-square-linear',

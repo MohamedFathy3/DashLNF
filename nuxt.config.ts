@@ -3,7 +3,6 @@
 export default defineNuxtConfig({
     ssr: false,
     devtools: { enabled: true },
-
     typescript: {
         tsConfig: {
             compilerOptions: {
@@ -11,17 +10,14 @@ export default defineNuxtConfig({
             },
         },
     },
-
     pinia: {
         autoImports: ['defineStore'],
     },
-
     experimental: {
         emitRouteChunkError: 'automatic',
         sharedPrerenderData: true,
         typedPages: true,
     },
-
     runtimeConfig: {
         public: {
             appUrl: process.env.APP_URL ?? 'http://dashboard.lnfederation.test:4549',
@@ -31,11 +27,9 @@ export default defineNuxtConfig({
                 'World Shipping Alliance, freight forwarders network, global logistics, OTI/NVOCC operations, logistics community, logistics excellence, logistics network, dependable connections, global freight services, freight agents, logistics journey, event, wsa',
         },
     },
-
     build: {
         transpile: ['@vuepic/vue-datepicker'],
     },
-
     nitro: {
         routeRules: {
             '/backend/**': {
@@ -47,14 +41,11 @@ export default defineNuxtConfig({
         },
         compressPublicAssets: true,
     },
-
     routeRules: {
         // '/dashboard/**': { ssr: false },
     },
-
     css: ['@/assets/css/main.scss'],
     modules: ['nuxt-lodash', '@pinia/nuxt', 'nuxt-icon', '@nuxtjs/eslint-module', '@nuxtjs/color-mode', '@nuxt/image', 'nuxt-swiper', 'nuxt-headlessui', '@morev/vue-transitions/nuxt', '@unlok-co/nuxt-stripe', 'nuxt-tiptap-editor'],
-
     image: {
         inject: true,
         quality: 65,
@@ -68,11 +59,9 @@ export default defineNuxtConfig({
             xxl: 1536,
         },
     },
-
     imports: {
         dirs: ['./stores'],
     },
-
     app: {
         buildAssetsDir: '/lnf-dashboard/',
         rootId: '__wsadashboard',
@@ -87,11 +76,9 @@ export default defineNuxtConfig({
         },
         pageTransition: { name: 'page', mode: 'out-in' },
     },
-
     headlessui: {
         prefix: 'Headless',
     },
-
     postcss: {
         plugins: {
             'postcss-import': {},
@@ -101,7 +88,6 @@ export default defineNuxtConfig({
             autoprefixer: {},
         },
     },
-
     colorMode: {
         preference: 'light', // default value of $colorMode.preference
         fallback: 'light', // fallback value if not system preference found
@@ -112,10 +98,8 @@ export default defineNuxtConfig({
         classSuffix: '',
         storageKey: 'lnf-dashboard-color-mode',
     },
-
     tiptap: {
         prefix: 'Tiptap',
     },
-
     compatibilityDate: '2024-08-07',
 });
