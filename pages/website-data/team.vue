@@ -7,7 +7,7 @@ definePageMeta({
 });
 const selectedRows = ref([]);
 const sortByList = ref([
-    { name: 'Sort By ID', value: 'id' },
+    { name: 'Sort By Position', value: 'position' },
     { name: 'Sort By Name', value: 'name' },
 ]);
 const filter = ref({
@@ -15,8 +15,8 @@ const filter = ref({
 });
 const serverParams = ref({
     filters: {},
-    orderBy: 'id',
-    orderByDirection: 'desc',
+    orderBy: 'position',
+    orderByDirection: 'asc',
     perPage: 25,
     page: 1,
     paginate: true,
@@ -31,8 +31,8 @@ const resetServerParams = async () => {
     };
     serverParams.value = {
         filters: {},
-        orderBy: 'id',
-        orderByDirection: 'desc',
+        orderBy: 'position',
+        orderByDirection: 'asc',
         perPage: 25,
         page: 1,
         paginate: true,
