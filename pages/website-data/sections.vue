@@ -11,7 +11,7 @@ const sortByList = ref([
     { name: 'Sort By Name', value: 'title' },
 ]);
 const filter = ref({
-    name: null,
+    title: null,
 });
 const sectionTypes = ref([
     { value: 'intro', name: 'Intro' },
@@ -85,7 +85,7 @@ const resetServerParams = async () => {
 };
 const {
     data: rows,
-    pending,
+    status,
     refresh,
 } = await useApiFetch('/api/page-section/index', {
     method: 'POST',
@@ -429,7 +429,7 @@ async function restoreItems() {
                 </tr>
             </thead>
             <tbody>
-                <template v-if="!pending && rows">
+                <template v-if="status !== 'pending' && rows">
                     <tr v-for="row in rows.data" :key="row.id">
                         <td>
                             <input :checked="isSelected(row.id)" type="checkbox" class="form-check-input" @change="toggleRowSelection(row.id)" />
@@ -467,7 +467,7 @@ async function restoreItems() {
             </tbody>
         </table>
         <!-- Pagination -->
-        <TablePagination :pending="pending" :rows="rows" :page="serverParams.page" @change-page="changePage" />
+        <TablePagination :pending="status === 'pending'" :rows="rows" :page="serverParams.page" @change-page="changePage" />
 
         <TheModal :open-modal="isOpen" size="5xl" @close-modal="closeModal()">
             <template #header>
