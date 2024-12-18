@@ -41,9 +41,6 @@ export default defineNuxtConfig({
         },
         compressPublicAssets: true,
     },
-    routeRules: {
-        // '/dashboard/**': { ssr: false },
-    },
     css: ['@/assets/css/main.scss'],
     modules: ['nuxt-lodash', '@pinia/nuxt', 'nuxt-icon', '@nuxtjs/eslint-module', '@nuxtjs/color-mode', '@nuxt/image', 'nuxt-swiper', 'nuxt-headlessui', '@morev/vue-transitions/nuxt', '@unlok-co/nuxt-stripe', 'nuxt-tiptap-editor'],
     image: {
