@@ -44,7 +44,7 @@ const resetServerParams = async () => {
 };
 const {
     data: rows,
-    pending,
+    status,
     refresh,
 } = await useApiFetch('/api/terms-condition/index', {
     method: 'POST',
@@ -333,7 +333,7 @@ async function restoreItems() {
                 </tr>
             </thead>
             <tbody>
-                <template v-if="!pending && rows">
+                <template v-if="status !== 'pending' && rows">
                     <tr v-for="row in rows.data" :key="row.id" class="text-sm">
                         <td>
                             <input :checked="isSelected(row.id)" type="checkbox" class="form-check-input" @change="toggleRowSelection(row.id)" />
@@ -346,7 +346,7 @@ async function restoreItems() {
                         </td>
                         <td>
                             <div class="flex items-center place-content-center">
-                                <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'termsCondition')" />
+                                <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'terms-condition')" />
                             </div>
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
@@ -367,7 +367,7 @@ async function restoreItems() {
                         </td>
                     </tr>
                 </template>
-                <template v-if="!pending && rows && rows.data.length === 0">
+                <template v-if="status !== 'pending' && rows && rows.data.length === 0">
                     <tr>
                         <td colspan="7">
                             <div class="text-center">
@@ -380,7 +380,7 @@ async function restoreItems() {
             </tbody>
         </table>
         <!-- Pagination -->
-        <TablePagination :pending="pending" :rows="rows" :page="serverParams.page" @change-page="changePage" />
+        <TablePagination :pending="status === 'pending'" :rows="rows" :page="serverParams.page" @change-page="changePage" />
 
         <TheModal :open-modal="isOpen" size="5xl" @close-modal="closeModal()">
             <template #header>
