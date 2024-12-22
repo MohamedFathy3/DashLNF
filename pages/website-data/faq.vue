@@ -22,7 +22,6 @@ const serverParams = ref({
     paginate: true,
     deleted: false,
 });
-const settingStore = useSettingsStore();
 const formLoading = ref(false);
 const isOpen = ref(false);
 const editMode = ref(false);
@@ -44,7 +43,7 @@ const resetServerParams = async () => {
 };
 const {
     data: rows,
-    pending,
+    status,
     refresh,
 } = await useApiFetch('/api/faq/index', {
     method: 'POST',
@@ -329,7 +328,7 @@ async function restoreItems() {
                 </tr>
             </thead>
             <tbody>
-                <template v-if="!pending && rows">
+                <template v-if="status !== 'pending' && rows">
                     <tr v-for="row in rows.data" :key="row.id" class="text-sm">
                         <td>
                             <input :checked="isSelected(row.id)" type="checkbox" class="form-check-input" @change="toggleRowSelection(row.id)" />
@@ -363,7 +362,7 @@ async function restoreItems() {
                         </td>
                     </tr>
                 </template>
-                <template v-if="!pending && rows && rows.data.length === 0">
+                <template v-if="status !== 'pending' && rows && rows.data.length === 0">
                     <tr>
                         <td colspan="7">
                             <div class="text-center">
@@ -376,7 +375,7 @@ async function restoreItems() {
             </tbody>
         </table>
         <!-- Pagination -->
-        <TablePagination :pending="pending" :rows="rows" :page="serverParams.page" @change-page="changePage" />
+        <TablePagination :pending="status === 'pending'" :rows="rows" :page="serverParams.page" @change-page="changePage" />
 
         <TheModal :open-modal="isOpen" size="5xl" @close-modal="closeModal()">
             <template #header>
@@ -390,8 +389,7 @@ async function restoreItems() {
                     <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
                     <FormRichTextEditor v-model="item.des" :errors="v$.des.$errors" label="Description" name="des" class="col-span-12" />
                     <FormSwitch v-model="item.active" class="col-span-12 sm:col-span-4" flex-title label="Active" name="active-toggle" />
-                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-9" label="Position" name="order-id" placeholder="Position Number" type="number" />
-                    <FormSwitch v-model="item.active" name="'active" label="Global Active" class="lg:col-span-3" />
+                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-8" label="Position" name="order-id" placeholder="Position Number" type="number" />
                 </div>
             </template>
             <template #footer>
