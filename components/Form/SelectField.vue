@@ -148,11 +148,11 @@ watchEffect(() => {
                             v-if="$attrs.imgvalue"
                             :class="[isRoundedImage ? 'rounded-full w-5 h-5' : 'rounded-sm w-6 h-4', 'mr-2 object-contain bg-white shrink-0']"
                             :src="option[$attrs.imgvalue]"
-                            :alt="option[$attrs.labelvalue]"
-                            :title="option[$attrs.labelvalue]"
+                            :alt="useStripHtml(option[$attrs.labelvalue])"
+                            :title="useStripHtml(option[$attrs.labelvalue])"
                         />
                         <span v-if="prefix !== null || prefix !== ''" class="group-hover:text-slate-100">{{ prefix }}</span>
-                        <span class="group-hover:text-slate-100">{{ option[$attrs.labelvalue] }}</span>
+                        <span class="group-hover:text-slate-100">{{ useStripHtml(option[$attrs.labelvalue]) }}</span>
                         <span v-if="$attrs.secondlabelvalue" class="font-light ml-0.5 group-hover:text-slate-100 opacity-75">, {{ option[$attrs.secondlabelvalue] }}</span>
                         <span v-if="$attrs.thirdlabelvalue" class="font-light ml-0.5 group-hover:text-slate-100 opacity-75">, {{ option[$attrs.thirdlabelvalue] }}</span>
                     </div>
@@ -162,10 +162,10 @@ watchEffect(() => {
                         <div :class="[icon && 'pl-5', 'flex items-center whitespace-nowrap truncate text-sm']">
                             <NuxtImg v-if="$attrs.imgvalue" :class="[isRoundedImage ? 'rounded-full w-5 h-5' : 'rounded-sm w-6 h-4', ' mr-2 object-contain bg-white shrink-0']" :src="imageUrl" :alt="name" :title="name" />
                             <div v-if="prefix" class="truncate">{{ prefix }}</div>
-                            <div v-if="$attrs.labelvalue === 'name'" class="truncate font-normal opacity-75">{{ name }}</div>
-                            <div v-if="$attrs.labelvalue === 'label'" class="truncate font-normal opacity-75">{{ label }}</div>
-                            <div v-if="$attrs.labelvalue === 'title'" class="truncate font-normal opacity-75">{{ title }}</div>
-                            <div v-if="$attrs.labelvalue === 'key'" class="truncate font-normal opacity-75">{{ key }}</div>
+                            <div v-if="$attrs.labelvalue === 'name'" class="truncate font-normal opacity-75">{{ useStripHtml(name) }}</div>
+                            <div v-if="$attrs.labelvalue === 'label'" class="truncate font-normal opacity-75">{{ useStripHtml(label) }}</div>
+                            <div v-if="$attrs.labelvalue === 'title'" class="truncate font-normal opacity-75">{{ useStripHtml(title) }}</div>
+                            <div v-if="$attrs.labelvalue === 'key'" class="truncate font-normal opacity-75">{{ useStripHtml(key) }}</div>
                         </div>
                     </div>
                 </template>
