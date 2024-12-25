@@ -128,6 +128,13 @@ const menuItems = ref([
                 permission: ['list-policy'],
             },
             {
+                name: 'Networks Logos',
+                path: '/website-data/networks',
+                icon: 'solar:wallpaper-bold-duotone',
+                subMenus: [],
+                permission: ['list-team'],
+            },
+            {
                 name: 'Board Members',
                 path: '/website-data/team',
                 icon: 'solar:users-group-two-rounded-linear',
