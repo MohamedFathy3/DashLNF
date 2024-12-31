@@ -2,7 +2,7 @@ import type { UseFetchOptions } from 'nuxt/app';
 export function useApiFetch<T>(path: string, options: UseFetchOptions<T> = {}) {
     let headers: any = {
         accept: 'application/json',
-        referer: process.env.APP_URL ?? 'http://dashboard.wsa.test:4549',
+        referer: process.env.APP_URL ?? 'http://dashboard.lnfederation.test:4549',
     };
     const token = useCookie('XSRF-TOKEN');
     if (token.value) {
