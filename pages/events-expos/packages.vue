@@ -1,5 +1,5 @@
 <script setup>
-import { required, numeric } from '@vuelidate/validators';
+import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 definePageMeta({
@@ -9,12 +9,11 @@ const selectedRows = ref([]);
 const sortByList = ref([
     { name: 'Sort By ID', value: 'id' },
     { name: 'Sort By Name', value: 'name' },
+    { name: 'Sort By Expo', value: 'expo_id' },
 ]);
 const filter = ref({
     name: null,
-    countryId: null,
 });
-const resources = useResourceStore();
 const serverParams = ref({
     filters: {},
     orderBy: 'id',
@@ -29,7 +28,7 @@ const isOpen = ref(false);
 const editMode = ref(false);
 const resetServerParams = async () => {
     filter.value = {
-        title: null,
+        name: null,
     };
     serverParams.value = {
         filters: {},
@@ -45,12 +44,16 @@ const resetServerParams = async () => {
 };
 const {
     data: rows,
-    pending,
+    status,
     refresh,
-} = await useApiFetch('/api/expo/index', {
+} = await useApiFetch('/api/package/index', {
     method: 'POST',
     body: serverParams,
     lazy: true,
+});
+const { data: expos } = await useApiFetch('/api/get-expo/public', {
+    lazy: true,
+    transform: (expos) => expos.data,
 });
 watch(
     filter,
@@ -111,25 +114,19 @@ const toggleRowSelection = (id) => {
 const item = ref({
     id: null,
     name: null,
-    duration: [],
-    venue: null,
-    city: null,
-    countryId: null,
-    active: true,
-    image: null,
+    price: 0,
+    expoId: null,
+    details: [],
 });
 const rules = ref({
     name: { required },
-    duration: { required },
-    venue: { required },
-    city: {},
-    active: {},
-    countryId: {},
-    image: {},
+    price: { required },
+    expoId: { required },
+    details: {},
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
-    const { data, error } = await useApiFetch(`/api/expo/${id}`, {
+    const { data, error } = await useApiFetch(`/api/package/${id}`, {
         lazy: true,
     });
     if (data.value) {
@@ -143,12 +140,9 @@ const resetItemValues = async () => {
     item.value = {
         id: null,
         name: null,
-        duration: [],
-        venue: null,
-        city: null,
-        active: true,
-        countryId: null,
-        image: null,
+        price: 0,
+        expoId: null,
+        details: [],
     };
 };
 async function closeModal() {
@@ -170,7 +164,7 @@ async function openModal(id = null) {
 }
 
 async function updateItem() {
-    const { data, error } = await useApiFetch(`/api/expo/${item.value?.id}`, {
+    const { data, error } = await useApiFetch(`/api/package/${item.value?.id}`, {
         method: 'PATCH',
         body: item,
         lazy: true,
@@ -186,7 +180,7 @@ async function updateItem() {
 }
 
 async function addItem() {
-    const { data, error } = await useApiFetch(`/api/expo`, {
+    const { data, error } = await useApiFetch(`/api/package`, {
         method: 'POST',
         body: item,
         lazy: true,
@@ -219,7 +213,7 @@ async function handleModalSubmit() {
 async function deleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/expo/delete`, {
+        const { data, error } = await useApiFetch(`/api/package/delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -236,7 +230,7 @@ async function deleteItems() {
 async function forceDeleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/expo/force-delete`, {
+        const { data, error } = await useApiFetch(`/api/package/force-delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -253,7 +247,7 @@ async function forceDeleteItems() {
 async function restoreItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/expo/restore`, {
+        const { data, error } = await useApiFetch(`/api/package/restore`, {
             body: { items: selectedRows.value },
             method: 'POST',
             lazy: true,
@@ -268,15 +262,21 @@ async function restoreItems() {
     }
 }
 
-const countryList = resources.countries ?? [];
+const addOption = () => {
+    item.value.details.push({ title: null, active: true });
+};
+
+const removeOption = (index) => {
+    item.value.details.splice(index, 1);
+};
 </script>
 <template>
     <div class="flex flex-col gap-8">
         <!-- Page Title & Action Buttons -->
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
-                <Icon name="solar:calendar-outline" class="size-5 opacity-75" />
-                <div>{{ serverParams.deleted ? 'Deleted Expos' : 'Expos' }}</div>
+                <Icon name="solar:medal-ribbon-star-outline" class="size-5 opacity-75" />
+                <div>{{ serverParams.deleted ? 'Deleted Packages' : 'Packages' }}</div>
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">
@@ -307,7 +307,6 @@ const countryList = resources.countries ?? [];
         <div class="grid lg:grid-cols-12 gap-5 items-center p-5 bg-white border rounded-2xl">
             <FormInputField v-model="filter.name" rounded class="xl:col-span-4 lg:col-span-4" placeholder="Name" />
             <FormSelectField v-model="serverParams.orderBy" :clearable="false" class="xl:col-span-4 lg:col-span-4" labelvalue="name" keyvalue="value" placeholder="Sort Direction" :select-data="sortByList" />
-            <FormSelectField v-model="filter.countryId" :clearable="true" class="xl:col-span-4 lg:col-span-4" imgvalue="imageUrl" labelvalue="name" keyvalue="id" placeholder="Select a country" :select-data="countryList" />
             <FormSelectField
                 v-model="serverParams.orderByDirection"
                 class="xl:col-span-4 lg:col-span-4"
@@ -320,11 +319,11 @@ const countryList = resources.countries ?? [];
                     { name: 'A : Z', value: 'asc' },
                 ]"
             />
-            <button class="xl:col-span-4 lg:col-span-4 btn btn-rounded btn-sm btn-primary gap-3 w-full" @click="refresh">
+            <button class="xl:col-span-6 lg:col-span-6 btn btn-rounded btn-sm btn-primary gap-3 w-full" @click="refresh">
                 <Icon name="solar:rounded-magnifer-line-duotone" class="size-5 shrink-0" />
                 Filter
             </button>
-            <button class="xl:col-span-4 lg:col-span-4 btn btn-rounded btn-sm btn-secondary gap-3 w-full" @click="resetServerParams">
+            <button class="xl:col-span-6 lg:col-span-6 btn btn-rounded btn-sm btn-secondary gap-3 w-full" @click="resetServerParams">
                 <Icon name="solar:restart-circle-outline" class="size-5 shrink-0" />
                 Reset
             </button>
@@ -337,39 +336,40 @@ const countryList = resources.countries ?? [];
                         <input v-model="allSelected" type="checkbox" class="form-check-input" @change="selectAllRows" />
                     </th>
                     <th class="text-left">Name</th>
-                    <th>Duration</th>
-                    <th>Active</th>
+                    <th>Price</th>
+                    <th>Exhibition</th>
                     <th v-if="serverParams.deleted">Deleted At</th>
                     <th class="text-right">Action</th>
                 </tr>
             </thead>
             <tbody>
-                <template v-if="!pending && rows">
+                <template v-if="status !== 'pending' && rows">
                     <tr v-for="row in rows.data" :key="row.id">
                         <td>
                             <input :checked="isSelected(row.id)" type="checkbox" class="form-check-input" @change="toggleRowSelection(row.id)" />
                         </td>
                         <td>
                             <div class="text-sm flex items-center gap-3">
-                                <NuxtImg v-if="row.image" :src="row.imageUrl" class="h-12 !rounded-md w-20 object-cover shrink-0" />
+                                <NuxtImg v-if="row.image" :src="row.imageUrl" class="h-12 !rounded-md w-20 object-contain p-0.5 shrink-0" />
                                 <div>
-                                    <div class="font-normal">{{ row.name }}</div>
-                                    <div class="opacity-75 mt-0.5 flex items-center gap-2 whitespace-nowrap">
-                                        <span>{{ row.country?.name }}</span>
-                                        <span>-</span>
-                                        <span class="py-0.5 px-3 text-xs bg-slate-200 rounded-full font-medium">{{ row.city }}</span>
-                                    </div>
+                                    <div class="font-normal truncate">{{ row.name }}</div>
+                                    <div class="font-medium text-xs opacity-75 truncate">{{ row.country?.name }}</div>
+                                    <div class="font-light text-xs opacity-75 truncate">{{ row.city }}</div>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <div>
-                                {{ row.duration }}
-                            </div>
+                            <div class="text-sm font-medium">{{ row.price }}<span class="font-light ml-1.5 text-xs">USD</span></div>
                         </td>
-
                         <td>
-                            <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'expo')" />
+                            <div class="text-xs">
+                                <div>
+                                    {{ row.expo?.name }}
+                                </div>
+                                <div>
+                                    {{ row.expo?.country?.name }}
+                                </div>
+                            </div>
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                         <td class="text-right">
@@ -392,7 +392,7 @@ const countryList = resources.countries ?? [];
             </tbody>
         </table>
         <!-- Pagination -->
-        <TablePagination :pending="pending" :rows="rows" :page="serverParams.page" @change-page="changePage" />
+        <TablePagination :pending="status === 'pending'" :rows="rows" :page="serverParams.page" @change-page="changePage" />
 
         <TheModal :open-modal="isOpen" size="5xl" @close-modal="closeModal()">
             <template #header>
@@ -403,28 +403,31 @@ const countryList = resources.countries ?? [];
             </template>
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
-                    <div class="lg:col-span-4">
-                        <FormUploader v-model="item.image" :errors="v$.image.$errors" :allowed-types="['image']" label="Image" name="image" />
-                    </div>
-                    <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5">
-                        <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
-                        <FormDatePicker v-model="item.duration" :time-picker="false" range :errors="v$.duration.$errors" class="lg:col-span-12" label="Duration" name="duration" />
-                        <FormInputField v-model="item.venue" :errors="v$.venue.$errors" class="lg:col-span-12" label="Venue" name="venue" placeholder="Venue" />
-                    </div>
+                    <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
+                    <FormInputField v-model="item.price" :errors="v$.price.$errors" type="number" class="lg:col-span-6" label="Price" name="city" placeholder="Price" />
                     <FormSelectField
-                        id="country-id"
-                        v-model="item.countryId"
-                        :errors="v$.countryId.$errors"
-                        label="Country"
-                        class="lg:col-span-5"
-                        placeholder="Please select a country..."
-                        :select-data="resources.countries"
+                        id="expo-id"
+                        v-model="item.expoId"
+                        :errors="v$.expoId.$errors"
+                        label="Exhibition"
+                        class="lg:col-span-6"
+                        placeholder="Please select an Exhibition..."
+                        :select-data="expos"
                         labelvalue="name"
                         keyvalue="id"
-                        imgvalue="imageUrl"
+                        secondlabelvalue="countryName"
+                        thirdlabelvalue="city"
                     />
-                    <FormInputField v-model="item.city" :errors="v$.city.$errors" class="lg:col-span-4" label="City" name="city" placeholder="City" />
-                    <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="'active" label="Active" class="lg:col-span-3" />
+                    <div class="pt-3 border-t lg:col-span-12 flex items-center gap-5 justify-between">
+                        <div>Options</div>
+                        <button type="button" class="btn btn-sm btn-success btn-rounded px-6" @click="addOption">Add Option</button>
+                    </div>
+                    <div v-for="(detail, index) in item.details" :key="index" class="lg:col-span-12 grid lg:grid-cols-12 gap-3 items-center">
+                        <FormInputField v-model="detail.title" class="lg:col-span-9" :name="'detail-name-' + index" :placeholder="'Detail ' + (index + 1)" />
+                        <FormSwitch v-model="detail.active" :name="'detail-active-' + (index + 1)" flex-title label="Active" class="lg:col-span-2" />
+                        <button type="button" class="btn btn-sm btn-danger btn-rounded px-6 lg:col-span-1" @click="removeOption(index)">Remove</button>
+                    </div>
+                    <div v-if="item.details?.length === 0" class="lg:col-span-12 p-5 bg-slate-50/50 text-center text-sm rounded-xl italic font-light border-2 border-dashed">This package does not have options</div>
                 </div>
             </template>
             <template #footer>

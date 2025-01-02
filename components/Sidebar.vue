@@ -165,6 +165,17 @@ const menuItems = ref([
         permission: ['list-contact-people'],
         subMenus: [],
     },
+    {
+        name: 'Exhibitions Data',
+        path: '/events-expos',
+        icon: 'solar:calendar-linear',
+        permission: ['list-expo', 'list-expo-company', 'list-package'],
+        subMenus: [
+            { name: 'Exhibitions', path: '/events-expos/expos', icon: 'solar:calendar-linear', subMenus: [], permission: ['list-expo'] },
+            { name: 'Packages', path: '/events-expos/packages', icon: 'solar:medal-ribbon-star-outline', subMenus: [], permission: ['list-package'] },
+            { name: 'Companies', path: '/events-expos/companies', icon: 'solar:buildings-3-outline', subMenus: [], permission: ['list-expo-company'] },
+        ],
+    },
     'Settings',
     {
         name: 'Admins Area',

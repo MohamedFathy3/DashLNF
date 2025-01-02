@@ -21,5 +21,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
         return navigateTo('/admins-area/admins');
     } else if (to.fullPath === '/conferences-page') {
         return navigateTo('/conferences-page/home');
+    } else if (to.fullPath === '/events-expos') {
+        return navigateTo('/events-expos/expos');
     }
 });

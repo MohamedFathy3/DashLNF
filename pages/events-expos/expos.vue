@@ -1,6 +1,7 @@
 <script setup>
-import { email, required } from '@vuelidate/validators';
+import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import { useFormatDate } from '~/composables/useFormatDate';
 
 definePageMeta({
     middleware: 'auth',
@@ -9,8 +10,6 @@ const selectedRows = ref([]);
 const sortByList = ref([
     { name: 'Sort By ID', value: 'id' },
     { name: 'Sort By Name', value: 'name' },
-    { name: 'Sort By Expo', value: 'expo_id' },
-    { name: 'Sort By Network', value: 'network_id' },
 ]);
 const filter = ref({
     name: null,
@@ -50,22 +49,10 @@ const {
     data: rows,
     status,
     refresh,
-} = await useApiFetch('/api/expo-company/index', {
+} = await useApiFetch('/api/expo/index', {
     method: 'POST',
     body: serverParams,
     lazy: true,
-});
-const { data: packages } = await useApiFetch('/api/get-package/public', {
-    lazy: true,
-    transform: (packages) => packages.data,
-});
-const { data: networks } = await useApiFetch('/api/get-logo-company/public', {
-    lazy: true,
-    transform: (networks) => networks.data,
-});
-const { data: expos } = await useApiFetch('/api/get-expo/public', {
-    lazy: true,
-    transform: (expos) => expos.data,
 });
 watch(
     filter,
@@ -126,39 +113,25 @@ const toggleRowSelection = (id) => {
 const item = ref({
     id: null,
     name: null,
-    city: null, // need to be added  to backend
-    countryId: null, // need to be added  to backend
+    duration: [],
+    venue: null,
+    city: null,
+    countryId: null,
+    active: true,
     image: null,
-    email: null,
-    cpName: null,
-    cpJobTitle: null,
-    cpEmail: null,
-    cpCellNumber: null,
-    cpPhoneNumber: null,
-    status: false,
-    packageId: null,
-    networkId: null,
-    expoId: null,
 });
 const rules = ref({
     name: { required },
-    city: { required },
-    countryId: { required },
-    image: { required },
-    email: { required, email },
-    cpName: { required },
-    cpJobTitle: { required },
-    cpEmail: { required, email },
-    cpCellNumber: { required },
-    cpPhoneNumber: {},
-    status: {},
-    packageId: { required },
-    networkId: { required },
-    expoId: { required },
+    duration: { required },
+    venue: { required },
+    city: {},
+    active: {},
+    countryId: {},
+    image: {},
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
-    const { data, error } = await useApiFetch(`/api/expo-company/${id}`, {
+    const { data, error } = await useApiFetch(`/api/expo/${id}`, {
         lazy: true,
     });
     if (data.value) {
@@ -172,19 +145,12 @@ const resetItemValues = async () => {
     item.value = {
         id: null,
         name: null,
-        email: null,
-        status: false,
+        duration: [],
+        venue: null,
+        city: null,
+        active: true,
+        countryId: null,
         image: null,
-        cpName: null,
-        cpJobTitle: null,
-        cpEmail: null,
-        cpCellNumber: null,
-        cpPhoneNumber: null,
-        packageId: null,
-        networkId: null,
-        expoId: null,
-        city: null, // need to be added  to backend
-        countryId: null, // need to be added  to backend
     };
 };
 async function closeModal() {
@@ -206,7 +172,7 @@ async function openModal(id = null) {
 }
 
 async function updateItem() {
-    const { data, error } = await useApiFetch(`/api/expo-company/${item.value?.id}`, {
+    const { data, error } = await useApiFetch(`/api/expo/${item.value?.id}`, {
         method: 'PATCH',
         body: item,
         lazy: true,
@@ -222,7 +188,7 @@ async function updateItem() {
 }
 
 async function addItem() {
-    const { data, error } = await useApiFetch(`/api/expo-company`, {
+    const { data, error } = await useApiFetch(`/api/expo`, {
         method: 'POST',
         body: item,
         lazy: true,
@@ -255,7 +221,7 @@ async function handleModalSubmit() {
 async function deleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/expo-company/delete`, {
+        const { data, error } = await useApiFetch(`/api/expo/delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -272,7 +238,7 @@ async function deleteItems() {
 async function forceDeleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/expo-company/force-delete`, {
+        const { data, error } = await useApiFetch(`/api/expo/force-delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -289,7 +255,7 @@ async function forceDeleteItems() {
 async function restoreItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/expo-company/restore`, {
+        const { data, error } = await useApiFetch(`/api/expo/restore`, {
             body: { items: selectedRows.value },
             method: 'POST',
             lazy: true,
@@ -309,8 +275,8 @@ async function restoreItems() {
         <!-- Page Title & Action Buttons -->
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
-                <Icon name="solar:buildings-3-outline" class="size-5 opacity-75" />
-                <div>{{ serverParams.deleted ? 'Deleted Companies' : 'Companies' }}</div>
+                <Icon name="solar:calendar-outline" class="size-5 opacity-75" />
+                <div>{{ serverParams.deleted ? 'Deleted Expos' : 'Expos' }}</div>
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">
@@ -371,8 +337,8 @@ async function restoreItems() {
                         <input v-model="allSelected" type="checkbox" class="form-check-input" @change="selectAllRows" />
                     </th>
                     <th class="text-left">Name</th>
-                    <th>Network</th>
-                    <th>Status</th>
+                    <th>Duration</th>
+                    <th>Active</th>
                     <th v-if="serverParams.deleted">Deleted At</th>
                     <th class="text-right">Action</th>
                 </tr>
@@ -385,27 +351,32 @@ async function restoreItems() {
                         </td>
                         <td>
                             <div class="text-sm flex items-center gap-3">
-                                <NuxtImg v-if="row.image" :src="row.imageUrl" class="h-12 !rounded-md w-20 object-contain p-0.5 shrink-0" />
+                                <NuxtImg v-if="row.image" :src="row.imageUrl" class="h-12 !rounded-md w-20 object-cover shrink-0" />
                                 <div>
-                                    <div class="font-normal truncate">{{ row.name }}</div>
-                                    <div class="font-medium text-xs opacity-75 truncate">{{ row.country?.name }}</div>
-                                    <div class="font-light text-xs opacity-75 truncate">{{ row.city }}</div>
+                                    <div class="font-normal">{{ row.name }}</div>
+                                    <div class="opacity-75 mt-0.5 flex items-center gap-2 whitespace-nowrap">
+                                        <span>{{ row.country?.name }}</span>
+                                        <span>-</span>
+                                        <span class="py-0.5 px-3 text-xs bg-slate-200 rounded-full font-medium">{{ row.city }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <div class="text-xs">
-                                <div>
-                                    {{ row.network?.name }}
+                            <div class="text-sm space-y-0.5">
+                                <div class="flex items-center">
+                                    <Icon name="solar:calendar-linear" class="size-4 shrink-0 mr-1.5 opacity-50" />
+                                    <span>{{ useFormatDate(row.duration[0]) }}</span>
                                 </div>
-                                <div>
-                                    {{ row.expo?.name }}
+                                <div class="flex items-center">
+                                    <Icon name="solar:calendar-mark-linear" class="size-4 shrink-0 mr-1.5 opacity-50" />
+                                    <span>{{ useFormatDate(row.duration[1]) }}</span>
                                 </div>
                             </div>
                         </td>
 
                         <td>
-                            <FormSwitch :id="'row-status-' + row.id" v-model="row.status" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'status', 'expo-company')" />
+                            <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'expo')" />
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                         <td class="text-right">
@@ -444,68 +415,23 @@ async function restoreItems() {
                     </div>
                     <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5">
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
-                        <FormSelectField
-                            id="country-id"
-                            v-model="item.countryId"
-                            :errors="v$.countryId.$errors"
-                            label="Country"
-                            class="lg:col-span-6"
-                            placeholder="Please select a country..."
-                            :select-data="resources.countries"
-                            labelvalue="name"
-                            keyvalue="id"
-                            imgvalue="imageUrl"
-                        />
-                        <FormInputField v-model="item.city" :errors="v$.city.$errors" class="lg:col-span-6" label="City" name="city" placeholder="City" />
-                        <FormInputField v-model="item.email" :errors="v$.email.$errors" class="lg:col-span-12" label="Email" name="email" placeholder="Email" />
-                    </div>
-
-                    <div class="lg:col-span-12 grid grid-cols-12 gap-5 p-3 border bg-slate-50/50 rounded-xl">
-                        <div class="lg:col-span-12" v-html="'Contact Person Details'" />
-                        <FormInputField v-model="item.cpName" :errors="v$.cpName.$errors" class="lg:col-span-6" label="Name" name="cp-name" placeholder="Name" />
-                        <FormInputField v-model="item.cpJobTitle" :errors="v$.cpJobTitle.$errors" class="lg:col-span-6" label="Job Title" name="cp-job-title" placeholder="Job Title" />
-                        <FormInputField v-model="item.cpEmail" :errors="v$.cpEmail.$errors" class="lg:col-span-12" label="Email" name="cp-email" placeholder="Email" />
-                        <FormInputField v-model="item.cpCellNumber" :errors="v$.cpCellNumber.$errors" class="lg:col-span-6" label="Cell number" name="cp-cell" placeholder="Cell number" />
-                        <FormInputField v-model="item.cpPhoneNumber" :errors="v$.cpPhoneNumber.$errors" class="lg:col-span-6" label="Phone number" name="cp-phone" placeholder="Phone number" />
+                        <FormDatePicker v-model="item.duration" :time-picker="false" range :errors="v$.duration.$errors" class="lg:col-span-12" label="Duration" name="duration" />
+                        <FormInputField v-model="item.venue" :errors="v$.venue.$errors" class="lg:col-span-12" label="Venue" name="venue" placeholder="Venue" />
                     </div>
                     <FormSelectField
-                        id="network-id"
-                        v-model="item.networkId"
-                        :errors="v$.networkId.$errors"
-                        label="Network"
-                        class="lg:col-span-6"
-                        placeholder="Please select a network..."
-                        :select-data="networks"
+                        id="country-id"
+                        v-model="item.countryId"
+                        :errors="v$.countryId.$errors"
+                        label="Country"
+                        class="lg:col-span-5"
+                        placeholder="Please select a country..."
+                        :select-data="resources.countries"
                         labelvalue="name"
                         keyvalue="id"
                         imgvalue="imageUrl"
                     />
-                    <FormSelectField
-                        id="expo-id"
-                        v-model="item.expoId"
-                        :errors="v$.expoId.$errors"
-                        label="Exhibition"
-                        class="lg:col-span-6"
-                        placeholder="Please select an Exhibition..."
-                        :select-data="expos"
-                        labelvalue="name"
-                        keyvalue="id"
-                        secondlabelvalue="countryName"
-                        thirdlabelvalue="city"
-                    />
-                    <FormSelectField
-                        id="package-id"
-                        v-model="item.packageId"
-                        secondlabelvalue="price"
-                        :errors="v$.packageId.$errors"
-                        label="Package"
-                        class="lg:col-span-6"
-                        placeholder="Please select a package..."
-                        :select-data="packages"
-                        labelvalue="name"
-                        keyvalue="id"
-                    />
-                    <FormSwitch v-model="item.status" :errors="v$.status.$errors" name="'status" label="Status" class="lg:col-span-6" />
+                    <FormInputField v-model="item.city" :errors="v$.city.$errors" class="lg:col-span-4" label="City" name="city" placeholder="City" />
+                    <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="'active" label="Active" class="lg:col-span-3" />
                 </div>
             </template>
             <template #footer>
