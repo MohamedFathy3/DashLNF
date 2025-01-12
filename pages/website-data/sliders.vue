@@ -300,7 +300,7 @@ async function restoreItems() {
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
                 <Icon name="solar:asteroid-linear" class="size-5 opacity-75" />
-                <div>{{ serverParams.deleted ? 'Deleted Policies' : 'Policies' }}</div>
+                <div>{{ serverParams.deleted ? 'Deleted Sliders' : 'Sliders' }}</div>
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">

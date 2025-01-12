@@ -126,8 +126,8 @@ const toggleRowSelection = (id) => {
 const item = ref({
     id: null,
     name: null,
-    city: null, // need to be added  to backend
-    countryId: null, // need to be added  to backend
+    city: null,
+    countryId: null,
     image: null,
     email: null,
     cpName: null,
@@ -183,8 +183,8 @@ const resetItemValues = async () => {
         packageId: null,
         networkId: null,
         expoId: null,
-        city: null, // need to be added  to backend
-        countryId: null, // need to be added  to backend
+        city: null,
+        countryId: null,
     };
 };
 async function closeModal() {
