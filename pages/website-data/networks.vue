@@ -111,12 +111,16 @@ const item = ref({
     image: null,
     position: null,
     active: true,
+    showHome: true,
+    showExpo: true,
 });
 const rules = ref({
     name: { required },
     image: {},
     position: { numeric },
     active: {},
+    showHome: {},
+    showExpo: {},
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
@@ -136,6 +140,8 @@ const resetItemValues = async () => {
         image: null,
         position: null,
         active: true,
+        showHome: true,
+        showExpo: true,
     };
 };
 async function closeModal() {
@@ -322,7 +328,8 @@ async function restoreItems() {
                     </th>
                     <th class="text-left">Name</th>
                     <th class="text-center">Position</th>
-                    <th class="text-center">Active</th>
+                    <th class="text-center">Show Home</th>
+                    <th class="text-center">Show Expo List</th>
                     <th v-if="serverParams.deleted">Deleted At</th>
                     <th class="text-right">Action</th>
                 </tr>
@@ -346,7 +353,12 @@ async function restoreItems() {
                         </td>
                         <td>
                             <div class="flex items-center place-content-center">
-                                <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'logo-company')" />
+                                <FormSwitch :id="'row-show-home-' + row.id" v-model="row.showHome" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'show_home', 'logo-company')" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex items-center place-content-center">
+                                <FormSwitch :id="'row-show-expo-' + row.id" v-model="row.showExpo" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'show_expo', 'logo-company')" />
                             </div>
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
@@ -397,7 +409,9 @@ async function restoreItems() {
                     <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5">
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
                         <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-12" label="Position" name="order-id" placeholder="Position Number" type="number" />
-                        <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="'active" label="Active" class="lg:col-span-12" />
+                        <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="active" label="Active" class="lg:col-span-4" />
+                        <FormSwitch v-model="item.showHome" :errors="v$.showHome.$errors" name="show-home" label="Show Home" class="lg:col-span-4" />
+                        <FormSwitch v-model="item.showExpo" :errors="v$.showExpo.$errors" name="show-expo" label="Show Expo" class="lg:col-span-4" />
                     </div>
                 </div>
             </template>
