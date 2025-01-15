@@ -15,6 +15,7 @@ const filter = ref({
 });
 const sectionTypes = ref([
     { value: 'intro', name: 'Intro' },
+    { value: 'intro-no-title', name: 'Intro Without Title' },
     { value: 'about-left-image', name: 'About - Left Image' },
     { value: 'about-right-image', name: 'About - Right Image' },
     { value: 'about-no-image', name: 'About - No Image' },
@@ -481,7 +482,17 @@ async function restoreItems() {
                     <FormSelectField v-model="item.type" :errors="v$.type.$errors" labelvalue="name" keyvalue="value" :select-data="sectionTypes" class="lg:col-span-9" label="Type" name="section-type" placeholder="Select Section Type" />
                     <FormSwitch v-model="item.active" label="Active" class="lg:col-span-3" name="active-input" />
                     <template v-if="item.type">
-                        <template v-if="item.type === 'network-directory' || item.type === 'about-left-image' || item.type === 'about-right-image' || item.type === 'image-banner-section' || item.type === 'grid-home-section' || item.type === 'intro'">
+                        <template
+                            v-if="
+                                item.type === 'network-directory' ||
+                                item.type === 'about-left-image' ||
+                                item.type === 'about-right-image' ||
+                                item.type === 'image-banner-section' ||
+                                item.type === 'grid-home-section' ||
+                                item.type === 'intro' ||
+                                item.type === 'intro-no-title'
+                            "
+                        >
                             <FormUploader v-model="item.image" :allowed-types="['image', 'svg']" label="Image" name="image" class="lg:col-span-12" />
                         </template>
 
@@ -547,21 +558,21 @@ async function restoreItems() {
                         />
 
                         <FormSwitch
-                            v-if="item.type === 'intro' || item.type === 'cta' || item.type === 'image-banner-section'"
+                            v-if="item.type === 'intro' || item.type === 'intro-no-title' || item.type === 'cta' || item.type === 'image-banner-section'"
                             v-model="item.buttonOneActive"
                             label="Button One Active"
                             class="col-span-12 sm:col-span-6"
                             name="button-one-active-switch"
                         />
                         <FormSwitch
-                            v-if="item.type === 'intro' || item.type === 'cta' || item.type === 'image-banner-section'"
+                            v-if="item.type === 'intro' || item.type === 'intro-no-title' || item.type === 'cta' || item.type === 'image-banner-section'"
                             v-model="item.buttonTwoActive"
                             label="Button Two Active"
                             class="col-span-12 sm:col-span-6"
                             name="button-two-active-switch"
                         />
                         <!-- Button #1 -->
-                        <template v-if="item.buttonOneActive && (item.type === 'intro' || item.type === 'cta' || item.type === 'image-banner-section')">
+                        <template v-if="item.buttonOneActive && (item.type === 'intro' || item.type === 'intro-no-title' || item.type === 'cta' || item.type === 'image-banner-section')">
                             <div class="col-span-12 mt-2 py-2 bg-slate-100 rounded-md pl-4">
                                 <h1 class="font-semibold">Button One</h1>
                                 <p class="text-xs">Leave all fields empty to disable</p>
@@ -573,7 +584,7 @@ async function restoreItems() {
                             <FormSelectField v-model="item.buttonStyleOne" :errors="v$.buttonStyleOne.$errors" class="lg:col-span-6" label="Style" :select-data="buttonTypes" name="button-style-one" labelvalue="name" keyvalue="value" />
                         </template>
                         <!-- Button #2 -->
-                        <template v-if="item.buttonTwoActive && (item.type === 'intro' || item.type === 'cta' || item.type === 'image-banner-section')">
+                        <template v-if="item.buttonTwoActive && (item.type === 'intro' || item.type === 'intro-no-title' || item.type === 'cta' || item.type === 'image-banner-section')">
                             <div class="col-span-12 mt-2 py-2 bg-slate-100 rounded-md pl-4">
                                 <h1 class="font-semibold">Button Two</h1>
                                 <p class="text-xs">Leave all fields empty to disable</p>
