@@ -501,10 +501,10 @@ async function restoreItems() {
                         <FormSelectField
                             v-if="item.type === 'grid-box'"
                             v-model="item.parentId"
-                            :errors="v$.$errors"
+                            :errors="v$.parentId.$errors"
                             labelvalue="title"
                             keyvalue="id"
-                            :select-data="rows"
+                            :select-data="rows.data"
                             class="col-span-12 sm:col-span-6"
                             label="Parent Section"
                             name="section-parent"
