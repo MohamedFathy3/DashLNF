@@ -43,6 +43,8 @@ const sectionTypes = ref([
     { value: 'testimonials-list', name: 'Testimonials List' },
     { value: 'site-states', name: 'Network States Counter' },
     { value: 'team-grid', name: 'Our Team Grid' },
+    { value: 'network-grid', name: 'Our Networks Grid' },
+    { value: 'events-grid', name: 'Events Grid' },
 ]);
 const buttonTypes = ref([
     { value: 'primary', name: 'Primary' },
@@ -490,7 +492,8 @@ async function restoreItems() {
                                 item.type === 'image-banner-section' ||
                                 item.type === 'grid-home-section' ||
                                 item.type === 'intro' ||
-                                item.type === 'intro-no-title'
+                                item.type === 'intro-no-title' ||
+                                item.type === 'grid-box'
                             "
                         >
                             <FormUploader v-model="item.image" :allowed-types="['image', 'svg']" label="Image" name="image" class="lg:col-span-12" />
@@ -524,15 +527,15 @@ async function restoreItems() {
                                 item.type !== 'freight-tools' &&
                                 item.type !== 'site-states' &&
                                 item.type !== 'events-list' &&
-                                item.type !== 'grid-box' &&
                                 item.type !== 'contact-form'
                             "
                             v-model="item.subTitle"
                             :errors="v$.subTitle.$errors"
-                            class="col-span-12 sm:col-span-6"
-                            label="Sub Title"
-                            name="sub-title"
-                            placeholder="Sub Title"
+                            :class="item.type !== 'grid-box' ? ' sm:col-span-6' : ' sm:col-span-12'"
+                            class="col-span-12"
+                            :label="item.type !== 'grid-box' ? 'Sub Title' : 'Link'"
+                            :name="item.type !== 'grid-box' ? 'sub-title' : 'link'"
+                            :placeholder="item.type !== 'grid-box' ? 'Sub Title' : 'Link'"
                         />
 
                         <FormRichTextEditor
