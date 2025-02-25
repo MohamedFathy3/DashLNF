@@ -3,7 +3,7 @@
     "private": true,
     "scripts": {
         "build": "nuxt build",
-        "dev": "nuxt dev --host dashboard.lnfederation.test --port 4549",
+        "dev": "nuxt dev --host dashboard.lnfederation.test --port 3700",
         "start": "nuxt start",
         "generate": "nuxt generate",
         "preview": "nuxt preview",

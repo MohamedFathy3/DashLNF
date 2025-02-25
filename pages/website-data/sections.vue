@@ -55,8 +55,8 @@ const buttonTypes = ref([
     { value: 'danger', name: 'Red' },
 ]);
 const linkType = ref([
-    { value: 0, name: 'Use Normal Link (External)' },
-    { value: 1, name: 'Use Router Link (Internal)' },
+    { value: '_self', name: 'Use Normal Link (External)' },
+    { value: '_blank', name: 'Use Router Link (Internal)' },
 ]);
 const serverParams = ref({
     filters: {},
@@ -161,22 +161,22 @@ const item = ref({
     //Section Meta Data
     image: null,
     parentId: null,
-
-    //Button One Data
-    buttonLinkTypeOne: 1,
     buttonOneActive: false,
-    buttonTextOne: null,
-    buttonStyleOne: 'primary',
-    buttonRouteOne: null,
-    buttonIconOne: null,
-
-    //Button Two Data
-    buttonLinkTypeTwo: 1,
     buttonTwoActive: false,
-    buttonTextTwo: null,
-    buttonStyleTwo: 'primary',
-    buttonRouteTwo: null,
-    buttonIconTwo: null,
+    buttonOne: {
+        url: null,
+        icon: null,
+        label: null,
+        style: 'primary',
+        target: 1,
+    },
+    buttonTwo: {
+        url: null,
+        icon: null,
+        label: null,
+        style: 'primary',
+        target: 1,
+    }
 });
 const rules = ref({
     title: { required: item.value.type !== 'benefits-grid' && item.value.type !== 'benefits-list' ? required : {} },
@@ -189,18 +189,9 @@ const rules = ref({
     parentId: { required: item.value.type === 'grid-box' ? required : {} },
 
     buttonOneActive: {},
-    buttonTextOne: { required: item.value.buttonOneActive ? required : {} },
-    buttonStyleOne: { required: item.value.buttonOneActive ? required : {} },
-    buttonRouteOne: { required: item.value.buttonOneActive ? required : {} },
-    buttonIconOne: {},
-    buttonLinkTypeOne: { required: item.value.buttonOneActive ? required : {} },
-
+    buttonOne: {},
     buttonTwoActive: {},
-    buttonTextTwo: { required: item.value.buttonTwoActive ? required : {} },
-    buttonStyleTwo: { required: item.value.buttonTwoActive ? required : {} },
-    buttonRouteTwo: { required: item.value.buttonTwoActive ? required : {} },
-    buttonIconTwo: {},
-    buttonLinkTypeTwo: { required: item.value.buttonTwoActive ? required : {} },
+    buttonTwo: {},
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
@@ -225,22 +216,22 @@ const resetItemValues = async () => {
         //Section Meta Data
         image: null,
         parentId: null,
-
-        //Button One Data
-        buttonLinkTypeOne: 1,
         buttonOneActive: false,
-        buttonTextOne: null,
-        buttonStyleOne: 'primary',
-        buttonRouteOne: null,
-        buttonIconOne: null,
-
-        //Button Two Data
-        buttonLinkTypeTwo: 1,
         buttonTwoActive: false,
-        buttonTextTwo: null,
-        buttonStyleTwo: 'primary',
-        buttonRouteTwo: null,
-        buttonIconTwo: null,
+        buttonOne: {
+            url: null,
+            icon: null,
+            label: null,
+            style: 'primary',
+            target: 1,
+        },
+        buttonTwo: {
+            url: null,
+            icon: null,
+            label: null,
+            style: 'primary',
+            target: 1,
+        }
     };
 };
 async function closeModal() {
@@ -561,42 +552,42 @@ async function restoreItems() {
                         />
 
                         <FormSwitch
-                            v-if="item.type === 'intro' || item.type === 'intro-no-title' || item.type === 'cta' || item.type === 'image-banner-section'"
+                            v-if="item.type === 'about-left-image' || item.type === 'about-right-image' || item.type === 'intro' || item.type === 'intro-no-title' || item.type === 'cta' || item.type === 'image-banner-section'"
                             v-model="item.buttonOneActive"
                             label="Button One Active"
                             class="col-span-12 sm:col-span-6"
                             name="button-one-active-switch"
                         />
                         <FormSwitch
-                            v-if="item.type === 'intro' || item.type === 'intro-no-title' || item.type === 'cta' || item.type === 'image-banner-section'"
+                            v-if="item.type === 'about-left-image' || item.type === 'about-right-image' || item.type === 'intro' || item.type === 'intro-no-title' || item.type === 'cta' || item.type === 'image-banner-section'"
                             v-model="item.buttonTwoActive"
                             label="Button Two Active"
                             class="col-span-12 sm:col-span-6"
                             name="button-two-active-switch"
                         />
                         <!-- Button #1 -->
-                        <template v-if="item.buttonOneActive && (item.type === 'intro' || item.type === 'intro-no-title' || item.type === 'cta' || item.type === 'image-banner-section')">
+                        <template v-if="item.buttonOneActive">
                             <div class="col-span-12 mt-2 py-2 bg-slate-100 rounded-md pl-4">
                                 <h1 class="font-semibold">Button One</h1>
                                 <p class="text-xs">Leave all fields empty to disable</p>
                             </div>
-                            <FormInputField v-model="item.buttonTextOne" :errors="v$.buttonTextOne.$errors" label="Button text" placeholder="Button text" class="col-span-12" name="button-text-one" />
-                            <FormInputField v-model="item.buttonRouteOne" :errors="v$.buttonRouteOne.$errors" label="Link" placeholder="Link" class="col-span-12 sm:col-span-6" name="button-style-one" />
-                            <FormSelectField v-model="item.buttonLinkTypeOne" :errors="v$.buttonLinkTypeOne.$errors" class="lg:col-span-6" label="Link Type" :select-data="linkType" name="button-link-type-one" labelvalue="name" keyvalue="value" />
-                            <FormInputField v-model="item.buttonIconOne" :errors="v$.buttonIconOne.$errors" label="Icon" placeholder="Icon" class="col-span-12 sm:col-span-6" name="button-icon-one" />
-                            <FormSelectField v-model="item.buttonStyleOne" :errors="v$.buttonStyleOne.$errors" class="lg:col-span-6" label="Style" :select-data="buttonTypes" name="button-style-one" labelvalue="name" keyvalue="value" />
+                            <FormInputField v-model="item.buttonOne.label" label="Button text" placeholder="Button text" class="col-span-12" name="button-text-one" />
+                            <FormInputField v-model="item.buttonOne.url" label="Link" placeholder="Link" class="col-span-12 sm:col-span-6" name="button-style-one" />
+                            <FormSelectField v-model="item.buttonOne.target" class="lg:col-span-6" label="Link Type" :select-data="linkType" name="button-link-type-one" labelvalue="name" keyvalue="value" />
+                            <FormInputField v-model="item.buttonOne.icon" label="Icon" placeholder="Icon" class="col-span-12 sm:col-span-6" name="button-icon-one" />
+                            <FormSelectField v-model="item.buttonOne.style" class="lg:col-span-6" label="Style" :select-data="buttonTypes" name="button-style-one" labelvalue="name" keyvalue="value" />
                         </template>
                         <!-- Button #2 -->
-                        <template v-if="item.buttonTwoActive && (item.type === 'intro' || item.type === 'intro-no-title' || item.type === 'cta' || item.type === 'image-banner-section')">
+                        <template v-if="item.buttonTwoActive">
                             <div class="col-span-12 mt-2 py-2 bg-slate-100 rounded-md pl-4">
                                 <h1 class="font-semibold">Button Two</h1>
                                 <p class="text-xs">Leave all fields empty to disable</p>
                             </div>
-                            <FormInputField v-model="item.buttonTextTwo" :errors="v$.buttonTextTwo.$errors" label="Button text" placeholder="Button text" class="col-span-12" name="button-text-two" />
-                            <FormInputField v-model="item.buttonRouteTwo" :errors="v$.buttonRouteTwo.$errors" label="Link" placeholder="Link" class="col-span-12 sm:col-span-6" name="button-style-two" />
-                            <FormSelectField v-model="item.buttonLinkTypeTwo" :errors="v$.buttonLinkTypeTwo.$errors" class="lg:col-span-6" label="Link Type" :select-data="linkType" name="button-link-type-two" labelvalue="name" keyvalue="value" />
-                            <FormInputField v-model="item.buttonIconTwo" :errors="v$.buttonIconTwo.$errors" label="Icon" placeholder="Icon" class="col-span-12 sm:col-span-6" name="button-icon-two" />
-                            <FormSelectField v-model="item.buttonStyleTwo" :errors="v$.buttonStyleTwo.$errors" class="lg:col-span-6" label="Style" :select-data="buttonTypes" name="button-style-two" labelvalue="name" keyvalue="value" />
+                            <FormInputField v-model="item.buttonTwo.label" label="Button text" placeholder="Button text" class="col-span-12" name="button-text-two" />
+                            <FormInputField v-model="item.buttonTwo.url" label="Link" placeholder="Link" class="col-span-12 sm:col-span-6" name="button-style-two" />
+                            <FormSelectField v-model="item.buttonTwo.target" class="lg:col-span-6" label="Link Type" :select-data="linkType" name="button-link-type-two" labelvalue="name" keyvalue="value" />
+                            <FormInputField v-model="item.buttonTwo.icon" label="Icon" placeholder="Icon" class="col-span-12 sm:col-span-6" name="button-icon-two" />
+                            <FormSelectField v-model="item.buttonTwo.style" class="lg:col-span-6" label="Style" :select-data="buttonTypes" name="button-style-two" labelvalue="name" keyvalue="value" />
                         </template>
                     </template>
                 </div>

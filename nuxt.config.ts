@@ -20,8 +20,8 @@ export default defineNuxtConfig({
     },
     runtimeConfig: {
         public: {
-            appUrl: process.env.APP_URL ?? 'http://dashboard.lnfederation.test:4549',
-            apiUrl: process.env.API_URL ?? 'http://api.lnfederation.test:8715',
+            appUrl: process.env.APP_URL ?? 'http://dashboard.lnfederation.test:3700',
+            apiUrl: process.env.API_URL ?? 'https://apitest.lnfederation.com',
             description: 'LNF Events is a part of World Shipping Alliance is an independent worldwide network for all freight forwarders.',
             keywords:
                 'World Shipping Alliance, freight forwarders network, global logistics, OTI/NVOCC operations, logistics community, logistics excellence, logistics network, dependable connections, global freight services, freight agents, logistics journey, event, wsa',
@@ -33,7 +33,7 @@ export default defineNuxtConfig({
     nitro: {
         routeRules: {
             '/backend/**': {
-                proxy: `${process.env.API_URL ?? 'http://api.lnfederation.test:8715'}/**`,
+                proxy: `${process.env.API_URL ?? 'https://apitest.lnfederation.com'}/**`,
             },
             '/get-geoip/**': {
                 proxy: `http://ip-api.com/json/**`,
