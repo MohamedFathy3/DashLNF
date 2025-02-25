@@ -55,8 +55,8 @@ const buttonTypes = ref([
     { value: 'danger', name: 'Red' },
 ]);
 const linkType = ref([
-    { value: '_self', name: 'Use Normal Link (External)' },
-    { value: '_blank', name: 'Use Router Link (Internal)' },
+    { value: '_blank', name: 'Use Normal Link (External)' },
+    { value: '_self', name: 'Use Router Link (Internal)' },
 ]);
 const serverParams = ref({
     filters: {},
