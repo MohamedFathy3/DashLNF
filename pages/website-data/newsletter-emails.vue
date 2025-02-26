@@ -207,7 +207,7 @@ async function restoreItems() {
                 <div>{{ serverParams.deleted ? 'Deleted Emails' : 'Emails' }}</div>
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
-                <template v-if="selectedRows.length > 0">
+                <template v-if="selectedRows?.length > 0">
                     <button v-if="serverParams.deleted" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="forceDeleteItems">
                         <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                         Delete Permanently
