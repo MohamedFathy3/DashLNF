@@ -272,7 +272,6 @@ async function restoreItems() {
                         </td>
                         <td>
                             <div class="flex items-start gap-3">
-                                <NuxtImg :src="row.imageUrl" class="h-10 !rounded-full w-10 object-cover shrink-0" />
                                 <div>
                                     <div class="opacity-75 font-medium items-center gap-1 flex">
                                         <span>{{ row.firstName }}</span>
@@ -300,7 +299,7 @@ async function restoreItems() {
                         </td>
                     </tr>
                 </template>
-                <template v-if="status !== 'pending' && rows && rows.data.length === 0">
+                <template v-if="status !== 'pending' && rows && rows.data && rows.data?.length === 0">
                     <tr>
                         <td colspan="7">
                             <div class="text-center">
