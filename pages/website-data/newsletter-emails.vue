@@ -277,7 +277,7 @@ async function restoreItems() {
                                         <span>{{ row.firstName }}</span>
                                         <span>{{ row.lastName }}</span>
                                     </div>
-                                    <span class="capitalize py-0.5 mt-0.5 whitespace-nowrap px-3 text-xs bg-slate-200 rounded-full">{{ row.email }}</span>
+                                    <span class="lowercase py-0.5 mt-0.5 whitespace-nowrap px-3 text-xs bg-slate-200 rounded-full">{{ row.email }}</span>
                                 </div>
                             </div>
                         </td>
