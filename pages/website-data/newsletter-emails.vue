@@ -7,7 +7,7 @@ definePageMeta({
 });
 const selectedRows = ref([]);
 const sortByList = ref([
-    { name: 'Sort By Position', value: 'position' },
+    { name: 'Sort By ID', value: 'id' },
     { name: 'Sort By Date', value: 'created_at' },
 ]);
 const filter = ref({
@@ -15,7 +15,7 @@ const filter = ref({
 });
 const serverParams = ref({
     filters: {},
-    orderBy: 'position',
+    orderBy: 'created_at',
     orderByDirection: 'asc',
     perPage: 25,
     page: 1,
