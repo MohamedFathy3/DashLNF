@@ -146,6 +146,13 @@ const menuItems = ref([
                 path: '/website-data/messages',
                 icon: 'solar:chat-line-line-duotone',
                 subMenus: [],
+                permission: ['list-newsletter'],
+            },
+            {
+                name: 'Newsletter Emails',
+                path: '/website-data/newsletter-emails',
+                icon: 'solar:letter-linear',
+                subMenus: [],
                 permission: ['list-message'],
             },
         ],
