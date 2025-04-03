@@ -382,6 +382,7 @@ const { data: sections } = await useApiFetch('/api/setting-event/sections', {
                     </th>
                     <th class="text-left">Name</th>
                     <th>Type</th>
+                    <th>Status</th>
                     <th v-if="serverParams.deleted">Deleted At</th>
                     <th class="text-right">Action</th>
                 </tr>
@@ -401,6 +402,10 @@ const { data: sections } = await useApiFetch('/api/setting-event/sections', {
                                 {{ fieldTypes.find((f) => f.id === row.type)?.name }}
                             </span>
                         </td>
+                        <td v-if="row.parentId !== null">
+                            <FormSwitch :id="'row-setting-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'setting')" />
+                        </td>
+                        <td v-else>-</td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                         <td class="text-right">
                             <div>
