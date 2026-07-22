@@ -7,14 +7,14 @@
 
     &.notification--bullet {
         &:before {
-            content: "";
+            content: '';
             width: 8px;
             height: 8px;
             @apply absolute right-0 top-[-2px] animate-ping rounded-full bg-white opacity-50;
         }
 
         &:after {
-            content: "";
+            content: '';
             width: 8px;
             height: 8px;
             @apply absolute right-0 top-[-2px] rounded-full bg-danger;

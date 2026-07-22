@@ -1,5 +1,5 @@
 <script setup>
-import { numeric, required } from '@vuelidate/validators';
+import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 definePageMeta({
@@ -7,16 +7,17 @@ definePageMeta({
 });
 const selectedRows = ref([]);
 const sortByList = ref([
-    { name: 'Sort By Position', value: 'position' },
-    { name: 'Sort By Name', value: 'text' },
+    { name: 'Sort By ID', value: 'id' },
+    { name: 'Sort By Name', value: 'name' },
 ]);
 const filter = ref({
-    text: null,
+    name: null,
 });
+
 const serverParams = ref({
     filters: {},
-    orderBy: 'position',
-    orderByDirection: 'asc',
+    orderBy: 'id',
+    orderByDirection: 'desc',
     perPage: 25,
     page: 1,
     paginate: true,
@@ -27,12 +28,12 @@ const isOpen = ref(false);
 const editMode = ref(false);
 const resetServerParams = async () => {
     filter.value = {
-        text: null,
+        name: null,
     };
     serverParams.value = {
         filters: {},
         orderBy: 'id',
-        orderByDirection: 'asc',
+        orderByDirection: 'desc',
         perPage: 25,
         page: 1,
         paginate: true,
@@ -45,7 +46,7 @@ const {
     data: rows,
     status,
     refresh,
-} = await useApiFetch('/api/slider/index', {
+} = await useApiFetch('/api/group/index', {
     method: 'POST',
     body: serverParams,
     lazy: true,
@@ -107,80 +108,37 @@ const toggleRowSelection = (id) => {
     }
 };
 const item = ref({
-    text: null,
-    description: null,
-    buttonOneActive: false,
-    buttonTwoActive: false,
-    buttonOne: {
-        label: null,
-        target: null,
-        icon: null,
-        style: null,
-    },
-    buttonTwo: {
-        label: null,
-        target: null,
-        icon: null,
-        style: null,
-    },
-    active: true,
-    image: null,
-    position: null,
+    name: null,
+    companies: [],
 });
 const rules = ref({
-    text: {},
-    buttonOneActive: {},
-    buttonTwoActive: {},
-    buttonOne: {},
-    buttonTwo: {},
-    active: {},
-    image: {},
-    description: {},
-    position: { numeric },
+    name: { required },
+    companies: {},
 });
 const v$ = useVuelidate(rules, item);
 const fetchItem = async (id) => {
-    const { data, error } = await useApiFetch(`/api/slider/${id}`, {
+    const { data, error } = await useApiFetch(`/api/group/${id}`, {
         lazy: true,
     });
     if (data.value) {
         item.value = data.value.data;
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
     }
 };
 const resetItemValues = async () => {
     item.value = {
-        text: null,
-        description: null,
-        buttonOneActive: false,
-        buttonTwoActive: false,
-        buttonOne: {
-            label: null,
-            target: null,
-            icon: null,
-            style: null,
-        },
-        buttonTwo: {
-            label: null,
-            target: null,
-            icon: null,
-            style: null,
-        },
-        active: true,
-        image: null,
-        position: null,
+        name: null,
+        companies: [],
     };
 };
-
 async function closeModal() {
     isOpen.value = false;
     editMode.value = false;
     v$.value.$reset();
     await resetItemValues();
 }
-
 async function openModal(id = null) {
     formLoading.value = true;
     if (id !== null) {
@@ -192,9 +150,15 @@ async function openModal(id = null) {
     formLoading.value = false;
     isOpen.value = true;
 }
-
+const { data: activeMembers } = await useApiFetch(`/api/get/member`, {
+    method: 'POST',
+    body: {
+        type: 'members',
+    },
+    lazy: true,
+});
 async function updateItem() {
-    const { data, error } = await useApiFetch(`/api/slider/${item.value?.id}`, {
+    const { data, error } = await useApiFetch(`/api/group/${item.value?.id}`, {
         method: 'PATCH',
         body: item,
         lazy: true,
@@ -205,12 +169,11 @@ async function updateItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
     }
 }
-
 async function addItem() {
-    const { data, error } = await useApiFetch(`/api/slider`, {
+    const { data, error } = await useApiFetch(`/api/group`, {
         method: 'POST',
         body: item,
         lazy: true,
@@ -221,16 +184,14 @@ async function addItem() {
         await refresh();
     }
     if (error.value) {
-        useToast({ title: 'Error', message: error.value.data.message ?? error.value.message, type: 'error', duration: 5000 });
+        useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
     }
 }
-
 async function handleModalSubmit() {
     formLoading.value = true;
     const result = await v$.value.$validate();
     if (!result) {
         formLoading.value = false;
-        useToast({ title: 'Error', message: 'Please fill all required inputs', type: 'error', duration: 5000 });
         return false;
     }
     if (editMode.value === true) {
@@ -239,11 +200,10 @@ async function handleModalSubmit() {
         await addItem();
     }
 }
-
 async function deleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/slider/delete`, {
+        const { data, error } = await useApiFetch(`/api/group/delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -253,15 +213,14 @@ async function deleteItems() {
             await refresh();
         }
         if (error.value) {
-            useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+            useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
         }
     }
 }
-
 async function forceDeleteItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/slider/force-delete`, {
+        const { data, error } = await useApiFetch(`/api/group/force-delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -271,15 +230,14 @@ async function forceDeleteItems() {
             await refresh();
         }
         if (error.value) {
-            useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+            useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
         }
     }
 }
-
 async function restoreItems() {
     const confirmed = confirm('Are you sure you want to delete this item?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/slider/restore`, {
+        const { data, error } = await useApiFetch(`/api/group/restore`, {
             body: { items: selectedRows.value },
             method: 'POST',
             lazy: true,
@@ -289,39 +247,58 @@ async function restoreItems() {
             await refresh();
         }
         if (error.value) {
-            useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+            useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
         }
     }
 }
+function addRow() {
+    item.value.companies.push({
+        idCompany: null,
+        typeCompany: null,
+    });
+}
+function removeRow(index) {
+    item.value.companies.splice(index, 1);
+}
+const companyTypes = ref([
+    { name: 'HQ', value: 'hq' },
+    { name: 'Branch', value: 'branch' },
+]);
 </script>
 <template>
-    <div class="flex flex-col gap-8">
+    <div v-if="usePermissionCheck(['network_group_list'])" class="flex flex-col gap-8">
         <!-- Page Title & Action Buttons -->
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
-                <Icon name="solar:asteroid-linear" class="size-5 opacity-75" />
-                <div>{{ serverParams.deleted ? 'Deleted Sliders' : 'Sliders' }}</div>
+                <Icon name="solar:link-square-line-duotone" class="size-5 opacity-75" />
+                <div>{{ serverParams.deleted ? 'Deleted Groups' : 'Groups' }}</div>
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">
-                    <button v-if="serverParams.deleted" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="forceDeleteItems">
-                        <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
-                        Delete Permanently
-                    </button>
-                    <button v-else class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="deleteItems">
-                        <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
-                        Delete Items
-                    </button>
-                    <button v-if="serverParams.deleted" class="btn btn-success btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="restoreItems">
-                        <Icon name="solar:restart-circle-outline" class="size-5 opacity-75" />
-                        Restore Items
-                    </button>
+                    <template v-if="serverParams.deleted">
+                        <button v-if="usePermissionCheck(['network_group_force_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="forceDeleteItems">
+                            <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
+                            Delete Permanently
+                        </button>
+                    </template>
+                    <template v-else>
+                        <button v-if="usePermissionCheck(['network_group_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="deleteItems">
+                            <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
+                            Delete Items
+                        </button>
+                    </template>
+                    <template v-if="serverParams.deleted">
+                        <button v-if="usePermissionCheck(['network_group_restore'])" class="btn btn-success btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="restoreItems">
+                            <Icon name="solar:restart-circle-outline" class="size-5 opacity-75" />
+                            Restore Items
+                        </button>
+                    </template>
                 </template>
-                <button :disabled="serverParams.deleted" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="openModal()">
+                <button v-if="usePermissionCheck(['network_group_create'])" :disabled="serverParams.deleted" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="openModal()">
                     <Icon name="solar:add-square-linear" class="size-5 opacity-75" />
                     Add New
                 </button>
-                <button class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="toggleDeleted">
+                <button v-if="usePermissionCheck(['network_group_delete', 'network_group_force_delete', 'network_group_restore'])" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="toggleDeleted">
                     <Icon :name="serverParams.deleted ? 'solar:hamburger-menu-line-duotone' : 'solar:trash-bin-minimalistic-line-duotone'" class="size-5 opacity-75" />
                     {{ serverParams.deleted ? 'Items List' : 'Deleted Items' }}
                 </button>
@@ -329,7 +306,7 @@ async function restoreItems() {
         </div>
         <!-- Filter & Search -->
         <div class="grid lg:grid-cols-12 gap-5 items-center p-5 bg-white border rounded-2xl">
-            <FormInputField v-model="filter.title" rounded class="xl:col-span-4 lg:col-span-4" placeholder="Name" />
+            <FormInputField v-model="filter.name" rounded class="xl:col-span-4 lg:col-span-4" placeholder="Name" />
             <FormSelectField v-model="serverParams.orderBy" :clearable="false" class="xl:col-span-4 lg:col-span-4" labelvalue="name" keyvalue="value" placeholder="Sort Direction" :select-data="sortByList" />
             <FormSelectField
                 v-model="serverParams.orderByDirection"
@@ -360,8 +337,7 @@ async function restoreItems() {
                         <input v-model="allSelected" type="checkbox" class="form-check-input" @change="selectAllRows" />
                     </th>
                     <th class="text-left">Name</th>
-                    <th class="text-center">Position</th>
-                    <th class="text-center">Active</th>
+                    <th class="text-center">Companies</th>
                     <th v-if="serverParams.deleted">Deleted At</th>
                     <th class="text-right">Action</th>
                 </tr>
@@ -372,24 +348,11 @@ async function restoreItems() {
                         <td>
                             <input :checked="isSelected(row.id)" type="checkbox" class="form-check-input" @change="toggleRowSelection(row.id)" />
                         </td>
-                        <td>
-                            <div class="flex items-center gap-3">
-                                <div v-if="row.imageUrl" class="h-10 w-24 shrink-0 rounded-md overflow-hidden ring-2 ring-slate-50 object-cover">
-                                    <NuxtImg :src="row.imageUrl" :title="row.text" :alt="row.text" class="w-full" />
-                                </div>
-                                <div>
-                                    <div class="opacity-75 font-medium line-clamp-1">{{ row.text }}</div>
-                                    <div class="opacity-75 font-light text-xs line-clamp-1">{{ row.description }}</div>
-                                </div>
-                            </div>
+                        <td class="font-normal">
+                            <div>{{ row.name }}</div>
                         </td>
                         <td class="text-center">
-                            {{ row.position }}
-                        </td>
-                        <td>
-                            <div class="flex items-center place-content-center">
-                                <FormSwitch :id="'row-active-' + row.id" v-model="row.active" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'active', 'slider')" />
-                            </div>
+                            <div>{{ row.companies.length }}</div>
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                         <td class="text-right">
@@ -404,18 +367,8 @@ async function restoreItems() {
                 </template>
                 <template v-else>
                     <tr v-for="i in serverParams.perPage" :key="i">
-                        <td colspan="7">
+                        <td colspan="5">
                             <div class="h-12 !opacity-50 animate-pulse" />
-                        </td>
-                    </tr>
-                </template>
-                <template v-if="status !== 'pending' && rows && rows.data.length === 0">
-                    <tr>
-                        <td colspan="7">
-                            <div class="text-center">
-                                <Icon name="solar:cloud-check-line-duotone" class="size-20 opacity-50" />
-                                <div class="text-sm mt-5 opacity-75">No Data found</div>
-                            </div>
                         </td>
                     </tr>
                 </template>
@@ -427,38 +380,46 @@ async function restoreItems() {
         <TheModal :open-modal="isOpen" size="5xl" @close-modal="closeModal()">
             <template #header>
                 <div class="flex justify-between items-center">
-                    <div class="font-medium" v-html="editMode ? 'Update Item' : 'Add New Item'"></div>
+                    <div class="font-medium" v-html="editMode ? 'Update Group' : 'Add New Group'"></div>
                     <Icon class="w-8 h-8 opacity-50 cursor-pointer hover:opacity-100 ease-in-out duration-300" name="solar:close-square-outline" @click="closeModal" />
                 </div>
             </template>
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
-                    <FormUploader v-model="item.image" :errors="v$.image.$errors" class="lg:col-span-12" :allowed-types="['image']" label="Image" name="image" />
-                    <FormInputField v-model="item.text" :errors="v$.text.$errors" class="lg:col-span-12" label="Title" name="title" placeholder="Title" />
-                    <FormInputField v-model="item.description" :errors="v$.description.$errors" label="Description" name="description" type="textarea" class="col-span-12" />
-                    <FormSwitch v-model="item.active" class="col-span-12 sm:col-span-3" label="Active" name="active-toggle" />
-
-                    <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-9" label="Position" name="order-id" placeholder="Position Number" type="number" />
-
-                    <FormSwitch v-model="item.buttonOneActive" class="col-span-12 sm:col-span-12" flex-title label="Button One Active" name="button-one-active-toggle" />
-                    <TransitionExpand>
-                        <div v-if="item.buttonOneActive" class="col-span-12 rounded-lg border p-3 bg-slate-50">
-                            <FormInputField v-model="item.buttonOne.label" label="Button One Label" name="button-one-label" placeholder="Button One Label" />
-                            <FormInputField v-model="item.buttonOne.target" label="Button One Target" name="button-one-target" placeholder="Button One Target" />
-                            <FormInputField v-model="item.buttonOne.icon" label="Button One Icon" name="button-one-icon" placeholder="Button One Icon" />
-                            <FormInputField v-model="item.buttonOne.style" label="Button One Style" name="button-one-style" placeholder="Button One Style eg primary, secondary, warning, danger" />
+                    <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Name" />
+                    <div v-if="editMode" class="col-span-12 pt-8 border-slate-200 border-t">
+                        <div class="space-y-4">
+                            <div v-for="(member, index) in item.companies" :key="index" class="grid xl:grid-cols-4 grid-cols-1 gap-6">
+                                <FormSelectField
+                                    v-model="member.idCompany"
+                                    labelvalue="name"
+                                    secondlabelvalue="countryName"
+                                    thirdlabelvalue="city"
+                                    :disabled="!usePermissionCheck(['network_group_update'])"
+                                    imgvalue="imageUrl"
+                                    keyvalue="id"
+                                    :select-data="activeMembers.data"
+                                    class="col-span-2"
+                                    :name="'company-' + index"
+                                    :placeholder="'member' + ' ' + (index + 1)"
+                                />
+                                <FormSelectField
+                                    v-model="member.typeCompany"
+                                    :disabled="!usePermissionCheck(['network_group_update'])"
+                                    labelvalue="name"
+                                    keyvalue="value"
+                                    :select-data="companyTypes"
+                                    class="col-span-1"
+                                    name="company-type-company"
+                                    placeholder="Type"
+                                />
+                                <div>
+                                    <button :disabled="!usePermissionCheck(['network_group_update'])" type="button" class="btn btn-danger btn-sm btn-rounded px-3" @click="removeRow(index)">Remove</button>
+                                </div>
+                            </div>
+                            <button v-if="usePermissionCheck(['network_group_update'])" type="button" class="btn btn-dark btn-sm btn-rounded px-3" @click="addRow">Add New</button>
                         </div>
-                    </TransitionExpand>
-
-                    <FormSwitch v-model="item.buttonTwoActive" class="col-span-12 sm:col-span-12" flex-title label="Button Two Active" name="button-two-active-toggle" />
-                    <TransitionExpand>
-                        <div v-if="item.buttonTwoActive" class="col-span-12 rounded-lg border p-3 bg-slate-50">
-                            <FormInputField v-model="item.buttonTwo.label" label="Button One Label" name="button-one-label" placeholder="Button One Label" />
-                            <FormInputField v-model="item.buttonTwo.target" label="Button One Target" name="button-one-target" placeholder="Button One Target" />
-                            <FormInputField v-model="item.buttonTwo.icon" label="Button One Icon" name="button-one-icon" placeholder="Button One Icon" />
-                            <FormInputField v-model="item.buttonTwo.style" label="Button One Style" name="button-one-style" placeholder="Button One Style eg primary, secondary, warning, danger" />
-                        </div>
-                    </TransitionExpand>
+                    </div>
                 </div>
             </template>
             <template #footer>
@@ -467,7 +428,7 @@ async function restoreItems() {
                         <Icon :name="formLoading ? 'svg-spinners:3-dots-fade' : 'solar:close-circle-linear'" class="w-5 h-5 mr-2" />
                         <span>Close</span>
                     </button>
-                    <button :disabled="formLoading" class="btn-rounded btn-sm btn btn-primary px-4" type="button" @click="handleModalSubmit()">
+                    <button v-if="usePermissionCheck(['network_group_create', 'network_group_update'])" :disabled="formLoading" class="btn-rounded btn-sm btn btn-primary px-4" type="button" @click="handleModalSubmit()">
                         <Icon :name="formLoading ? 'svg-spinners:3-dots-fade' : 'solar:check-circle-broken'" class="w-5 h-5 mr-2" />
                         <span v-html="editMode ? 'Update' : 'Save'" />
                     </button>

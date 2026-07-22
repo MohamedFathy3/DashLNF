@@ -3,7 +3,7 @@
     @apply relative flex h-screen w-[270px] flex-col overflow-hidden bg-primary bg-gradient-to-b from-primary via-primary/70 to-black/30 pl-6 pr-2 duration-300 ease-in-out dark:bg-darkmode-800 dark:bg-none;
 
     &:before {
-        content: "";
+        content: '';
         background-size: 270px auto;
         background-position: right 3.5rem;
         animation: 0.4s intro-devider-animation ease-in-out 0.33333s;
@@ -13,19 +13,19 @@
     }
 
     &:after {
-        content: "";
+        content: '';
         @apply absolute left-0 top-0 mt-[3.5rem] h-screen w-full bg-gradient-to-b from-primary via-primary/70 to-black/10 dark:from-darkmode-800 dark:via-darkmode-800/70;
     }
 
     @include media-breakpoint-down(xl) {
         @apply absolute z-[52] -ml-[100%];
         &:before {
-            content: "";
+            content: '';
             @apply invisible fixed inset-0 z-[-2] bg-black bg-opacity-60 bg-none opacity-0 transition-opacity duration-300 ease-in-out;
         }
 
         &:after {
-            content: "";
+            content: '';
             @apply mt-0 bg-primary dark:bg-darkmode-800;
         }
 
@@ -73,7 +73,7 @@
                 @apply whitespace-nowrap text-transparent;
 
                 &:before {
-                    content: "...";
+                    content: '...';
                     @apply absolute inset-0 -mt-3.5 w-full text-center text-2xl text-white/50 text-opacity-70;
                 }
             }
@@ -149,11 +149,7 @@
 
     .scrollable {
         @apply relative z-10 -ml-5 pl-5;
-        -webkit-mask-image: -webkit-linear-gradient(
-                top,
-                rgba(0, 0, 0, 0),
-                black 30px
-        );
+        -webkit-mask-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), black 30px);
         @apply h-full overflow-y-auto pb-5 pt-5;
 
         &::-webkit-scrollbar {
@@ -218,7 +214,7 @@
             @apply relative rounded-2xl bg-white/[0.06] dark:bg-transparent;
 
             &:before {
-                content: "";
+                content: '';
                 @apply absolute inset-0 z-[-1] block rounded-2xl bg-primary/60 dark:bg-darkmode-100/[0.2];
             }
 
@@ -244,7 +240,7 @@
                 @apply relative rounded-2xl bg-white/[0.06] dark:bg-transparent;
 
                 &:before {
-                    content: "";
+                    content: '';
                     @apply absolute inset-0 z-[-1] block rounded-2xl bg-primary/60 dark:bg-darkmode-100/[0.2];
                 }
             }
@@ -256,7 +252,7 @@
                     @apply rounded-2xl bg-primary dark:bg-transparent;
 
                     &:before {
-                        content: "";
+                        content: '';
                         @apply absolute inset-0 block rounded-2xl border-b-2 border-white/[0.05] bg-white/[0.11] dark:bg-darkmode-400/[0.6];
                     }
 
@@ -281,7 +277,7 @@
                     @apply rounded-2xl bg-primary dark:bg-transparent;
 
                     &:before {
-                        content: "";
+                        content: '';
                         @apply absolute inset-0 z-[-1] block rounded-2xl bg-white/[0.1] dark:bg-darkmode-100/[0.2];
                     }
                 }

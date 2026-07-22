@@ -176,7 +176,7 @@ const item = ref({
         label: null,
         style: 'primary',
         target: 1,
-    }
+    },
 });
 const rules = ref({
     title: { required: item.value.type !== 'benefits-grid' && item.value.type !== 'benefits-list' ? required : {} },
@@ -231,7 +231,7 @@ const resetItemValues = async () => {
             label: null,
             style: 'primary',
             target: 1,
-        }
+        },
     };
 };
 async function closeModal() {

@@ -36,6 +36,35 @@ const menuItems = ref([
             { name: 'Cities', path: '/master-data/cities', icon: 'solar:map-linear', subMenus: [], permission: ['list-city'] },
         ],
     },
+
+    'Members Area',
+    {
+        name: "Member's Data",
+        path: '/members-data',
+        icon: 'solar:clipboard-check-linear',
+        permission: ['network_member_list', 'network_contact_person_list', 'network_trade_reference_list', 'network_group_list'],
+        subMenus: [
+            { name: 'Members', path: '/members-data/members', icon: 'solar:case-minimalistic-linear', subMenus: [], permission: ['network_member_list'] },
+            { name: 'Network', path: '/members-data/network', icon: 'solar:map-point-linear', subMenus: [], permission: ['network_member_list'] },
+
+            // {
+            //     name: 'Contact Persons',
+            //     path: '/members-data/contact-persons',
+            //     icon: 'solar:users-group-two-rounded-line-duotone',
+            //     subMenus: [],
+            //     permission: ['network_contact_person_list'],
+            // },
+            // {
+            //     name: 'Trade References',
+            //     path: '/members-data/trade-references',
+            //     icon: 'solar:bill-list-outline',
+            //     subMenus: [],
+            //     permission: ['network_trade_reference_list'],
+            // },
+            // { name: 'Groups', path: '/members-data/groups', icon: 'solar:link-square-line-duotone', subMenus: [], permission: ['network_group_list'] },
+            // { name: 'Claim Forms', path: '/members-data/claim-forms', icon: 'solar:square-transfer-horizontal-broken', subMenus: [], permission: ['network_claim_form_list'] },
+        ],
+    },
     'Website Options',
     {
         name: 'Website Data',
@@ -157,6 +186,7 @@ const menuItems = ref([
             },
         ],
     },
+
     'Members Data',
     {
         name: 'Applications',

@@ -113,7 +113,7 @@ const item = ref({
     title: null,
     venue: null,
     slug: null, // Auto Generated
-    // type: null,
+    type: null,
     des: null,
     shortDes: null,
     urlText: null,
@@ -137,7 +137,7 @@ const item = ref({
 const rules = ref({
     title: { required },
     venue: { required },
-    // type: { required },
+    type: { required },
     des: {},
     shortDes: {},
     urlText: {},
@@ -175,7 +175,7 @@ const resetItemValues = async () => {
         title: null,
         venue: null,
         slug: null,
-        // type: null,
+        type: null,
         des: null,
         shortDes: null,
         urlText: null,
@@ -457,21 +457,21 @@ async function restoreItems() {
                     <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5">
                         <FormInputField v-model="item.title" :errors="v$.title.$errors" class="lg:col-span-12" label="Title" name="title" placeholder="Title" />
                         <FormInputField v-model="item.venue" :errors="v$.venue.$errors" class="lg:col-span-12" label="Venue" name="venue" placeholder="Venue" />
-                        <!--                        <FormSelectField-->
-                        <!--                            id="event-type"-->
-                        <!--                            v-model="item.type"-->
-                        <!--                            :errors="v$.type.$errors"-->
-                        <!--                            label="Type"-->
-                        <!--                            :clearable="false"-->
-                        <!--                            class="lg:col-span-6"-->
-                        <!--                            placeholder="Please select a type..."-->
-                        <!--                            :select-data="[-->
-                        <!--                                { id: 'conferences', name: 'Conferences' },-->
-                        <!--                                { id: 'exhibitions', name: 'Exhibitions' },-->
-                        <!--                            ]"-->
-                        <!--                            labelvalue="name"-->
-                        <!--                            keyvalue="id"-->
-                        <!--                        />-->
+                        <FormSelectField-
+                            id="event-type"
+                            v-model="item.type"
+                            :errors="v$.type.$errors"
+                            label="Type"
+                            :clearable="false"
+                            class="lg:col-span-6"
+                            placeholder="Please select a type..."
+                            :select-data="[
+                                { id: 'conferences', name: 'Conferences' },
+                                { id: 'exhibitions', name: 'Exhibitions' },
+                            ]"
+                            labelvalue="name"
+                            keyvalue="id"
+                        />
                         <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Position" name="order-id" placeholder="Position Number" type="number" />
                         <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="'active" label="Active" class="lg:col-span-3" />
                         <FormSwitch v-model="item.featured" :errors="v$.featured.$errors" name="'featured" label="Featured" class="lg:col-span-3" />

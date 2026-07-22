@@ -31,10 +31,7 @@
         rounded-sm border border-slate-200 duration-300 ease-in-out hover:scale-105;
     }
 
-    &.table-report--tabulator
-    .tabulator-header
-    .tabulator-headers
-    .tabulator-col {
+    &.table-report--tabulator .tabulator-header .tabulator-headers .tabulator-col {
         &:nth-child(3),
         &:nth-child(4),
         &:nth-child(5),
@@ -51,8 +48,9 @@
 .dark {
     .table-report {
         img {
-            box-shadow: 0px 0px 0px 2px #3f4865,
-            1px 1px 5px rgba(0, 0, 0, 0.32);
+            box-shadow:
+                0px 0px 0px 2px #3f4865,
+                1px 1px 5px rgba(0, 0, 0, 0.32);
         }
     }
 }

@@ -6,7 +6,7 @@
         @apply relative cursor-pointer rounded-full outline-none;
 
         &:before {
-            content: "";
+            content: '';
             width: 22px;
             height: 22px;
             transition: all 0.2s ease-in-out;

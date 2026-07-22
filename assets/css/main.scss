@@ -3,264 +3,258 @@
 @import url(https://fonts.bunny.net/css?family=comforter:400&display=swap);
 
 body {
-  font-family: "Lexend", serif;
-  @apply m-0 overflow-x-hidden antialiased;
+    font-family: 'Lexend', serif;
+    @apply m-0 overflow-x-hidden antialiased;
 }
 
 .dp__input {
-  @apply form-control form-control-rounded dark:text-white text-slate-600 font-medium
+    @apply form-control form-control-rounded dark:text-white text-slate-600 font-medium;
 }
 
 //html {
 //  @apply scrollbar-thumb-primary scrollbar-track-primary/25,
 //}
 
-@import "./tailwind.scss";
-@import "./_colors.scss";
+@import './tailwind.scss';
+@import './_colors.scss';
 
-@import "@left4code/tw-starter/dist/css/mixins/_media.css";
+@import '@left4code/tw-starter/dist/css/mixins/_media.css';
 
-@import "@left4code/tw-starter/dist/css/_breadcrumb.css";
-@import "@left4code/tw-starter/dist/css/_accordion.css";
-@import "@left4code/tw-starter/dist/css/_alert.css";
-@import "@left4code/tw-starter/dist/css/_btn.css";
-@import "@left4code/tw-starter/dist/css/_dropdown.css";
-@import "@left4code/tw-starter/dist/css/_file.css";
-@import "@left4code/tw-starter/dist/css/_form-reset.css";
-@import "@left4code/tw-starter/dist/css/_form-check.css";
-@import "@left4code/tw-starter/dist/css/_form-control.css";
-@import "@left4code/tw-starter/dist/css/_form-help.css";
-@import "@left4code/tw-starter/dist/css/_form-inline.css";
-@import "@left4code/tw-starter/dist/css/_form-label.css";
-@import "@left4code/tw-starter/dist/css/_form-select.css";
-@import "@left4code/tw-starter/dist/css/_image-fit.css";
-@import "@left4code/tw-starter/dist/css/_input-group.css";
-@import "@left4code/tw-starter/dist/css/_intro.css";
-@import "@left4code/tw-starter/dist/css/_modal.css";
-@import "@left4code/tw-starter/dist/css/_pagination.css";
-@import "@left4code/tw-starter/dist/css/_progress.css";
-@import "@left4code/tw-starter/dist/css/_scrollbar.css";
-@import "@left4code/tw-starter/dist/css/_tab.css";
-@import "@left4code/tw-starter/dist/css/_table.css";
-@import "@left4code/tw-starter/dist/css/_typing-dots.css";
-@import "@left4code/tw-starter/dist/css/_zoom-in.css";
-@import "@left4code/tw-starter/dist/css/_box.css";
+@import '@left4code/tw-starter/dist/css/_breadcrumb.css';
+@import '@left4code/tw-starter/dist/css/_accordion.css';
+@import '@left4code/tw-starter/dist/css/_alert.css';
+@import '@left4code/tw-starter/dist/css/_btn.css';
+@import '@left4code/tw-starter/dist/css/_dropdown.css';
+@import '@left4code/tw-starter/dist/css/_file.css';
+@import '@left4code/tw-starter/dist/css/_form-reset.css';
+@import '@left4code/tw-starter/dist/css/_form-check.css';
+@import '@left4code/tw-starter/dist/css/_form-control.css';
+@import '@left4code/tw-starter/dist/css/_form-help.css';
+@import '@left4code/tw-starter/dist/css/_form-inline.css';
+@import '@left4code/tw-starter/dist/css/_form-label.css';
+@import '@left4code/tw-starter/dist/css/_form-select.css';
+@import '@left4code/tw-starter/dist/css/_image-fit.css';
+@import '@left4code/tw-starter/dist/css/_input-group.css';
+@import '@left4code/tw-starter/dist/css/_intro.css';
+@import '@left4code/tw-starter/dist/css/_modal.css';
+@import '@left4code/tw-starter/dist/css/_pagination.css';
+@import '@left4code/tw-starter/dist/css/_progress.css';
+@import '@left4code/tw-starter/dist/css/_scrollbar.css';
+@import '@left4code/tw-starter/dist/css/_tab.css';
+@import '@left4code/tw-starter/dist/css/_table.css';
+@import '@left4code/tw-starter/dist/css/_typing-dots.css';
+@import '@left4code/tw-starter/dist/css/_zoom-in.css';
+@import '@left4code/tw-starter/dist/css/_box.css';
 @import '@vuepic/vue-datepicker/dist/main.css';
 
-@import "./components/_global.css";
-@import "./components/_wrapper.css";
-@import "./components/_top-bar.css";
-@import "./components/_box.css";
-@import "./components/_tab.css";
-@import "./components/_dropdown.css";
-@import "./components/_table-report.css";
-@import "./components/_search.css";
-@import "./components/_notification.css";
-@import "./components/_report-box.css";
-@import "./components/_report-box-2.css";
-@import "./components/_daily-report.css";
-@import "./components/_content.css";
-@import "./components/_side-nav.css";
-@import "./components/_breadcrumb.css";
-@import "./components/_lucide-icon.css";
-@import "./components/_inbox.css";
-@import "./components/_chat-dropdown.css";
-@import "./components/_pricing-tabs.css";
-@import "./components/_error-page.css";
-@import "./components/_search-result.css";
-@import "./components/_notification-content.css";
-@import "./components/_litepicker.css";
-@import "./components/_tiny-slider.css";
-@import "./components/_tabulator.css";
-@import "./components/_ckeditor.css";
-@import "./components/_zoom-vanilla.css";
-@import "./components/_dark-mode-switcher.css";
-@import "./components/_hljs.css";
-@import "./components/_source-preview.css";
-@import "./components/_full-calendar.css";
-@import "./components/_pristine.css";
-@import "./components/_file.css";
-@import "vue3-colorpicker/style.css";
+@import './components/_global.css';
+@import './components/_wrapper.css';
+@import './components/_top-bar.css';
+@import './components/_box.css';
+@import './components/_tab.css';
+@import './components/_dropdown.css';
+@import './components/_table-report.css';
+@import './components/_search.css';
+@import './components/_notification.css';
+@import './components/_report-box.css';
+@import './components/_report-box-2.css';
+@import './components/_daily-report.css';
+@import './components/_content.css';
+@import './components/_side-nav.css';
+@import './components/_breadcrumb.css';
+@import './components/_lucide-icon.css';
+@import './components/_inbox.css';
+@import './components/_chat-dropdown.css';
+@import './components/_pricing-tabs.css';
+@import './components/_error-page.css';
+@import './components/_search-result.css';
+@import './components/_notification-content.css';
+@import './components/_litepicker.css';
+@import './components/_tiny-slider.css';
+@import './components/_tabulator.css';
+@import './components/_ckeditor.css';
+@import './components/_zoom-vanilla.css';
+@import './components/_dark-mode-switcher.css';
+@import './components/_hljs.css';
+@import './components/_source-preview.css';
+@import './components/_full-calendar.css';
+@import './components/_pristine.css';
+@import './components/_file.css';
+@import 'vue3-colorpicker/style.css';
 
 .page-container {
-  @apply relative rounded-t-2xl bg-gradient-to-b from-white via-white to-slate-100 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950 -mt-24 max-w-7xl p-5 xl:mx-auto;
+    @apply relative rounded-t-2xl bg-gradient-to-b from-white via-white to-slate-100 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950 -mt-24 max-w-7xl p-5 xl:mx-auto;
 }
 
 .btn-success {
-  @apply text-white;
+    @apply text-white;
 }
 
 .form-checkbox-input {
-  @apply transition-all duration-100 ease-in-out shadow-sm border-slate-200 cursor-pointer rounded focus:ring-4 focus:ring-offset-0 focus:ring-primary focus:ring-opacity-20 dark:bg-darkmode-800 dark:border-transparent dark:focus:ring-slate-700 dark:focus:ring-opacity-50 [&[type='radio']]:checked:bg-primary [&[type='radio']]:checked:border-primary [&[type='radio']]:checked:border-opacity-10 [&[type='checkbox']]:checked:bg-primary [&[type='checkbox']]:checked:border-primary [&[type='checkbox']]:checked:border-opacity-10 [&:disabled:not(:checked)]:bg-slate-100 [&:disabled:not(:checked)]:cursor-not-allowed [&:disabled:not(:checked)]:dark:bg-darkmode-800/50 [&:disabled:checked]:opacity-70 [&:disabled:checked]:cursor-not-allowed [&:disabled:checked]:dark:bg-darkmode-800/50 w-[44px] h-[24px] p-px rounded-full relative before:w-[20px] before:h-[20px] before:shadow-[1px_1px_3px_rgba(0,0,0,0.25)] before:transition-[margin-left] before:duration-200 before:ease-in-out before:absolute before:inset-y-0 before:my-auto before:rounded-full before:dark:bg-darkmode-600 checked:bg-primary checked:border-primary checked:bg-none before:checked:ml-[14px] before:checked:bg-white w-[38px] h-[24px] p-px rounded-full relative before:w-[20px] before:h-[20px] before:shadow-[1px_1px_3px_rgba(0,0,0,0.25)] before:transition-[margin-left] before:duration-200 before:ease-in-out before:absolute before:inset-y-0 before:my-auto before:rounded-full before:dark:bg-darkmode-600 checked:bg-primary checked:border-primary checked:bg-none before:checked:ml-[14px] before:checked:bg-white
+    @apply transition-all duration-100 ease-in-out shadow-sm border-slate-200 cursor-pointer rounded focus:ring-4 focus:ring-offset-0 focus:ring-primary focus:ring-opacity-20 dark:bg-darkmode-800 dark:border-transparent dark:focus:ring-slate-700 dark:focus:ring-opacity-50 [&[type='radio']]:checked:bg-primary [&[type='radio']]:checked:border-primary [&[type='radio']]:checked:border-opacity-10 [&[type='checkbox']]:checked:bg-primary [&[type='checkbox']]:checked:border-primary [&[type='checkbox']]:checked:border-opacity-10 [&:disabled:not(:checked)]:bg-slate-100 [&:disabled:not(:checked)]:cursor-not-allowed [&:disabled:not(:checked)]:dark:bg-darkmode-800/50 [&:disabled:checked]:opacity-70 [&:disabled:checked]:cursor-not-allowed [&:disabled:checked]:dark:bg-darkmode-800/50 w-[44px] h-[24px] p-px rounded-full relative before:w-[20px] before:h-[20px] before:shadow-[1px_1px_3px_rgba(0,0,0,0.25)] before:transition-[margin-left] before:duration-200 before:ease-in-out before:absolute before:inset-y-0 before:my-auto before:rounded-full before:dark:bg-darkmode-600 checked:bg-primary checked:border-primary checked:bg-none before:checked:ml-[14px] before:checked:bg-white w-[38px] h-[24px] p-px rounded-full relative before:w-[20px] before:h-[20px] before:shadow-[1px_1px_3px_rgba(0,0,0,0.25)] before:transition-[margin-left] before:duration-200 before:ease-in-out before:absolute before:inset-y-0 before:my-auto before:rounded-full before:dark:bg-darkmode-600 checked:bg-primary checked:border-primary checked:bg-none before:checked:ml-[14px] before:checked:bg-white;
 }
 
 .auth-page-container {
-  @apply relative rounded-t-2xl bg-gradient-to-b from-white/75  to-transparent dark:from-slate-900/75 dark:to-transparent max-w-7xl p-5 xl:mx-auto;
+    @apply relative rounded-t-2xl bg-gradient-to-b from-white/75  to-transparent dark:from-slate-900/75 dark:to-transparent max-w-7xl p-5 xl:mx-auto;
 }
 
 .text-justify-center {
-  text-align: justify;
-  text-align-last: center;
+    text-align: justify;
+    text-align-last: center;
 }
 
 .mini-box {
-  @apply relative rounded-2xl bg-primary shadow-sm dark:bg-slate-900 dark:shadow-md;
+    @apply relative rounded-2xl bg-primary shadow-sm dark:bg-slate-900 dark:shadow-md;
 }
 
 .data-box {
-  @apply relative rounded-2xl bg-white dark:bg-slate-900 shadow-sm border border-slate-200/75 duration-300 ease-in-out hover:scale-105 dark:border-slate-900;
+    @apply relative rounded-2xl bg-white dark:bg-slate-900 shadow-sm border border-slate-200/75 duration-300 ease-in-out hover:scale-105 dark:border-slate-900;
 }
 
 .hero-divider {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  overflow: hidden;
-  line-height: 0;
-  transform: rotate(180deg);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    transform: rotate(180deg);
 }
 
 .hero-divider svg {
-  position: relative;
-  display: block;
-  width: calc(100% + 1.3px);
-  height: 50px;
+    position: relative;
+    display: block;
+    width: calc(100% + 1.3px);
+    height: 50px;
 }
 
 .divider-fill {
-  @apply fill-white dark:fill-slate-900
+    @apply fill-white dark:fill-slate-900;
 }
 
 .divider-fill-alt {
-  @apply fill-slate-100 dark:fill-slate-950
+    @apply fill-slate-100 dark:fill-slate-950;
 }
 
 .video-container {
-  overflow: hidden;
-  position: relative;
-  width: 100%;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
 }
 
 .video-container::after {
-  padding-top: 56.25%;
-  display: block;
-  content: '';
+    padding-top: 56.25%;
+    display: block;
+    content: '';
 }
 
 .video-container iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 .form-label {
-  @apply text-sm font-medium
+    @apply text-sm font-medium;
 }
 
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
-
 
 .swiper-pagination .swiper-pagination-bullet {
-  @apply bg-white opacity-25
+    @apply bg-white opacity-25;
 }
 
 .swiper-pagination .swiper-pagination-bullet-active {
-  @apply bg-primary opacity-100
+    @apply bg-primary opacity-100;
 }
 
 .app-box {
-  @apply mt-3 rounded-xl p-5 box bg-opacity-75 dark:bg-opacity-15 shadow-none text-sm
+    @apply mt-3 rounded-xl p-5 box bg-opacity-75 dark:bg-opacity-15 shadow-none text-sm;
 }
 
-
-
 .dp__range_start {
-  @apply rounded-l-full
+    @apply rounded-l-full;
 }
 
 .dp__range_end {
-  @apply rounded-r-full
+    @apply rounded-r-full;
 }
 
 .drag-box {
-  @apply p-1 border rounded-xl text-sm font-medium border-dashed
+    @apply p-1 border rounded-xl text-sm font-medium border-dashed;
 }
 
 .drag-inner-box {
-  @apply p-5 border rounded-lg text-sm font-medium dark:bg-slate-800 bg-slate-100
+    @apply p-5 border rounded-lg text-sm font-medium dark:bg-slate-800 bg-slate-100;
 }
 
 .drag-item {
-  transform: rotate(5deg);
+    transform: rotate(5deg);
 }
 
 .item-ghost {
-  @apply bg-slate-200 dark:bg-slate-900 rounded-full
+    @apply bg-slate-200 dark:bg-slate-900 rounded-full;
 }
 
 .item-ghost div {
-  visibility: hidden;
+    visibility: hidden;
 }
 
-
 .amj__tooltip-content {
-  @apply group-hover:inline-block hidden absolute -right-6 top-0 ;
+    @apply group-hover:inline-block hidden absolute -right-6 top-0;
 }
 
 .amj__tooltip-text {
-  @apply fixed bg-white font-medium py-2 px-4 text-slate-800 rounded-full z-[99999] shadow border;
+    @apply fixed bg-white font-medium py-2 px-4 text-slate-800 rounded-full z-[99999] shadow border;
 }
 
-
-
 .vs__dropdown-menu {
-  @apply absolute z-50 mt-4 p-3 max-h-52 w-full overflow-x-hidden overflow-y-auto bg-white dark:bg-slate-800 rounded-xl shadow-lg border;
+    @apply absolute z-50 mt-4 p-3 max-h-52 w-full overflow-x-hidden overflow-y-auto bg-white dark:bg-slate-800 rounded-xl shadow-lg border;
 }
 
 .vs__selected-options {
-  @apply relative border-0 grow inset-0 flex items-center gap-3 flex-wrap;
+    @apply relative border-0 grow inset-0 flex items-center gap-3 flex-wrap;
 }
 
 .vs__selected-options .vs__selected {
-  @apply absolute py-1.5 mx-5 inset-0 mr-14 flex items-center gap-3 ;
+    @apply absolute py-1.5 mx-5 inset-0 mr-14 flex items-center gap-3;
 }
 
 .vs--multiple .vs__deselect {
-  @apply fill-slate-400;
+    @apply fill-slate-400;
 }
 
 .vs__search {
-  @apply rounded-full;
+    @apply rounded-full;
 }
 
 .vs--searching .vs__selected,
 .vs--open .vs__selected {
-  @apply opacity-10 ease-in-out duration-150;
+    @apply opacity-10 ease-in-out duration-150;
 }
 
 .vs--multiple .vs__selected-options {
-  @apply flex flex-wrap items-center gap-3;
+    @apply flex flex-wrap items-center gap-3;
 }
 
 .vs__actions {
-  @apply fill-slate-400;
+    @apply fill-slate-400;
 }
 
 .vs--open .vs__actions .vs__open-indicator {
-  @apply ease-in-out duration-300 rotate-180;
+    @apply ease-in-out duration-300 rotate-180;
 }
 
 .vs__clear {
-  @apply absolute right-10;
+    @apply absolute right-10;
 }
 
 .vs__dropdown-toggle {
-  @apply flex items-center space-x-2 relative w-full;
+    @apply flex items-center space-x-2 relative w-full;
 }

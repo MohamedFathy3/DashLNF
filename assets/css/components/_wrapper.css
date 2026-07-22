@@ -19,7 +19,7 @@
     }
 
     &:before {
-        content: "";
+        content: '';
         @apply block h-px w-full;
     }
 }

@@ -1,6 +1,7 @@
 <script setup>
 import { numeric, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import RichTextEditor from '@/components/Form/RichTextEditor.vue';
 
 definePageMeta({
     middleware: 'auth',
@@ -41,6 +42,7 @@ const resetServerParams = async () => {
     selectedRows.value = [];
     await refresh();
 };
+const logoCompanies = ref([]);
 const {
     data: rows,
     status,
@@ -114,6 +116,8 @@ const item = ref({
     position: null,
     active: true,
     showHome: true,
+    about: null,
+    logo_company_id: null,
 });
 const rules = ref({
     name: { required },
@@ -123,19 +127,53 @@ const rules = ref({
     position: { numeric },
     active: {},
     showHome: {},
+    about: {},
+    logo_company_id: { required },
 });
-const v$ = useVuelidate(rules, item);
-const fetchItem = async (id) => {
-    const { data, error } = await useApiFetch(`/api/team/${id}`, {
+
+const fetchLogoCompanies = async () => {
+    const { data, error } = await useApiFetch('/api/logo-company/index', {
+        method: 'POST',
+        body: {
+            filters: {},
+            orderBy: 'position',
+            orderByDirection: 'asc',
+            perPage: 100,
+            page: 1,
+            paginate: true,
+            deleted: false,
+        },
         lazy: true,
     });
+
     if (data.value) {
-        item.value = data.value.data;
+        logoCompanies.value = data.value.data;
     }
     if (error.value) {
         useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
     }
 };
+
+const v$ = useVuelidate(rules, item);
+
+const fetchItem = async (id) => {
+    const { data, error } = await useApiFetch(`/api/team/${id}`, {
+        lazy: true,
+    });
+    if (data.value) {
+        const teamData = data.value.data;
+
+        item.value = {
+            ...teamData,
+            logo_company_id: teamData.logoCompanyId?.id || null,
+        };
+        await fetchLogoCompanies();
+    }
+    if (error.value) {
+        useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
+    }
+};
+
 const resetItemValues = async () => {
     item.value = {
         name: null,
@@ -145,6 +183,8 @@ const resetItemValues = async () => {
         position: null,
         active: true,
         showHome: true,
+        about: null,
+        logo_company_id: null,
     };
 };
 async function closeModal() {
@@ -417,7 +457,21 @@ async function restoreItems() {
                         <FormInputField v-model="item.position" :errors="v$.position.$errors" class="lg:col-span-6" label="Position" name="order-id" placeholder="Position Number" type="number" />
                         <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="'active" label="Active" class="lg:col-span-3" />
                         <FormSwitch v-model="item.showHome" :errors="v$.showHome.$errors" name="'show-home" label="Show In Home" class="lg:col-span-3" />
+                        <FormSelectField
+                            v-model="item.logo_company_id"
+                            :errors="v$.logo_company_id?.$errors"
+                            class="lg:col-span-12"
+                            label="Company Logo"
+                            placeholder="Select Company Logo"
+                            :clearable="true"
+                            labelvalue="name"
+                            imgvalue="imageUrl"
+                            :is-rounded-image="true"
+                            keyvalue="id"
+                            :select-data="logoCompanies"
+                        />
                     </div>
+                    <RichTextEditor v-model="item.about" :errors="v$.about.$errors" class="lg:col-span-12" label="About" :required="false" placeholder="Write something about team member..." />
                 </div>
             </template>
             <template #footer>

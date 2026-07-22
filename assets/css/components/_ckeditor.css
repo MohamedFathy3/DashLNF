@@ -43,16 +43,11 @@
     }
 
     .ck-heading-dropdown .ck-list .ck-button__label {
-        line-height: calc(
-                1.7 * var(--ck-line-height-base) * var(--ck-font-size-base)
-        );
+        line-height: calc(1.7 * var(--ck-line-height-base) * var(--ck-font-size-base));
         min-width: 6em;
     }
 
-    .ck-heading-dropdown
-    .ck-list
-    .ck-button:not(.ck-heading_paragraph)
-    .ck-button__label {
+    .ck-heading-dropdown .ck-list .ck-button:not(.ck-heading_paragraph) .ck-button__label {
         transform: scale(0.8);
         transform-origin: left;
     }

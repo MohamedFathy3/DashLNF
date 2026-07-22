@@ -97,6 +97,81 @@ const changePage = async (value) => {
     selectedRows.value = [];
     await refresh();
 };
+
+// دالة تحميل ملف Excel
+const downloadExcel = async () => {
+    try {
+        useToast({ title: 'Processing', message: 'Preparing Excel file...', type: 'info', duration: 3000 });
+
+        // جلب كل البيانات بدون pagination
+        const { data, error } = await useApiFetch('/api/newsletter/index', {
+            method: 'POST',
+            body: {
+                filters: { ...serverParams.value.filters },
+                orderBy: serverParams.value.orderBy,
+                orderByDirection: serverParams.value.orderByDirection,
+                paginate: false,
+                deleted: serverParams.value.deleted,
+            },
+            lazy: true,
+        });
+
+        if (error.value) {
+            console.error('API Error:', error.value);
+            useToast({ title: 'Error', message: error.value?.message || error.value?.data?.message || 'Failed to fetch data', type: 'error', duration: 5000 });
+            return;
+        }
+
+        // التحقق من البيانات المستلمة
+        let exportData = [];
+        if (data.value?.data) {
+            exportData = Array.isArray(data.value.data) ? data.value.data : data.value.data.data || [];
+        } else if (Array.isArray(data.value)) {
+            exportData = data.value;
+        }
+
+        if (exportData.length === 0) {
+            useToast({ title: 'Warning', message: 'No data to export', type: 'warning', duration: 5000 });
+            return;
+        }
+
+        // تحويل البيانات لـ CSV
+        let csv = '\uFEFF'; // BOM للغة العربية
+        // إضافة العناوين
+        csv += 'Email';
+        if (serverParams.value.deleted) {
+            csv += ',Deleted At';
+        }
+        csv += '\n';
+
+        // إضافة البيانات
+        exportData.forEach((row) => {
+            csv += `"${row.email || ''}"`;
+            if (serverParams.value.deleted) {
+                csv += `,"${row.deletedAt || ''}"`;
+            }
+            csv += '\n';
+        });
+
+        // تحميل الملف
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        const filename = serverParams.value.deleted ? 'deleted-emails' : 'emails';
+        link.setAttribute('download', `${filename}-${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        useToast({ title: 'Success', message: `Exported ${exportData.length} emails successfully`, type: 'success', duration: 5000 });
+    } catch (err) {
+        console.error('Download Error:', err);
+        useToast({ title: 'Error', message: 'Failed to download file: ' + (err.message || 'Unknown error'), type: 'error', duration: 5000 });
+    }
+};
+
 const toggleRowSelection = (id) => {
     const index = selectedRows.value.indexOf(id);
     if (index === -1) {
@@ -159,12 +234,12 @@ async function deleteItems() {
             await refresh();
         }
         if (error.value) {
-            useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+            useToast({ title: 'Error', message: error.value?.data?.message || error.value?.message, type: 'error', duration: 5000 });
         }
     }
 }
 async function forceDeleteItems() {
-    const confirmed = confirm('Are you sure you want to delete this item?');
+    const confirmed = confirm('Are you sure you want to delete this item permanently?');
     if (confirmed) {
         const { data, error } = await useApiFetch(`/api/newsletter/force-delete`, {
             body: { items: selectedRows.value },
@@ -176,12 +251,12 @@ async function forceDeleteItems() {
             await refresh();
         }
         if (error.value) {
-            useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+            useToast({ title: 'Error', message: error.value?.data?.message || error.value?.message, type: 'error', duration: 5000 });
         }
     }
 }
 async function restoreItems() {
-    const confirmed = confirm('Are you sure you want to delete this item?');
+    const confirmed = confirm('Are you sure you want to restore this item?');
     if (confirmed) {
         const { data, error } = await useApiFetch(`/api/newsletter/restore`, {
             body: { items: selectedRows.value },
@@ -193,7 +268,7 @@ async function restoreItems() {
             await refresh();
         }
         if (error.value) {
-            useToast({ title: 'Error', message: data.value.message, type: 'error', duration: 5000 });
+            useToast({ title: 'Error', message: error.value?.data?.message || error.value?.message, type: 'error', duration: 5000 });
         }
     }
 }
@@ -224,6 +299,10 @@ async function restoreItems() {
                 <button class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="toggleDeleted">
                     <Icon :name="serverParams.deleted ? 'solar:hamburger-menu-line-duotone' : 'solar:trash-bin-minimalistic-line-duotone'" class="size-5 opacity-75" />
                     {{ serverParams.deleted ? 'Items List' : 'Deleted Items' }}
+                </button>
+                <button class="btn btn-success btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="downloadExcel">
+                    <Icon name="solar:file-download-linear" class="size-5 opacity-75" />
+                    Download Excel
                 </button>
             </div>
         </div>
@@ -323,9 +402,9 @@ async function restoreItems() {
             </template>
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
-                    <FormInputField disabled readonly v-model="item.firstName" :errors="v$.firstName.$errors" class="lg:col-span-6" label="First Name" name="first-name" placeholder="First Name" />
-                    <FormInputField disabled readonly v-model="item.lastName" :errors="v$.lastName.$errors" class="lg:col-span-6" label="Last Name" name="last-name" placeholder="Last Name" />
-                    <FormInputField disabled readonly v-model="item.email" :errors="v$.email.$errors" class="lg:col-span-6" label="Email" type="email" name="email" placeholder="Email" />
+                    <FormInputField v-model="item.firstName" disabled readonly :errors="v$.firstName.$errors" class="lg:col-span-6" label="First Name" name="first-name" placeholder="First Name" />
+                    <FormInputField v-model="item.lastName" disabled readonly :errors="v$.lastName.$errors" class="lg:col-span-6" label="Last Name" name="last-name" placeholder="Last Name" />
+                    <FormInputField v-model="item.email" disabled readonly :errors="v$.email.$errors" class="lg:col-span-6" label="Email" type="email" name="email" placeholder="Email" />
                 </div>
             </template>
             <template #footer>
