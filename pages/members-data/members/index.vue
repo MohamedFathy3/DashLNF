@@ -435,7 +435,7 @@ async function submitNetwork() {
     if (!selectedNetwork.value) return;
 
     formLoading.value = true;
-    const url = isEditMode.value ? `/api/member-network/${selectedNetwork.value.id}` : '/api/member-network/create';
+    const url = isEditMode.value ? `/api/member-network/${selectedNetwork.value.id}` : '/api/member-network';
 
     const method = isEditMode.value ? 'PUT' : 'POST';
 
