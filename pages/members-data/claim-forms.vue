@@ -1,6 +1,7 @@
 <script setup>
 definePageMeta({
-    middleware: 'auth',
+    middleware: ['auth', 'permission'],
+    permissions: ['network_claim_form_list'],
 });
 const selectedRows = ref([]);
 const sortByList = ref([
@@ -230,7 +231,7 @@ const changeStatus = async (event, id) => {
 };
 </script>
 <template>
-    <div v-if="usePermissionCheck(['network_claim_form_list'])" class="flex flex-col gap-8">
+    <div v-if="useCheckPermission(['network_claim_form_list'])" class="flex flex-col gap-8">
         <!-- Page Title & Action Buttons -->
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
@@ -240,26 +241,26 @@ const changeStatus = async (event, id) => {
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">
                     <template v-if="serverParams.deleted">
-                        <button v-if="usePermissionCheck(['network_claim_form_force_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="forceDeleteItems">
+                        <button v-if="useCheckPermission(['network_claim_form_force_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="forceDeleteItems">
                             <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                             Delete Permanently
                         </button>
                     </template>
                     <template v-else>
-                        <button v-if="usePermissionCheck(['network_claim_form_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="deleteItems">
+                        <button v-if="useCheckPermission(['network_claim_form_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="deleteItems">
                             <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                             Delete Items
                         </button>
                     </template>
                     <template v-if="serverParams.deleted">
-                        <button v-if="usePermissionCheck(['network_claim_form_restore'])" class="btn btn-success btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="restoreItems">
+                        <button v-if="useCheckPermission(['network_claim_form_restore'])" class="btn btn-success btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="restoreItems">
                             <Icon name="solar:restart-circle-outline" class="size-5 opacity-75" />
                             Restore Items
                         </button>
                     </template>
                 </template>
                 <button
-                    v-if="usePermissionCheck(['network_claim_form_delete', 'network_claim_form_force_delete', 'network_claim_form_restore'])"
+                    v-if="useCheckPermission(['network_claim_form_delete', 'network_claim_form_force_delete', 'network_claim_form_restore'])"
                     class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5"
                     @click="toggleDeleted"
                 >
@@ -340,7 +341,7 @@ const changeStatus = async (event, id) => {
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                         <td class="text-right">
                             <div>
-                                <button :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
+                                <button v-if="useCheckPermission(['network_claim_form_list'])" :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
                                     <Icon name="solar:eye-outline" class="size-4" />
                                     View
                                 </button>

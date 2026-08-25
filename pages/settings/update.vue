@@ -2,7 +2,8 @@
 import { ColorPicker } from 'vue3-colorpicker';
 
 definePageMeta({
-    middleware: 'auth',
+    middleware: ['auth', 'permission'],
+    permissions: ['page-setting'],
 });
 const { data, refresh, execute } = await useApiFetch(`/api/setting-section`, {
     lazy: true,
@@ -223,7 +224,7 @@ const getSelectData = (dataType) => {
                                 <div class="flex items-center justify-between gap-5">
                                     <div class="opacity-75 form-label">{{ field.label }}</div>
                                     <div>
-                                        <button type="button" class="btn btn-sm btn-primary btn-rounded" @click="openModal()">
+                                        <button v-if="useCheckPermission(['create-setting'])" type="button" class="btn btn-sm btn-primary btn-rounded" @click="openModal()">
                                             <Icon name="solar:add-circle-outline" class="w-4 h-4 mr-2" />
                                             <span>Add New</span>
                                         </button>

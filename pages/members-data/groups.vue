@@ -3,7 +3,8 @@ import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 definePageMeta({
-    middleware: 'auth',
+    middleware: ['auth', 'permission'],
+    permissions: ['network_group_list'],
 });
 const selectedRows = ref([]);
 const sortByList = ref([
@@ -266,7 +267,7 @@ const companyTypes = ref([
 ]);
 </script>
 <template>
-    <div v-if="usePermissionCheck(['network_group_list'])" class="flex flex-col gap-8">
+    <div v-if="useCheckPermission(['network_group_list'])" class="flex flex-col gap-8">
         <!-- Page Title & Action Buttons -->
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
@@ -276,29 +277,29 @@ const companyTypes = ref([
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">
                     <template v-if="serverParams.deleted">
-                        <button v-if="usePermissionCheck(['network_group_force_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="forceDeleteItems">
+                        <button v-if="useCheckPermission(['network_group_force_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="forceDeleteItems">
                             <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                             Delete Permanently
                         </button>
                     </template>
                     <template v-else>
-                        <button v-if="usePermissionCheck(['network_group_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="deleteItems">
+                        <button v-if="useCheckPermission(['network_group_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="deleteItems">
                             <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                             Delete Items
                         </button>
                     </template>
                     <template v-if="serverParams.deleted">
-                        <button v-if="usePermissionCheck(['network_group_restore'])" class="btn btn-success btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="restoreItems">
+                        <button v-if="useCheckPermission(['network_group_restore'])" class="btn btn-success btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="restoreItems">
                             <Icon name="solar:restart-circle-outline" class="size-5 opacity-75" />
                             Restore Items
                         </button>
                     </template>
                 </template>
-                <button v-if="usePermissionCheck(['network_group_create'])" :disabled="serverParams.deleted" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="openModal()">
+                <button v-if="useCheckPermission(['network_group_create'])" :disabled="serverParams.deleted" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="openModal()">
                     <Icon name="solar:add-square-linear" class="size-5 opacity-75" />
                     Add New
                 </button>
-                <button v-if="usePermissionCheck(['network_group_delete', 'network_group_force_delete', 'network_group_restore'])" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="toggleDeleted">
+                <button v-if="useCheckPermission(['network_group_delete', 'network_group_force_delete', 'network_group_restore'])" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="toggleDeleted">
                     <Icon :name="serverParams.deleted ? 'solar:hamburger-menu-line-duotone' : 'solar:trash-bin-minimalistic-line-duotone'" class="size-5 opacity-75" />
                     {{ serverParams.deleted ? 'Items List' : 'Deleted Items' }}
                 </button>
@@ -357,7 +358,7 @@ const companyTypes = ref([
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                         <td class="text-right">
                             <div>
-                                <button :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
+                                <button v-if="useCheckPermission(['network_group_update'])" :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
                                     <Icon name="solar:pen-new-round-outline" class="size-4" />
                                     Edit
                                 </button>
@@ -395,7 +396,7 @@ const companyTypes = ref([
                                     labelvalue="name"
                                     secondlabelvalue="countryName"
                                     thirdlabelvalue="city"
-                                    :disabled="!usePermissionCheck(['network_group_update'])"
+                                    :disabled="!useCheckPermission(['network_group_update'])"
                                     imgvalue="imageUrl"
                                     keyvalue="id"
                                     :select-data="activeMembers.data"
@@ -405,7 +406,7 @@ const companyTypes = ref([
                                 />
                                 <FormSelectField
                                     v-model="member.typeCompany"
-                                    :disabled="!usePermissionCheck(['network_group_update'])"
+                                    :disabled="!useCheckPermission(['network_group_update'])"
                                     labelvalue="name"
                                     keyvalue="value"
                                     :select-data="companyTypes"
@@ -414,10 +415,10 @@ const companyTypes = ref([
                                     placeholder="Type"
                                 />
                                 <div>
-                                    <button :disabled="!usePermissionCheck(['network_group_update'])" type="button" class="btn btn-danger btn-sm btn-rounded px-3" @click="removeRow(index)">Remove</button>
+                                    <button :disabled="!useCheckPermission(['network_group_update'])" type="button" class="btn btn-danger btn-sm btn-rounded px-3" @click="removeRow(index)">Remove</button>
                                 </div>
                             </div>
-                            <button v-if="usePermissionCheck(['network_group_update'])" type="button" class="btn btn-dark btn-sm btn-rounded px-3" @click="addRow">Add New</button>
+                            <button v-if="useCheckPermission(['network_group_update'])" type="button" class="btn btn-dark btn-sm btn-rounded px-3" @click="addRow">Add New</button>
                         </div>
                     </div>
                 </div>
@@ -428,7 +429,7 @@ const companyTypes = ref([
                         <Icon :name="formLoading ? 'svg-spinners:3-dots-fade' : 'solar:close-circle-linear'" class="w-5 h-5 mr-2" />
                         <span>Close</span>
                     </button>
-                    <button v-if="usePermissionCheck(['network_group_create', 'network_group_update'])" :disabled="formLoading" class="btn-rounded btn-sm btn btn-primary px-4" type="button" @click="handleModalSubmit()">
+                    <button v-if="useCheckPermission(['network_group_create', 'network_group_update'])" :disabled="formLoading" class="btn-rounded btn-sm btn btn-primary px-4" type="button" @click="handleModalSubmit()">
                         <Icon :name="formLoading ? 'svg-spinners:3-dots-fade' : 'solar:check-circle-broken'" class="w-5 h-5 mr-2" />
                         <span v-html="editMode ? 'Update' : 'Save'" />
                     </button>

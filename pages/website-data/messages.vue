@@ -1,6 +1,7 @@
 <script setup>
 definePageMeta({
-    middleware: 'auth',
+    middleware: ['auth', 'permission'],
+    permissions: ['list-newsletter'],
 });
 const selectedRows = ref([]);
 const sortByList = ref([
@@ -163,7 +164,7 @@ async function deleteItems() {
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">
-                    <button class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="deleteItems">
+                    <button v-if="useCheckPermission(['delete-message'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="deleteItems">
                         <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                         Delete Items Permanently
                     </button>
@@ -235,7 +236,7 @@ async function deleteItems() {
                         </td>
                         <td class="text-right">
                             <div>
-                                <button :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
+                                <button v-if="useCheckPermission(['edit-message'])" :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
                                     <Icon name="solar:pen-new-round-outline" class="size-4" />
                                     View
                                 </button>

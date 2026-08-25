@@ -348,18 +348,27 @@ type Credentials = {
     email: string;
     password: string;
 };
+type Permission = {
+    id: number;
+    name: string;
+    slug: string;
+    parentId?: number | null;
+};
 type Role = {
     id: number;
     name: string;
-    permissions: string[];
+    slug?: string | null;
+    permissions: Permission[];
 };
 type Admin = {
     id: number;
     name: string;
     email: string;
     superAdmin: boolean;
-    roleId: number | undefined;
-    role: Role;
+    roleId: number | null | undefined;
+    role: Role | null;
+    extra_permissions?: Permission[];
+    extraPermissions?: Permission[];
 };
 type ToastItem = {
     title: string | undefined;
