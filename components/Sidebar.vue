@@ -235,6 +235,13 @@ const menuItems = ref([
                 permission: ['list-role'],
             },
             {
+                name: 'Permissions',
+                path: '/admins-area/permissions',
+                icon: 'solar:key-square-bold-duotone',
+                subMenus: [],
+                permission: ['list-role'],
+            },
+            {
                 name: 'Affiliates',
                 path: '/admins-area/affiliates',
                 icon: 'solar:chat-round-call-line-duotone',

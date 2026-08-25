@@ -3,7 +3,8 @@ import { email, required, requiredIf } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 definePageMeta({
-    middleware: 'auth',
+    middleware: ['auth', 'permission'],
+    permissions: ['list-admin'],
 });
 const selectedRows = ref([]);
 const sortByList = ref([
@@ -64,6 +65,24 @@ const { data: roles, refresh: refreshRoles } = await useApiFetch('/api/role/inde
     },
     transform: (roles) => roles.data,
     lazy: true,
+});
+const { data: permissionResponse } = await useApiFetch('/api/permission', {
+    method: 'GET',
+    query: { page: 1, perPage: 100 },
+});
+const normalizeCollection = (response) => {
+    if (Array.isArray(response)) return response;
+    if (Array.isArray(response?.data)) return response.data;
+    if (Array.isArray(response?.data?.data)) return response.data.data;
+    return [];
+};
+const permissionCatalog = computed(() => normalizeCollection(permissionResponse.value));
+const extraPermissionIds = ref([]);
+const extraPermissionSelection = computed({
+    get: () => extraPermissionIds.value.map((permission_id) => ({ permission_id })),
+    set: (value) => {
+        extraPermissionIds.value = value.map(({ permission_id }) => permission_id);
+    },
 });
 
 watch(
@@ -143,6 +162,7 @@ const fetchItem = async (id) => {
     });
     if (data.value) {
         item.value = data.value.data;
+        extraPermissionIds.value = (data.value.data.extra_permissions ?? []).map((permission) => permission.id);
     }
     if (error.value) {
         useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
@@ -156,6 +176,7 @@ const resetItemValues = async () => {
         password: null,
         superAdmin: true,
     };
+    extraPermissionIds.value = [];
 };
 async function closeModal() {
     isOpen.value = false;
@@ -176,6 +197,26 @@ async function openModal(id = null) {
     isOpen.value = true;
 }
 
+async function saveExtraPermissions() {
+    if (!item.value.id || item.value.roleId === null || item.value.roleId === undefined) return true;
+
+    const { data, error } = await useApiFetch(`/api/admins/${item.value.id}/role-permissions`, {
+        method: 'PUT',
+        body: {
+            role_id: item.value.roleId,
+            permissions: extraPermissionIds.value,
+        },
+        lazy: true,
+    });
+
+    if (error.value) {
+        useToast({ title: 'Error', message: error.value.data?.message ?? error.value.message, type: 'error', duration: 5000 });
+        return false;
+    }
+
+    return Boolean(data.value);
+}
+
 async function updateItem() {
     const { data, error } = await useApiFetch(`/api/admin/${item.value.id}`, {
         method: 'PATCH',
@@ -183,6 +224,8 @@ async function updateItem() {
         lazy: true,
     });
     if (data.value) {
+        const extraSaved = await saveExtraPermissions();
+        if (!extraSaved) return;
         useToast({ title: 'Success', message: data.value.message, type: 'success', duration: 5000 });
         await closeModal();
         await refresh();
@@ -285,20 +328,20 @@ async function restoreItems() {
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
                 <template v-if="selectedRows.length > 0">
-                    <button v-if="serverParams.deleted" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="forceDeleteItems">
+                    <button v-if="serverParams.deleted && useCheckPermission(['force-delete-admin'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="forceDeleteItems">
                         <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                         Delete Permanently
                     </button>
-                    <button v-else class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="deleteItems">
+                    <button v-else-if="!serverParams.deleted && useCheckPermission(['delete-admin'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="deleteItems">
                         <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                         Delete Items
                     </button>
-                    <button v-if="serverParams.deleted" class="btn btn-success btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="restoreItems">
+                    <button v-if="serverParams.deleted && useCheckPermission(['restore-admin'])" class="btn btn-success btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="restoreItems">
                         <Icon name="solar:restart-circle-outline" class="size-5 opacity-75" />
                         Restore Items
                     </button>
                 </template>
-                <button :disabled="serverParams.deleted" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="openModal()">
+                <button v-if="useCheckPermission(['create-admin'])" :disabled="serverParams.deleted" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="openModal()">
                     <Icon name="solar:add-square-linear" class="size-5 opacity-75" />
                     Add New
                 </button>
@@ -342,6 +385,7 @@ async function restoreItems() {
                     </th>
                     <th class="text-left">Name</th>
                     <th>Role</th>
+                    <th>Extra Permissions</th>
                     <th>Super Admin</th>
                     <th v-if="serverParams.deleted">Deleted At</th>
                     <th class="text-right">Action</th>
@@ -366,13 +410,14 @@ async function restoreItems() {
                                 <span v-else class="font-light text-sm opacity-75">---</span>
                             </div>
                         </td>
+                        <td class="text-center text-sm text-slate-500">{{ row.extra_permissions?.length ?? 0 }}</td>
                         <td>
                             <FormSwitch :id="'row-super-admin-' + row.id" v-model="row.superAdmin" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'super_admin', 'admin')" />
                         </td>
                         <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                         <td class="text-right">
                             <div>
-                                <button :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
+                                <button v-if="useCheckPermission(['edit-admin'])" :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
                                     <Icon name="solar:pen-new-round-outline" class="size-4" />
                                     Edit
                                 </button>
@@ -382,7 +427,7 @@ async function restoreItems() {
                 </template>
                 <template v-else>
                     <tr v-for="i in serverParams.perPage" :key="i">
-                        <td colspan="5">
+                        <td colspan="6">
                             <div class="h-12 !opacity-50 animate-pulse" />
                         </td>
                     </tr>
@@ -407,6 +452,14 @@ async function restoreItems() {
                     <FormSwitch :id="'super-admin'" v-model="item.superAdmin" label="Super Admin" class="lg:col-span-6" />
                     <FormSelectField v-model="item.roleId" :disabled="item.superAdmin" :select-data="roles" labelvalue="name" keyvalue="id" :errors="v$.roleId.$errors" class="lg:col-span-6" label="Role" name="role-id" placeholder="Role" />
                 </div>
+                <AdminRolePermissionMatrix
+                    v-if="editMode && item.id"
+                    v-model="extraPermissionSelection"
+                    :permissions="permissionCatalog"
+                    title="Extra permissions"
+                    description="These permissions are added directly to this admin in addition to the selected role."
+                />
+                <div v-else class="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">Save the admin first to assign extra permissions directly to this user.</div>
             </template>
             <template #footer>
                 <div class="w-full flex items-center justify-end gap-5">

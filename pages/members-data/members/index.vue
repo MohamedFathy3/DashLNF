@@ -3,7 +3,8 @@ import * as XLSX from 'xlsx';
 import FileSaver from 'file-saver';
 
 definePageMeta({
-    middleware: 'auth',
+    middleware: ['auth', 'permission'],
+    permissions: ['network_member_list'],
 });
 
 const selectedRows = ref([]);
@@ -546,7 +547,7 @@ onMounted(() => {
                 <div>{{ serverParams.deleted ? 'Deleted Companies' : 'Companies' }}</div>
             </div>
             <div class="flex lg:flex-row flex-col lg:items-center lg:gap-5 lg:space-y-0 space-y-5">
-                <button class="btn btn-primary btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" type="button" @click="openAddModal">
+                <button v-if="useCheckPermission(['network_member_create'])" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" type="button" @click="openAddModal">
                     <Icon name="solar:add-circle-linear" class="size-5 opacity-75" />
                     <span>Add Company</span>
                 </button>
@@ -562,19 +563,19 @@ onMounted(() => {
                 </button>
 
                 <template v-if="selectedRows.length > 0">
-                    <template v-if="serverParams.deleted">
+                    <template v-if="serverParams.deleted && useCheckPermission(['force-delete-member'])">
                         <button class="btn btn-danger btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" @click="forceDeleteItems">
                             <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                             Delete Permanently
                         </button>
                     </template>
-                    <template v-else>
+                    <template v-else-if="useCheckPermission(['network_member_delete'])">
                         <button class="btn btn-danger btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" @click="deleteItems">
                             <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                             Delete Items
                         </button>
                     </template>
-                    <template v-if="serverParams.deleted">
+                    <template v-if="serverParams.deleted && useCheckPermission(['network_member_restore'])">
                         <button class="btn btn-success btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" @click="restoreItems">
                             <Icon name="solar:restart-circle-outline" class="size-5 opacity-75" />
                             Restore Items
@@ -778,7 +779,7 @@ onMounted(() => {
                             <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                             <td v-if="!serverParams.deleted" class="text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <button class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openEditModal(row.id)">
+                                    <button v-if="useCheckPermission(['network_member_update'])" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openEditModal(row.id)">
                                         <Icon name="solar:pen-outline" class="size-4" />
                                         Edit
                                     </button>

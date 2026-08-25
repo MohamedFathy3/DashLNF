@@ -13,9 +13,19 @@ const props = withDefaults(
         permissions: Permission[];
         modelValue: PermissionSelection[];
         disabled?: boolean;
+<<<<<<< HEAD
     }>(),
     {
         disabled: false,
+=======
+        title?: string;
+        description?: string;
+    }>(),
+    {
+        disabled: false,
+        title: 'Permissions matrix',
+        description: 'Choose the exact actions this role can perform in each resource.',
+>>>>>>> a6dae41acfc3c7bbc4a034f5af2638fa0009f873
     },
 );
 
@@ -26,6 +36,10 @@ const emit = defineEmits<{
 const search = ref('');
 const actionPrefixes = ['list-', 'create-', 'edit-', 'delete-', 'restore-', 'force-delete-', 'settings-'];
 const specialActionSlugs = ['settings-page', 'settings-fields'];
+<<<<<<< HEAD
+=======
+const resourceHeaderSlugs = new Set(['admins', 'roles', 'countries', 'faqs', 'messages', 'navs', 'subnavs', 'pages', 'page-sections', 'settings']);
+>>>>>>> a6dae41acfc3c7bbc4a034f5af2638fa0009f873
 
 const flattenPermissions = computed(() => {
     const flattened: Permission[] = [];
@@ -39,6 +53,7 @@ const flattenPermissions = computed(() => {
     return flattened;
 });
 
+<<<<<<< HEAD
 const isActionPermission = (permission: Permission) => specialActionSlugs.includes(permission.slug) || actionPrefixes.some((prefix) => permission.slug.startsWith(prefix));
 
 const groups = computed(() => {
@@ -58,6 +73,55 @@ const groups = computed(() => {
             result.push(current);
         }
         current.permissions.push(permission);
+=======
+const isActionPermission = (permission: Permission) =>
+    specialActionSlugs.includes(permission.slug) || actionPrefixes.some((prefix) => permission.slug.startsWith(prefix)) || /_(list|create|update|edit|delete|restore|force_delete)$/.test(permission.slug);
+const isResourceHeader = (permission: Permission) => resourceHeaderSlugs.has(permission.slug);
+const headerAliases: Record<string, string> = {
+    admins: 'admin',
+    roles: 'role',
+    countries: 'country',
+    faqs: 'faq',
+    messages: 'message',
+    navs: 'nav',
+    subnavs: 'subnav',
+    pages: 'page',
+    'page-sections': 'section',
+    settings: 'setting',
+};
+
+const resourceKey = (permission: Permission) => {
+    if (isResourceHeader(permission)) return headerAliases[permission.slug] ?? permission.slug;
+    if (specialActionSlugs.includes(permission.slug)) return 'setting';
+    const standard = permission.slug.match(/^(list|create|edit|delete|restore|force-delete)-(.+)$/);
+    if (standard) return standard[2];
+    const network = permission.slug.match(/^(.*)_(list|create|update|edit|delete|restore|force_delete)$/);
+    if (network) return network[1];
+    return 'custom';
+};
+
+const groupLabel = (key: string, permission: Permission) => {
+    if (key === 'custom') return 'Custom permissions';
+    if (isResourceHeader(permission)) return permission.name;
+    return key.replaceAll('-', ' ');
+};
+
+const groups = computed(() => {
+    const result: { id: string; name: string; permissions: Permission[] }[] = [];
+    const byResource = new Map<string, { id: string; name: string; permissions: Permission[] }>();
+
+    for (const permission of flattenPermissions.value) {
+        const key = resourceKey(permission);
+        let group = byResource.get(key);
+        if (!group) {
+            group = { id: key, name: groupLabel(key, permission), permissions: [] };
+            byResource.set(key, group);
+            result.push(group);
+        } else if (isResourceHeader(permission)) {
+            group.name = permission.name;
+        }
+        if (!isResourceHeader(permission)) group.permissions.push(permission);
+>>>>>>> a6dae41acfc3c7bbc4a034f5af2638fa0009f873
     }
 
     return result.filter((group) => group.permissions.length > 0);
@@ -134,9 +198,15 @@ const clearVisible = () => {
             <div>
                 <div class="flex items-center gap-2 text-base font-semibold text-slate-800">
                     <Icon name="solar:shield-keyhole-bold-duotone" class="size-5 text-primary" />
+<<<<<<< HEAD
                     Permissions matrix
                 </div>
                 <p class="mt-1 text-xs text-slate-500">Choose the exact actions this role can perform in each resource.</p>
+=======
+                    {{ title }}
+                </div>
+                <p class="mt-1 text-xs text-slate-500">{{ description }}</p>
+>>>>>>> a6dae41acfc3c7bbc4a034f5af2638fa0009f873
             </div>
             <div class="flex items-center gap-2 text-xs font-medium text-slate-600">
                 <span class="rounded-full bg-primary/10 px-3 py-1.5 text-primary">{{ selectedCount }} selected</span>

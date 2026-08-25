@@ -3,7 +3,8 @@ import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 
 definePageMeta({
-    middleware: 'auth',
+    middleware: ['auth', 'permission'],
+    permissions: ['list-visit'],
 });
 const selectedRows = ref([]);
 const filter = ref({
@@ -246,7 +247,7 @@ function getUniquePersons(paths) {
                             </td>
                             <td class="text-right">
                                 <div>
-                                    <button :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
+                                    <button v-if="useCheckPermission(['edit-visit'])" :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
                                         <Icon name="solar:eye-outline" class="size-4" />
                                         View
                                     </button>

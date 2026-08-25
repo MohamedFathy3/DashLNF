@@ -1,7 +1,8 @@
 <script setup>
 const route = useRoute();
 definePageMeta({
-    middleware: 'auth',
+    middleware: ['auth', 'permission'],
+    permissions: ['network_member_list'],
 });
 import CompanyUpdateModal from '@/components/Member/CompanyUpdateModal.vue';
 

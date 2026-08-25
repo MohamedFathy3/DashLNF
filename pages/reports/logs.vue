@@ -1,6 +1,7 @@
 <script setup>
 definePageMeta({
-    middleware: 'auth',
+    middleware: ['auth', 'permission'],
+    permissions: ['list-log'],
 });
 const selectedRows = ref([]);
 const sortByList = ref([
