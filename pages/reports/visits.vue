@@ -247,7 +247,7 @@ function getUniquePersons(paths) {
                             </td>
                             <td class="text-right">
                                 <div>
-                                    <button v-if="useCheckPermission(['edit-visit'])" :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
+                                    <button v-rbac="'edit'" :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openModal(row.id)">
                                         <Icon name="solar:eye-outline" class="size-4" />
                                         View
                                     </button>
