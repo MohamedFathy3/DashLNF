@@ -1,6 +1,12 @@
 import { permissionCandidates, routeResourceFromPath } from '~/utils/rbac';
 
+const nonResourcePaths = new Set(['/', '/login', '/profile', '/settings', '/admins-area', '/master-data', '/members-data', '/website-data', '/events-expos', '/reports']);
+
 export default defineNuxtRouteMiddleware(async (to) => {
+    if (nonResourcePaths.has(to.path)) return;
+    const routeMiddleware = to.meta.middleware as unknown;
+    if (Array.isArray(routeMiddleware) && routeMiddleware.includes('permission')) return;
+
     const explicitPermissions = (to.meta.permissions as string[] | undefined) ?? [];
     const resource = (to.meta.resource as string | undefined) ?? routeResourceFromPath(to.path);
     const requiredPermissions = explicitPermissions.length ? explicitPermissions : resource ? permissionCandidates(resource, 'list') : [];
@@ -11,7 +17,5 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (!userStore.user) return navigateTo(`/login?redirect=${encodeURIComponent(to.fullPath)}`);
     if (userStore.user.superAdmin) return;
 
-    if (!useCheckPermission(requiredPermissions)) {
-        return navigateTo('/');
-    }
+    if (!useCheckPermission(requiredPermissions)) return navigateTo('/');
 });

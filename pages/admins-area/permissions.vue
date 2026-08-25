@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import { permissionSlug, type RbacAction } from '~/utils/rbac';
 
 definePageMeta({
     middleware: ['auth', 'permission'],
@@ -24,6 +25,16 @@ const isOpen = ref(false);
 const isSaving = ref(false);
 const search = ref('');
 const form = ref<PermissionDraft>({ role_id: null, permissions: [{ name: '', slug: '' }] });
+const resourceDraft = ref('');
+const actionDraft = ref<RbacAction[]>(['list']);
+const actionOptions: { label: string; value: RbacAction }[] = [
+    { label: 'Show', value: 'list' },
+    { label: 'Create', value: 'create' },
+    { label: 'Update', value: 'edit' },
+    { label: 'Delete', value: 'delete' },
+    { label: 'Restore', value: 'restore' },
+    { label: 'Force Delete', value: 'force-delete' },
+];
 const rules = { role_id: { required } };
 const v$ = useVuelidate(rules, form);
 
@@ -66,7 +77,22 @@ const filteredPermissions = computed(() => {
 
 const resetForm = () => {
     form.value = { role_id: null, permissions: [{ name: '', slug: '' }] };
+    resourceDraft.value = '';
+    actionDraft.value = ['list'];
     v$.value.$reset();
+};
+
+const generateCrudPermissions = () => {
+    const resource = resourceDraft.value.trim();
+    if (!resource || !actionDraft.value.length) {
+        useToast({ title: 'Error', message: 'Enter a resource name and select at least one action.', type: 'error', duration: 5000 });
+        return;
+    }
+
+    form.value.permissions = actionDraft.value.map((action) => ({
+        name: `${actionOptions.find((option) => option.value === action)?.label ?? action} ${resource}`,
+        slug: permissionSlug(resource, action),
+    }));
 };
 
 const openCreateModal = () => {
@@ -184,6 +210,21 @@ const savePermissions = async () => {
             <template #content>
                 <div class="flex flex-col gap-5">
                     <FormSelectField v-model="form.role_id" :select-data="roles" :errors="v$.role_id.$errors" labelvalue="name" keyvalue="id" label="Assign to role" name="role-id" placeholder="Select a role" />
+                    <div class="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                        <div class="mb-3">
+                            <div class="font-semibold text-slate-800">Generate CRUD permissions automatically</div>
+                            <div class="text-xs text-slate-500">Enter `member`, select actions, and the system generates names and slugs such as `create-member`.</div>
+                        </div>
+                        <div class="grid gap-3 md:grid-cols-12 md:items-end">
+                            <div class="md:col-span-4"><label class="mb-1 block text-xs font-medium text-slate-600">Resource</label><input v-model="resourceDraft" class="form-control rounded-xl bg-white" placeholder="member" /></div>
+                            <div class="flex flex-wrap gap-2 md:col-span-6">
+                                <label v-for="option in actionOptions" :key="option.value" class="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-2 py-2 text-xs text-slate-600"
+                                    ><input v-model="actionDraft" type="checkbox" class="form-check-input" :value="option.value" />{{ option.label }}</label
+                                >
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm rounded-xl md:col-span-2" :disabled="isSaving" @click="generateCrudPermissions"><Icon name="solar:magic-stick-3-linear" class="size-4" /> Generate</button>
+                        </div>
+                    </div>
                     <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                         <div class="mb-4 flex items-center justify-between gap-3">
                             <div>

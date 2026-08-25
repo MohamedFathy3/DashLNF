@@ -1,3 +1,5 @@
+import { permissionKeys } from '~/utils/rbac';
+
 export function useCheckPermission(permissions?: string | string[]) {
     const requested = Array.isArray(permissions) ? permissions : permissions ? [permissions] : [];
     if (!requested.length) return true;
@@ -9,9 +11,9 @@ export function useCheckPermission(permissions?: string | string[]) {
 
     const rolePermissions = user.role?.permissions ?? [];
     const extraPermissions = user.extra_permissions ?? user.extraPermissions ?? [];
-    const assignedPermissions = [...rolePermissions, ...extraPermissions].map((permission: any) => (typeof permission === 'string' ? permission : permission?.slug));
+    const assignedPermissionKeys = new Set([...rolePermissions, ...extraPermissions].flatMap((permission: any) => permissionKeys(typeof permission === 'string' ? permission : (permission?.slug ?? ''))));
 
-    return requested.some((permission) => assignedPermissions.includes(permission));
+    return requested.some((permission) => permissionKeys(permission).some((key) => assignedPermissionKeys.has(key)));
 }
 
 export default useCheckPermission;
