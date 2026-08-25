@@ -1,4 +1,5 @@
 import { permissionCandidates, routeResourceFromPath } from '~/utils/rbac';
+import { pagePermissionCandidates, sitePageForPath } from '~/utils/page-permissions';
 
 export default defineNuxtPlugin((nuxtApp) => {
     const userStore = useUserStore();
@@ -9,7 +10,8 @@ export default defineNuxtPlugin((nuxtApp) => {
         const route = nuxtApp.$router.currentRoute.value;
         const resource = typeof value === 'object' && value !== null ? value.resource : (route.meta.resource ?? routeResourceFromPath(route.path));
         const action = typeof value === 'object' && value !== null ? value.action : value;
-        const candidates = resource && action ? permissionCandidates(resource, action) : [];
+        const page = sitePageForPath(route.path);
+        const candidates = page && action ? pagePermissionCandidates(page, action) : resource && action ? permissionCandidates(resource, action) : [];
         const allowed = candidates.length > 0 && useCheckPermission(candidates);
 
         el.dataset.rbacBound = 'true';
@@ -22,7 +24,9 @@ export default defineNuxtPlugin((nuxtApp) => {
         elements.forEach((el) => {
             const resource = el.dataset.rbacResource;
             const action = el.dataset.rbacAction;
-            const allowed = resource && action ? useCheckPermission(permissionCandidates(resource, action)) : false;
+            const route = nuxtApp.$router.currentRoute.value;
+            const page = sitePageForPath(route.path);
+            const allowed = resource && action ? useCheckPermission(page ? pagePermissionCandidates(page, action) : permissionCandidates(resource, action)) : false;
             el.hidden = !allowed;
         });
     };
