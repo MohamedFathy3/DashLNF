@@ -1,368 +1,86 @@
 <script lang="ts" setup>
-const settingStore = useSettingsStore();
-defineProps({
-    open: {
-        type: Boolean,
-        default: false,
-    },
-});
+import { SITE_MENU_GROUPS, pagePermissionCandidates, type SiteMenuGroup, type SitePageDefinition } from '~/utils/page-permissions';
+
+const props = defineProps({ open: { type: Boolean, default: false } });
 const emit = defineEmits(['toggleSidebar']);
-const menuItems = ref([
-    'Overview',
-    { name: 'Overview', path: '/', icon: 'solar:monitor-linear', subMenus: [], permission: [] },
-    {
-        name: 'Reports',
-        path: '/reports',
-        icon: 'solar:chart-linear',
-        permission: ['list-vote', 'list-logs'],
-        subMenus: [
-            { name: 'Logs', path: '/reports/logs', icon: 'solar:checklist-line-duotone', subMenus: [], permission: ['list-log'] },
-            {
-                name: 'Visits',
-                path: '/reports/visits',
-                icon: 'solar:square-transfer-vertical-linear',
-                subMenus: [],
-                permission: ['list-visit'],
-            },
-        ],
-    },
-    {
-        name: 'Master Data',
-        path: '/master-data',
-        icon: 'solar:server-outline',
-        permission: ['list-country', 'list-city'],
-        subMenus: [
-            { name: 'Countries', path: '/master-data/countries', icon: 'solar:asteroid-linear', subMenus: [], permission: ['list-country'] },
-            { name: 'Cities', path: '/master-data/cities', icon: 'solar:map-linear', subMenus: [], permission: ['list-city'] },
-        ],
-    },
-
-    'Members Area',
-    {
-        name: "Member's Data",
-        path: '/members-data',
-        icon: 'solar:clipboard-check-linear',
-        permission: ['network_member_list', 'network_contact_person_list', 'network_trade_reference_list', 'network_group_list'],
-        subMenus: [
-            { name: 'Members', path: '/members-data/members', icon: 'solar:case-minimalistic-linear', subMenus: [], permission: ['network_member_list'] },
-            { name: 'Network', path: '/members-data/network', icon: 'solar:map-point-linear', subMenus: [], permission: ['network_member_list'] },
-
-            // {
-            //     name: 'Contact Persons',
-            //     path: '/members-data/contact-persons',
-            //     icon: 'solar:users-group-two-rounded-line-duotone',
-            //     subMenus: [],
-            //     permission: ['network_contact_person_list'],
-            // },
-            // {
-            //     name: 'Trade References',
-            //     path: '/members-data/trade-references',
-            //     icon: 'solar:bill-list-outline',
-            //     subMenus: [],
-            //     permission: ['network_trade_reference_list'],
-            // },
-            // { name: 'Groups', path: '/members-data/groups', icon: 'solar:link-square-line-duotone', subMenus: [], permission: ['network_group_list'] },
-            // { name: 'Claim Forms', path: '/members-data/claim-forms', icon: 'solar:square-transfer-horizontal-broken', subMenus: [], permission: ['network_claim_form_list'] },
-        ],
-    },
-    'Website Options',
-    {
-        name: 'Website Data',
-        path: '/website-data',
-        icon: 'solar:file-text-line-duotone',
-        permission: ['list-guideline', 'list-page', 'list-section', 'list-menu', 'list-article', 'list-event', 'list-partner', 'list-faq', 'list-term', 'list-service', 'list-policy', 'list-team', 'list-message'],
-        subMenus: [
-            {
-                name: 'Sliders',
-                path: '/website-data/sliders',
-                icon: 'solar:slider-vertical-linear',
-                subMenus: [],
-                permission: ['list-slide'],
-            },
-            {
-                name: 'Pages',
-                path: '/website-data/pages',
-                icon: 'solar:pen-new-square-linear',
-                subMenus: [],
-                permission: ['list-page'],
-            },
-            {
-                name: 'Sections',
-                path: '/website-data/sections',
-                icon: 'solar:server-outline',
-                subMenus: [],
-                permission: ['list-section'],
-            },
-            {
-                name: 'Menus',
-                path: '/website-data/menus',
-                icon: 'solar:hamburger-menu-outline',
-                subMenus: [],
-                permission: ['list-menu'],
-            },
-            {
-                name: 'News',
-                path: '/website-data/articles',
-                icon: 'solar:document-text-linear',
-                subMenus: [],
-                permission: ['list-article'],
-            },
-            {
-                name: 'Events',
-                path: '/website-data/events',
-                icon: 'solar:calendar-mark-line-duotone',
-                subMenus: [],
-                permission: ['list-event'],
-            },
-            {
-                name: 'Partners',
-                path: '/website-data/partners',
-                icon: 'solar:users-group-two-rounded-outline',
-                subMenus: [],
-                permission: ['list-partner'],
-            },
-            {
-                name: 'Guidelines',
-                path: '/website-data/guidelines',
-                icon: 'solar:question-square-linear',
-                subMenus: [],
-                permission: ['list-guideline'],
-            },
-            {
-                name: 'FAQ',
-                path: '/website-data/faq',
-                icon: 'solar:question-square-linear',
-                subMenus: [],
-                permission: ['list-faq'],
-            },
-            {
-                name: 'Terms & Conditions',
-                path: '/website-data/terms-and-conditions',
-                icon: 'solar:question-square-linear',
-                subMenus: [],
-                permission: ['list-term'],
-            },
-            {
-                name: 'Services',
-                path: '/website-data/services',
-                icon: 'solar:star-circle-linear',
-                subMenus: [],
-                permission: ['list-service'],
-            },
-            {
-                name: 'Policies',
-                path: '/website-data/policies',
-                icon: 'solar:menu-dots-square-outline',
-                subMenus: [],
-                permission: ['list-policy'],
-            },
-            {
-                name: 'Networks Logos',
-                path: '/website-data/networks',
-                icon: 'solar:wallpaper-bold-duotone',
-                subMenus: [],
-                permission: ['list-team'],
-            },
-            {
-                name: 'Board Members',
-                path: '/website-data/team',
-                icon: 'solar:users-group-two-rounded-linear',
-                subMenus: [],
-                permission: ['list-team'],
-            },
-            {
-                name: 'Contact Messages',
-                path: '/website-data/messages',
-                icon: 'solar:chat-line-line-duotone',
-                subMenus: [],
-                permission: ['list-newsletter'],
-            },
-            {
-                name: 'Newsletter Emails',
-                path: '/website-data/newsletter-emails',
-                icon: 'solar:letter-linear',
-                subMenus: [],
-                permission: ['list-message'],
-            },
-        ],
-    },
-
-    'Members Data',
-    {
-        name: 'Applications',
-        path: '/members-data/applications',
-        icon: 'solar:users-group-two-rounded-outline',
-        permission: ['list-member'],
-        subMenus: [],
-    },
-    {
-        name: 'Representatives',
-        path: '/members-data/representatives',
-        icon: 'solar:users-group-rounded-line-duotone',
-        permission: ['list-contact-people'],
-        subMenus: [],
-    },
-    {
-        name: 'Exhibitions Data',
-        path: '/events-expos',
-        icon: 'solar:calendar-linear',
-        permission: ['list-expo', 'list-expo-company', 'list-package'],
-        subMenus: [
-            { name: 'Exhibitions', path: '/events-expos/expos', icon: 'solar:calendar-linear', subMenus: [], permission: ['list-expo'] },
-            { name: 'Packages', path: '/events-expos/packages', icon: 'solar:medal-ribbon-star-outline', subMenus: [], permission: ['list-package'] },
-            { name: 'Companies', path: '/events-expos/companies', icon: 'solar:buildings-3-outline', subMenus: [], permission: ['list-expo-company'] },
-        ],
-    },
-    'Settings',
-    {
-        name: 'Admins Area',
-        path: '/admins-area',
-        icon: 'solar:server-2-line-duotone',
-        permission: ['list-admin', 'list-role', 'list-affiliate'],
-        subMenus: [
-            {
-                name: 'Admins',
-                path: '/admins-area/admins',
-                icon: 'solar:shield-user-linear',
-                subMenus: [],
-                permission: ['list-admin'],
-            },
-            {
-                name: 'Roles',
-                path: '/admins-area/roles',
-                icon: 'solar:eye-scan-bold',
-                subMenus: [],
-                permission: ['list-role'],
-            },
-            {
-                name: 'Permissions',
-                path: '/admins-area/permissions',
-                icon: 'solar:key-square-bold-duotone',
-                subMenus: [],
-                permission: ['list-role'],
-            },
-            {
-                name: 'Affiliates',
-                path: '/admins-area/affiliates',
-                icon: 'solar:chat-round-call-line-duotone',
-                subMenus: [],
-                permission: ['list-affiliate'],
-            },
-        ],
-    },
-    {
-        name: 'Network Settings',
-        path: '/settings',
-        icon: 'solar:settings-outline',
-        permission: ['page-setting', 'list-setting', 'list-email-template'],
-        subMenus: [
-            {
-                name: 'Update Settings',
-                path: '/settings/update',
-                icon: 'solar:pen-new-square-outline',
-                subMenus: [],
-                permission: ['page-setting'],
-            },
-            {
-                name: 'Setting Fields',
-                path: '/settings/fields',
-                icon: 'solar:server-2-outline',
-                subMenus: [],
-                permission: ['list-setting'],
-            },
-            {
-                name: 'Email Templates',
-                path: '/settings/email-templates',
-                icon: 'solar:streets-navigation-linear',
-                subMenus: [],
-                permission: ['list-email-template'],
-            },
-        ],
-    },
-]);
-
 const route = useRoute();
-
 const activeMenuItem = ref(route.fullPath);
+const openGroups = ref<string[]>(SITE_MENU_GROUPS.map((group) => group.name));
 
-function toggleSubMenuOpen(path: string) {
+const visibleGroups = computed(() => SITE_MENU_GROUPS.map((group) => ({ ...group, items: group.items.filter((item) => useCheckPermission(pagePermissionCandidates(item, 'show'))) })).filter((group) => group.items.length));
+const isActive = (item: SitePageDefinition) => route.fullPath === item.slug || route.fullPath.startsWith(`${item.slug}/`);
+const isGroupOpen = (group: SiteMenuGroup) => openGroups.value.includes(group.name);
+const toggleGroup = (group: SiteMenuGroup) => {
+    openGroups.value = isGroupOpen(group) ? openGroups.value.filter((name) => name !== group.name) : [...openGroups.value, group.name];
+    activeMenuItem.value = group.items[0]?.slug ?? activeMenuItem.value;
+};
+const toggleSubMenuOpen = (path: string) => {
     activeMenuItem.value = path;
-}
+};
 </script>
 
 <template>
-    <div class="text-white/75 p-5 flex flex-col gap-8">
-        <div :class="[open ? 'flex items-center justify-between gap-5' : 'px-4']">
-            <div :class="['flex items-center gap-3 place-content-center']">
-                <Icon v-if="open" class="size-7" name="solar:share-circle-bold-duotone" />
-                <div v-if="open" class="text-base">
-                    <span class="text-white">LNF <span class="font-extralight opacity-75">Dashboard</span></span>
-                    <span class="text-[0.65rem] font-light align-super ml-1 opacity-75">v1.0</span>
+    <div class="flex flex-col gap-8 p-5 text-white/75">
+        <div :class="[props.open ? 'flex items-center justify-between gap-5' : 'px-4']">
+            <div class="place-content-center flex items-center gap-3">
+                <Icon v-if="props.open" class="size-7" name="solar:share-circle-bold-duotone" />
+                <div v-if="props.open" class="text-base">
+                    <span class="text-white">LNF <span class="font-extralight opacity-75">Dashboard</span></span
+                    ><span class="ml-1 align-super text-[0.65rem] font-light opacity-75">v1.0</span>
                 </div>
             </div>
-            <Icon v-if="!open" class="size-5 mx-auto cursor-pointer" name="solar:round-alt-arrow-right-linear" @click="emit('toggleSidebar')" />
-            <Icon v-if="open" class="size-5 cursor-pointer hover:text-white" name="solar:round-alt-arrow-left-linear" @click="emit('toggleSidebar')" />
+            <Icon v-if="!props.open" class="mx-auto size-5 cursor-pointer" name="solar:round-alt-arrow-right-linear" @click="emit('toggleSidebar')" /><Icon
+                v-else
+                class="size-5 cursor-pointer hover:text-white"
+                name="solar:round-alt-arrow-left-linear"
+                @click="emit('toggleSidebar')"
+            />
         </div>
-        <div class="relative pr-2 scrollbar-w-2 scrollbar-track-rounded-full scrollbar-thumb-rounded-full scrollbar scrollbar-thumb-white/25 overflow-y-hidden hover:overflow-y-auto">
-            <ul class="flex flex-col gap-2 font-light text-sm mb-12">
-                <template v-for="(item, i) in menuItems" :key="i">
-                    <template v-if="typeof item === 'string'">
-                        <li v-if="open" class="text-xs first:mt-0 mt-5 opacity-75">{{ item }}</li>
-                        <li v-else class="first:mt-0 mt-5 opacity-75 text-center">...</li>
-                    </template>
-                    <template v-else>
-                        <li v-if="useCheckPermission(item.permission as string[])" class="relative">
-                            <NuxtLink
-                                :class="[
-                                    open ? 'px-6 rounded-full' : 'px-4 rounded-xl',
-                                    route.fullPath === item.path ? 'bg-white text-slate-700' : 'hover:bg-white/10 hover:text-white',
-                                    'relative group py-2 flex items-center justify-between gap-3 w-full cursor-pointer',
-                                ]"
-                                :to="item.subMenus.length > 0 ? '' : item.path"
-                                @click="toggleSubMenuOpen(item.path)"
-                            >
-                                <div class="items-center flex gap-2">
-                                    <Icon :name="item.icon" class="size-5 opacity-75" />
-                                    <div v-if="open">{{ item.name }}</div>
-                                </div>
-                                <Icon
-                                    v-if="item.subMenus.length > 0 && open"
-                                    :class="[activeMenuItem === item.path || item.subMenus.some((m) => m.path === activeMenuItem) ? 'rotate-90' : '', 'size-4 ease-in-out duration-300 opacity-75']"
-                                    name="solar:alt-arrow-down-line-duotone"
-                                />
-                                <div v-if="!open" class="amj__tooltip-content">
-                                    <span class="amj__tooltip-text">{{ item.name }}</span>
-                                </div>
-                            </NuxtLink>
-                            <TransitionExpand>
-                                <template v-if="activeMenuItem === item.path || item.subMenus.some((m) => m.path === activeMenuItem)">
-                                    <ul v-if="item.subMenus.length > 0" class="bg-white/10 rounded-xl p-2 flex flex-col gap-2 mt-2">
-                                        <template v-for="(subItem, s) in item.subMenus" :key="s">
-                                            <li v-if="useCheckPermission(subItem.permission as string[])" class="relative">
-                                                <NuxtLink
-                                                    :class="[
-                                                        open ? 'px-4 rounded-full' : 'px-2 rounded-xl',
-                                                        route.fullPath === subItem.path ? 'bg-white text-slate-700' : 'hover:bg-white/10 hover:text-white',
-                                                        'relative group py-2 flex items-center justify-between gap-3 w-full',
-                                                    ]"
-                                                    :to="subItem.path"
-                                                >
-                                                    <div class="items-center flex gap-2">
-                                                        <Icon :name="subItem.icon" class="size-5 opacity-75" />
-                                                        <div v-if="open">{{ subItem.name }}</div>
-                                                    </div>
-                                                    <Icon v-if="subItem.subMenus.length > 0 && open" class="size-4 opacity-75" name="solar:alt-arrow-down-line-duotone" />
-                                                    <div v-if="!open" class="amj__tooltip-content">
-                                                        <span class="amj__tooltip-text">{{ subItem.name }}</span>
-                                                    </div>
-                                                </NuxtLink>
-                                            </li>
-                                        </template>
-                                    </ul>
-                                </template>
-                            </TransitionExpand>
-                        </li>
-                    </template>
+        <div class="scrollbar-w-2 scrollbar-track-rounded-full scrollbar-thumb-rounded-full scrollbar scrollbar-thumb-white/25 relative overflow-y-hidden pr-2 hover:overflow-y-auto">
+            <ul class="mb-12 flex flex-col gap-2 text-sm font-light">
+                <li class="text-xs opacity-75" :class="props.open ? 'mt-0' : 'text-center'">{{ props.open ? 'Overview' : '...' }}</li>
+                <li class="relative">
+                    <NuxtLink
+                        :class="[props.open ? 'rounded-full px-6' : 'rounded-xl px-4', route.fullPath === '/' ? 'bg-white text-slate-700' : 'hover:bg-white/10 hover:text-white', 'group relative flex w-full cursor-pointer items-center gap-3 py-2']"
+                        to="/"
+                        @click="toggleSubMenuOpen('/')"
+                        ><Icon name="solar:monitor-linear" class="size-5 opacity-75" />
+                        <div v-if="props.open">Overview</div>
+                        <div v-if="!props.open" class="amj__tooltip-content"><span class="amj__tooltip-text">Overview</span></div></NuxtLink
+                    >
+                </li>
+                <template v-for="group in visibleGroups" :key="group.name">
+                    <li v-if="props.open" class="mt-5 text-xs opacity-75">{{ group.name }}</li>
+                    <li v-else class="mt-5 text-center opacity-75">...</li>
+                    <li class="relative">
+                        <button
+                            type="button"
+                            :class="[props.open ? 'rounded-full px-6' : 'rounded-xl px-4', 'group relative flex w-full items-center justify-between gap-3 py-2 text-left hover:bg-white/10 hover:text-white']"
+                            @click="toggleGroup(group)"
+                        >
+                            <span class="flex items-center gap-2"
+                                ><Icon :name="group.icon" class="size-5 opacity-75" /><span v-if="props.open">{{ group.name }}</span></span
+                            ><Icon v-if="props.open" :class="[isGroupOpen(group) ? 'rotate-90' : '', 'size-4 opacity-75 transition duration-300']" name="solar:alt-arrow-down-line-duotone" />
+                            <div v-if="!props.open" class="amj__tooltip-content">
+                                <span class="amj__tooltip-text">{{ group.name }}</span>
+                            </div>
+                        </button>
+                        <TransitionExpand
+                            ><ul v-if="isGroupOpen(group)" class="mt-2 flex flex-col gap-2 rounded-xl bg-white/10 p-2">
+                                <li v-for="item in group.items" :key="item.slug" class="relative">
+                                    <NuxtLink
+                                        :class="[props.open ? 'rounded-full px-4' : 'rounded-xl px-2', isActive(item) ? 'bg-white text-slate-700' : 'hover:bg-white/10 hover:text-white', 'group relative flex w-full items-center gap-2 py-2']"
+                                        :to="item.slug"
+                                        @click="toggleSubMenuOpen(item.slug)"
+                                        ><Icon :name="item.icon" class="size-5 opacity-75" /><span v-if="props.open">{{ item.name }}</span>
+                                        <div v-if="!props.open" class="amj__tooltip-content">
+                                            <span class="amj__tooltip-text">{{ item.name }}</span>
+                                        </div></NuxtLink
+                                    >
+                                </li>
+                            </ul></TransitionExpand
+                        >
+                    </li>
                 </template>
             </ul>
         </div>

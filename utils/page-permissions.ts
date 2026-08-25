@@ -11,56 +11,93 @@ export type PagePermissionAction = (typeof PAGE_PERMISSION_ACTIONS)[number]['key
 export type SitePageDefinition = {
     name: string;
     slug: string;
+    icon: string;
 };
 
-export type PagePermissionDefinition = {
-    page: SitePageDefinition;
-    action: PagePermissionAction;
+export type SiteMenuGroup = {
     name: string;
-    slug: string;
+    icon: string;
+    items: SitePageDefinition[];
 };
 
-export const SITE_PAGES: SitePageDefinition[] = [
-    { name: 'Admins', slug: '/admins-area/admins' },
-    { name: 'Roles', slug: '/admins-area/roles' },
-    { name: 'Permissions', slug: '/admins-area/permissions' },
-    { name: 'Affiliates', slug: '/admins-area/affiliates' },
-    { name: 'Exhibitions', slug: '/events-expos/expos' },
-    { name: 'Packages', slug: '/events-expos/packages' },
-    { name: 'Companies', slug: '/events-expos/companies' },
-    { name: 'Cities', slug: '/master-data/cities' },
-    { name: 'Countries', slug: '/master-data/countries' },
-    { name: 'Applications', slug: '/members-data/applications' },
-    { name: 'Claim Forms', slug: '/members-data/claim-forms' },
-    { name: 'Contact Persons', slug: '/members-data/contact-persons' },
-    { name: 'Groups', slug: '/members-data/groups' },
-    { name: 'Member Requests', slug: '/members-data/member-requests' },
-    { name: 'Members', slug: '/members-data/members' },
-    { name: 'Member Network', slug: '/members-data/network' },
-    { name: 'Pending Applications', slug: '/members-data/pending-applications' },
-    { name: 'Representatives', slug: '/members-data/representatives' },
-    { name: 'Trade References', slug: '/members-data/trade-references' },
-    { name: 'Logs', slug: '/reports/logs' },
-    { name: 'Visits', slug: '/reports/visits' },
-    { name: 'Email Templates', slug: '/settings/email-templates' },
-    { name: 'Settings Fields', slug: '/settings/fields' },
-    { name: 'Update Settings', slug: '/settings/update' },
-    { name: 'Articles', slug: '/website-data/articles' },
-    { name: 'Events', slug: '/website-data/events' },
-    { name: 'FAQs', slug: '/website-data/faq' },
-    { name: 'Guidelines', slug: '/website-data/guidelines' },
-    { name: 'Menus', slug: '/website-data/menus' },
-    { name: 'Contact Messages', slug: '/website-data/messages' },
-    { name: 'Newsletter Emails', slug: '/website-data/newsletter-emails' },
-    { name: 'Pages', slug: '/website-data/pages' },
-    { name: 'Partners', slug: '/website-data/partners' },
-    { name: 'Policies', slug: '/website-data/policies' },
-    { name: 'Sections', slug: '/website-data/sections' },
-    { name: 'Services', slug: '/website-data/services' },
-    { name: 'Sliders', slug: '/website-data/sliders' },
-    { name: 'Team', slug: '/website-data/team' },
-    { name: 'Terms and Conditions', slug: '/website-data/terms-and-conditions' },
+const page = (name: string, slug: string, icon: string): SitePageDefinition => ({ name, slug, icon });
+
+export const SITE_MENU_GROUPS: SiteMenuGroup[] = [
+    {
+        name: 'Reports',
+        icon: 'solar:chart-linear',
+        items: [page('Logs', '/reports/logs', 'solar:checklist-line-duotone'), page('Visits', '/reports/visits', 'solar:square-transfer-vertical-linear')],
+    },
+    {
+        name: 'Master Data',
+        icon: 'solar:server-outline',
+        items: [page('Countries', '/master-data/countries', 'solar:asteroid-linear'), page('Cities', '/master-data/cities', 'solar:map-linear')],
+    },
+    {
+        name: "Member's Data",
+        icon: 'solar:clipboard-check-linear',
+        items: [
+            page('Members', '/members-data/members', 'solar:case-minimalistic-linear'),
+            page('Network', '/members-data/network', 'solar:map-point-linear'),
+            page('Applications', '/members-data/applications', 'solar:users-group-two-rounded-outline'),
+            page('Claim Forms', '/members-data/claim-forms', 'solar:square-transfer-horizontal-broken'),
+            page('Contact Persons', '/members-data/contact-persons', 'solar:users-group-two-rounded-line-duotone'),
+            page('Groups', '/members-data/groups', 'solar:link-square-line-duotone'),
+            page('Member Requests', '/members-data/member-requests', 'solar:inbox-line-linear'),
+            page('Pending Applications', '/members-data/pending-applications', 'solar:hourglass-line-linear'),
+            page('Representatives', '/members-data/representatives', 'solar:users-group-rounded-line-duotone'),
+            page('Trade References', '/members-data/trade-references', 'solar:bill-list-outline'),
+        ],
+    },
+    {
+        name: 'Website Data',
+        icon: 'solar:file-text-line-duotone',
+        items: [
+            page('Sliders', '/website-data/sliders', 'solar:slider-vertical-linear'),
+            page('Pages', '/website-data/pages', 'solar:pen-new-square-linear'),
+            page('Sections', '/website-data/sections', 'solar:server-outline'),
+            page('Menus', '/website-data/menus', 'solar:hamburger-menu-outline'),
+            page('News', '/website-data/articles', 'solar:document-text-linear'),
+            page('Events', '/website-data/events', 'solar:calendar-mark-line-duotone'),
+            page('Partners', '/website-data/partners', 'solar:users-group-two-rounded-outline'),
+            page('Guidelines', '/website-data/guidelines', 'solar:question-square-linear'),
+            page('FAQ', '/website-data/faq', 'solar:question-square-linear'),
+            page('Terms & Conditions', '/website-data/terms-and-conditions', 'solar:question-square-linear'),
+            page('Services', '/website-data/services', 'solar:star-circle-linear'),
+            page('Policies', '/website-data/policies', 'solar:menu-dots-square-outline'),
+            page('Networks Logos', '/website-data/networks', 'solar:wallpaper-bold-duotone'),
+            page('Board Members', '/website-data/team', 'solar:users-group-two-rounded-linear'),
+            page('Contact Messages', '/website-data/messages', 'solar:chat-line-line-duotone'),
+            page('Newsletter Emails', '/website-data/newsletter-emails', 'solar:letter-linear'),
+        ],
+    },
+    {
+        name: 'Exhibitions Data',
+        icon: 'solar:calendar-linear',
+        items: [page('Exhibitions', '/events-expos/expos', 'solar:calendar-linear'), page('Packages', '/events-expos/packages', 'solar:medal-ribbon-star-outline'), page('Companies', '/events-expos/companies', 'solar:buildings-3-outline')],
+    },
+    {
+        name: 'Admins Area',
+        icon: 'solar:server-2-line-duotone',
+        items: [
+            page('Admins', '/admins-area/admins', 'solar:shield-user-linear'),
+            page('Roles', '/admins-area/roles', 'solar:eye-scan-bold'),
+            page('Permissions', '/admins-area/permissions', 'solar:key-square-bold-duotone'),
+            page('Affiliates', '/admins-area/affiliates', 'solar:chat-round-call-line-duotone'),
+        ],
+    },
+    {
+        name: 'Network Settings',
+        icon: 'solar:settings-outline',
+        items: [
+            page('Update Settings', '/settings/update', 'solar:pen-new-square-outline'),
+            page('Setting Fields', '/settings/fields', 'solar:server-2-outline'),
+            page('Email Templates', '/settings/email-templates', 'solar:streets-navigation-linear'),
+        ],
+    },
 ];
+
+export const SITE_PAGES: SitePageDefinition[] = SITE_MENU_GROUPS.flatMap((group) => group.items);
 
 const actionLabels: Record<PagePermissionAction, string> = {
     show: 'Show',
@@ -78,20 +115,9 @@ const pathKey = (slug: string) =>
         .toLowerCase();
 
 export const pagePermissionSlug = (page: SitePageDefinition, action: PagePermissionAction) => `${action}-${pathKey(page.slug)}`;
-
 export const pagePermissionName = (page: SitePageDefinition, action: PagePermissionAction) => `${actionLabels[action]} ${page.name}`;
-
 export const pagePermissionKey = (page: SitePageDefinition, action: PagePermissionAction) => `${page.slug}::${action}`;
-
-export const pagePermissionDefinition = (page: SitePageDefinition, action: PagePermissionAction): PagePermissionDefinition => ({
-    page,
-    action,
-    name: pagePermissionName(page, action),
-    slug: pagePermissionSlug(page, action),
-});
-
+export const pagePermissionDefinition = (page: SitePageDefinition, action: PagePermissionAction) => ({ page, action, name: pagePermissionName(page, action), slug: pagePermissionSlug(page, action) });
 export const pagePermissionCandidates = (page: SitePageDefinition, action: PagePermissionAction): string[] => [pagePermissionSlug(page, action)];
-
-export const sitePageForPath = (path: string): SitePageDefinition | undefined => SITE_PAGES.find((page) => path === page.slug || path.startsWith(`${page.slug}/`));
-
+export const sitePageForPath = (path: string) => SITE_PAGES.find((item) => path === item.slug || path.startsWith(`${item.slug}/`));
 export const actionLabel = (action: PagePermissionAction) => actionLabels[action];
