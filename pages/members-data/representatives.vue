@@ -272,15 +272,15 @@ async function restoreItems() {
                         </td>
                         <td class="text-sm font-normal whitespace-nowrap">
                             <div class="flex items-center gap-3">
-                                <NuxtImg :src="row.network.imageUrl" class="h-10 !rounded-md w-20 object-contain p-1 shrink-0" />
+                                <NuxtImg :src="row.network?.imageUrl" class="h-10 !rounded-md w-20 object-contain p-1 shrink-0" />
                                 <div class="flex flex-col gap-0.5">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="truncate 2xl:max-w-64 max-w-44">{{ row.network.name }}</span>
+                                        <span class="truncate 2xl:max-w-64 max-w-44">{{ row.network?.name }}</span>
                                     </div>
                                     <div class="flex items-center text-xs whitespace-nowrap">
-                                        <NuxtImg :src="row.network.country.imageUrl" class="h-4 !rounded-sm w-6 object-cover shrink-0 mr-1.5" />
-                                        <div class="opacity-75 font-semibold max-w-36 truncate">{{ row.network.country.name }}</div>
-                                        <span class="capitalize font-light max-w-24 truncate opacity-80">, {{ row.network.city.toLowerCase() }}</span>
+                                        <NuxtImg :src="row.network?.country?.imageUrl" class="h-4 !rounded-sm w-6 object-cover shrink-0 mr-1.5" />
+                                        <div class="opacity-75 font-semibold max-w-36 truncate">{{ row.network?.country?.name }}</div>
+                                        <span class="capitalize font-light max-w-24 truncate opacity-80">, {{ row.network?.city?.toLowerCase() }}</span>
                                     </div>
                                 </div>
                             </div>

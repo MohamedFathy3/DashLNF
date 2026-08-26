@@ -203,7 +203,7 @@ async function deleteContactPerson(id) {
                     <div>Company Profile</div>
                 </div>
                 <div class="lg:flex lg:items-center lg:gap-5 lg:space-y-0 space-y-5">
-                    <button class="btn btn-primary btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" type="button" @click="openUpdateModal">
+                    <button v-if="useCheckPermission(['update-members-data-members'])" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" type="button" @click="openUpdateModal">
                         <Icon name="solar:pen-new-round-outline" class="size-5 opacity-75" />
                         <span>Update Company</span>
                     </button>

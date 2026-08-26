@@ -338,7 +338,7 @@ const getFreightTermsText = (term) => {
 </script>
 
 <template>
-    <div v-if="useCheckPermission(['network_application_list'])" class="flex flex-col gap-8">
+    <div v-if="useCheckPermission(['show-members-data-member-requests'])" class="flex flex-col gap-8">
         <!-- Page Title & Action Buttons -->
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
@@ -354,7 +354,7 @@ const getFreightTermsText = (term) => {
                     <div class="text-sm bg-primary/10 px-3 py-1.5 rounded-full">{{ selectedRows.length }} selected</div>
 
                     <template v-if="serverParams.deleted">
-                        <button v-if="useCheckPermission(['network_application_force_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full" :disabled="isForceDeleting" @click="forceDeleteItems">
+                        <button v-if="useCheckPermission(['forceDelete-members-data-member-requests'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full" :disabled="isForceDeleting" @click="forceDeleteItems">
                             <Icon :name="isForceDeleting ? 'svg-spinners:3-dots-fade' : 'solar:trash-bin-minimalistic-line-duotone'" class="size-5" />
                             {{ isForceDeleting ? 'Deleting...' : 'Delete Permanently' }}
                         </button>
@@ -366,7 +366,7 @@ const getFreightTermsText = (term) => {
                     </template>
 
                     <template v-else>
-                        <button v-if="useCheckPermission(['network_application_delete'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full" :disabled="isDeleting" @click="deleteItems">
+                        <button v-if="useCheckPermission(['delete-members-data-member-requests'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full" :disabled="isDeleting" @click="deleteItems">
                             <Icon :name="isDeleting ? 'svg-spinners:3-dots-fade' : 'solar:trash-bin-minimalistic-line-duotone'" class="size-5" />
                             {{ isDeleting ? 'Deleting...' : 'Delete Items' }}
                         </button>
@@ -378,7 +378,7 @@ const getFreightTermsText = (term) => {
                     Add New Request
                 </button>
 
-                <button v-if="useCheckPermission(['network_application_delete', 'network_application_force_delete', 'network_application_restore'])" class="btn btn-secondary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full" @click="toggleDeleted">
+                <button v-if="useCheckPermission(['delete-members-data-member-requests', 'forceDelete-members-data-member-requests', 'network_application_restore'])" class="btn btn-secondary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full" @click="toggleDeleted">
                     <Icon :name="serverParams.deleted ? 'solar:hamburger-menu-line-duotone' : 'solar:trash-bin-minimalistic-line-duotone'" class="size-5" />
                     {{ serverParams.deleted ? 'Active Members List' : 'Deleted Members' }}
                 </button>
@@ -768,7 +768,7 @@ const getFreightTermsText = (term) => {
                                     <p class="text-gray-500 font-medium">No shipment requests found</p>
                                     <p class="text-sm text-gray-400">Try adjusting your filters or create a new request</p>
                                     <button
-                                        v-if="!serverParams.deleted && useCheckPermission(['network_application_create'])"
+                                        v-if="!serverParams.deleted && useCheckPermission(['create-members-data-member-requests'])"
                                         class="mt-2 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                                         @click="openModal"
                                     >

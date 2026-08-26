@@ -22,11 +22,11 @@ const rules = { name: { required }, slug: { required } };
 const v$ = useVuelidate(rules, item);
 const pageSearch = ref('');
 
-const canCreate = useCheckPermission(['create-role']);
-const canUpdate = useCheckPermission(['edit-role']);
-const canDelete = useCheckPermission(['delete-role']);
-const canRestore = useCheckPermission(['restore-role']);
-const canForceDelete = useCheckPermission(['force-delete-role']);
+const canCreate = useCheckPermission(['create-admins-area-roles']);
+const canUpdate = useCheckPermission(['update-admins-area-roles']);
+const canDelete = useCheckPermission(['delete-admins-area-roles']);
+const canRestore = useCheckPermission(['restore-admins-area-roles']);
+const canForceDelete = useCheckPermission(['force-delete-admins-area-roles']);
 
 const sortByList = [
     { name: 'Sort by ID', value: 'id' },

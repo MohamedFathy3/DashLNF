@@ -402,7 +402,7 @@ const userInfoBoxes = computed(() => {
                 <div>{{ serverParams.deleted ? 'Deleted Users' : 'Users' }}</div>
             </div>
             <div class="flex lg:flex-row flex-col lg:items-center lg:gap-5 lg:space-y-0 space-y-5">
-                <button v-if="useCheckPermission(['network_member_create'])" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" type="button" @click="openAddModal">
+                <button v-if="useCheckPermission(['create-members-data-network'])" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" type="button" @click="openAddModal">
                     <Icon name="solar:add-circle-linear" class="size-5 opacity-75" />
                     <span>Add User</span>
                 </button>
@@ -413,13 +413,13 @@ const userInfoBoxes = computed(() => {
                 </button>
 
                 <template v-if="selectedRows.length > 0">
-                    <template v-if="serverParams.deleted && useCheckPermission(['network_member_force_delete'])">
+                    <template v-if="serverParams.deleted && useCheckPermission(['forceDelete-members-data-network'])">
                         <button class="btn btn-danger btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" @click="forceDeleteItems">
                             <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                             Delete Permanently
                         </button>
                     </template>
-                    <template v-else-if="useCheckPermission(['network_member_delete'])">
+                    <template v-else-if="useCheckPermission(['delete-members-data-network'])">
                         <button class="btn btn-danger btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" @click="deleteItems">
                             <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                             Delete Items
@@ -571,7 +571,7 @@ const userInfoBoxes = computed(() => {
                             <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                             <td class="text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <button v-if="useCheckPermission(['network_member_update'])" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openEditModal(row.id)">
+                                    <button v-if="useCheckPermission(['update-members-data-network'])" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openEditModal(row.id)">
                                         <Icon name="solar:pen-outline" class="size-4" />
                                         Edit
                                     </button>
