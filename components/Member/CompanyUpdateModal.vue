@@ -283,13 +283,13 @@ async function resendPassword() {
                             <label class="form-label opacity-75 font-light">Password</label>
                             <div class="relative">
                                 <input
-                                    :type="showPassword ? 'text' : 'password'"
                                     v-model="item.unhashed_password"
+                                    :type="showPassword ? 'text' : 'password'"
                                     class="form-control form-control-rounded w-full pr-12"
                                     placeholder="Enter new password (leave empty to keep current)"
                                     name="company-password"
                                 />
-                                <button type="button" @click="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors" :title="showPassword ? 'Hide password' : 'Show password'">
+                                <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors" :title="showPassword ? 'Hide password' : 'Show password'" @click="togglePassword">
                                     <Icon :name="showPassword ? 'solar:eye-outline' : 'solar:eye-closed-outline'" class="size-5 opacity-60 hover:opacity-100 transition-all" />
                                 </button>
                             </div>

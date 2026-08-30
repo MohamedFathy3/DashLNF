@@ -538,13 +538,7 @@ watch(
                     <FormInputField v-model.trim="item.password" :errors="v$.password.$errors" class="lg:col-span-6" label="Password" name="password" :placeholder="editMode ? 'Leave blank to keep current' : 'Password'" type="password" />
 
                     <!-- Super Admin Switch - disabled if not super admin -->
-                    <FormSwitch 
-                        id="super-admin" 
-                        v-model="item.superAdmin" 
-                        label="Super Admin" 
-                        class="lg:col-span-6" 
-                        :disabled="!isCurrentUserSuperAdmin"
-                    />
+                    <FormSwitch id="super-admin" v-model="item.superAdmin" label="Super Admin" class="lg:col-span-6" :disabled="!isCurrentUserSuperAdmin" />
                     <div v-if="!isCurrentUserSuperAdmin" class="lg:col-span-6 text-xs text-slate-400 flex items-center gap-1">
                         <Icon name="solar:info-circle-outline" class="size-4" />
                         Only Super Admins can change this setting

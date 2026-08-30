@@ -134,6 +134,7 @@ const toggleRowSelection = (id) => {
 const item = ref({
     title: null,
     active: true,
+    sub_title: null,
     description: null,
     position: null,
 });
@@ -141,6 +142,7 @@ const item = ref({
 const rules = ref({
     title: { required },
     active: {},
+    sub_title: {},
     description: {},
     position: { numeric },
 });
@@ -162,6 +164,7 @@ const fetchItem = async (id) => {
 const resetItemValues = async () => {
     item.value = {
         title: null,
+        sub_title: null,
         active: true,
         description: null,
         position: null,
@@ -422,6 +425,7 @@ async function restoreItems() {
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
                     <FormInputField v-model="item.title" :errors="v$.title.$errors" class="lg:col-span-12" label="Title" name="title" placeholder="Guideline Title" />
+                    <FormRichTextEditor v-model="item.sub_title" :errors="v$.sub_title.$errors" label="Sub Title" name="sub_title" class="col-span-12" />
                     <FormRichTextEditor v-model="item.description" :errors="v$.description.$errors" label="Description" name="description" class="col-span-12" />
                     <div class="col-span-12 grid grid-cols-12 gap-5">
                         <FormSwitch v-model="item.active" class="col-span-12 sm:col-span-4" flex-title label="Active" name="active-toggle" />

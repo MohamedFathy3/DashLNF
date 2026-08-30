@@ -374,7 +374,7 @@ const changeStatus = async (event, id) => {
                             <div class="ml-2 font-semibold">Member Details</div>
                             <div class="flex items-center gap-1 text-sm mt-1 opacity-75">
                                 <div class="font-semibold py-2">
-                                    <select name="status" id="status" class="rounded-full w-40 border border-gray-300 px-4 py-1 text-sm shadow-lg cursor-pointer" @change="changeStatus($event, item.id)">
+                                    <select id="status" name="status" class="rounded-full w-40 border border-gray-300 px-4 py-1 text-sm shadow-lg cursor-pointer" @change="changeStatus($event, item.id)">
                                         <option value="">change Status</option>
                                         <option v-for="status in statusList" :key="status.value" :value="status.value" :selected="status.value === item.status">
                                             {{ status.label }}

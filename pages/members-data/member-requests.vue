@@ -378,7 +378,11 @@ const getFreightTermsText = (term) => {
                     Add New Request
                 </button>
 
-                <button v-if="useCheckPermission(['delete-members-data-member-requests', 'forceDelete-members-data-member-requests', 'network_application_restore'])" class="btn btn-secondary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full" @click="toggleDeleted">
+                <button
+                    v-if="useCheckPermission(['delete-members-data-member-requests', 'forceDelete-members-data-member-requests', 'network_application_restore'])"
+                    class="btn btn-secondary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full"
+                    @click="toggleDeleted"
+                >
                     <Icon :name="serverParams.deleted ? 'solar:hamburger-menu-line-duotone' : 'solar:trash-bin-minimalistic-line-duotone'" class="size-5" />
                     {{ serverParams.deleted ? 'Active Members List' : 'Deleted Members' }}
                 </button>
@@ -734,8 +738,8 @@ const getFreightTermsText = (term) => {
                             <!-- Action Column -->
                             <td v-if="!serverParams.deleted" class="px-4 py-4 text-right">
                                 <button
-                                    @click="openViewModal(row)"
                                     class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+                                    @click="openViewModal(row)"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                         <path

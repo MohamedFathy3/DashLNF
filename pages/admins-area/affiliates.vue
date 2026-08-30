@@ -404,7 +404,7 @@ const copyToClipboard = async (text) => {
                                     <code class="text-xs bg-slate-100 px-2 py-1 rounded truncate max-w-xs">
                                         {{ 'https://lnfederation.com/application-form?ref=' + row.id }}
                                     </code>
-                                    <button class="text-slate-400 hover:text-primary transition-colors" @click="copyToClipboard('https://lnfederation.com/application-form?ref=' + row.id)" title="Copy link">
+                                    <button class="text-slate-400 hover:text-primary transition-colors" title="Copy link" @click="copyToClipboard('https://lnfederation.com/application-form?ref=' + row.id)">
                                         <Icon name="solar:copy-outline" class="size-4" />
                                     </button>
                                 </div>

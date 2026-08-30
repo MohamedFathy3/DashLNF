@@ -272,10 +272,10 @@ async function deleteContactPerson(id) {
                                 <span class="font-mono text-sm bg-slate-100 px-3 py-1 rounded-lg min-w-[120px]">
                                     {{ showPassword ? company.unhashed_password : '••••••••' }}
                                 </span>
-                                <button @click="togglePassword" class="p-1.5 rounded-lg hover:bg-slate-100 transition-colors" :title="showPassword ? 'Hide password' : 'Show password'">
+                                <button class="p-1.5 rounded-lg hover:bg-slate-100 transition-colors" :title="showPassword ? 'Hide password' : 'Show password'" @click="togglePassword">
                                     <Icon :name="showPassword ? 'solar:eye-outline' : 'solar:eye-closed-outline'" class="size-4 opacity-60 hover:opacity-100 transition-all" />
                                 </button>
-                                <button @click="useClipboard(company.unhashed_password)" class="p-1.5 rounded-lg hover:bg-slate-100 transition-colors" title="Copy password">
+                                <button class="p-1.5 rounded-lg hover:bg-slate-100 transition-colors" title="Copy password" @click="useClipboard(company.unhashed_password)">
                                     <Icon name="solar:copy-outline" class="size-4 opacity-60 hover:opacity-100 transition-all" />
                                 </button>
                             </div>
@@ -364,7 +364,7 @@ async function deleteContactPerson(id) {
                                             <span class="font-mono">
                                                 {{ showPassword ? company.unhashed_password : '••••••••' }}
                                             </span>
-                                            <button @click="togglePassword" class="ml-2 text-xs text-primary hover:underline">
+                                            <button class="ml-2 text-xs text-primary hover:underline" @click="togglePassword">
                                                 {{ showPassword ? 'Hide' : 'Show' }}
                                             </button>
                                         </div>
@@ -546,7 +546,7 @@ async function deleteContactPerson(id) {
                                 <span class="font-mono text-xs">
                                     {{ showPassword ? company.unhashed_password : '••••••••' }}
                                 </span>
-                                <button @click="togglePassword" class="text-xs text-primary hover:underline">
+                                <button class="text-xs text-primary hover:underline" @click="togglePassword">
                                     {{ showPassword ? 'Hide' : 'Show' }}
                                 </button>
                             </div>
