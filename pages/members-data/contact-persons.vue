@@ -13,10 +13,11 @@ const sortByList = ref([
     { name: 'Sort By Name', value: 'name' },
 ]);
 
+// ✅ فلتر الشركة بقى بـ id مش بالاسم كنص
 const filter = ref({
     name: null,
     email: null,
-    companyName: null,
+    member_network_id: null, // ✅ بديل companyName - ده اللي هيتبعت فعليًا للـ backend
     job_title: null,
 });
 
@@ -38,13 +39,133 @@ const showFilter = ref(false);
 
 const resources = useResourceStore();
 
+// ===================== 🏢 Company Search Dropdown =====================
+const companySearchQuery = ref(''); // النص المكتوب في الـ input
+const companySearchResults = ref([]); // نتائج البحث (شركات) - متراكمة عبر الصفحات
+const companySearchLoading = ref(false); // لودينج أول تحميل / بحث جديد
+const companySearchLoadingMore = ref(false); // لودينج تحميل صفحة إضافية (سكرول)
+const showCompanyDropdown = ref(false);
+const selectedCompany = ref(null); // الشركة المختارة (id, name, imageUrl)
+let companySearchDebounce = null;
+
+// ✅ حالة الـ pagination الخاصة بالبحث
+const companySearchPage = ref(1);
+const companySearchLastPage = ref(1);
+const companySearchTotal = ref(0);
+
+const searchCompanies = async (query, page = 1, append = false) => {
+    if (append) {
+        companySearchLoadingMore.value = true;
+    } else {
+        companySearchLoading.value = true;
+    }
+
+    try {
+        const { data } = await useApiFetch('/api/member-network/index', {
+            method: 'POST',
+            body: {
+                filters: query ? { name: query } : {},
+                orderBy: 'id',
+                orderByDirection: 'desc',
+                perPage: 10,
+                page,
+                paginate: true,
+                deleted: false,
+            },
+        });
+
+        const newResults = data.value?.data || [];
+        const meta = data.value?.meta || {};
+
+        companySearchResults.value = append ? [...companySearchResults.value, ...newResults] : newResults;
+        companySearchPage.value = meta.current_page || page;
+        companySearchLastPage.value = meta.last_page || 1;
+        companySearchTotal.value = meta.total || newResults.length;
+    } catch (err) {
+        console.error('Error searching companies:', err);
+        if (!append) companySearchResults.value = [];
+    } finally {
+        companySearchLoading.value = false;
+        companySearchLoadingMore.value = false;
+    }
+};
+
+// ✅ هل لسه فيه صفحات هتتحمل؟
+const hasMoreCompanies = computed(() => companySearchPage.value < companySearchLastPage.value);
+
+// ✅ بتتنادى لما المستخدم يوصل لآخر الـ scroll جوه القايمة
+const loadMoreCompanies = () => {
+    if (companySearchLoadingMore.value || companySearchLoading.value || !hasMoreCompanies.value) return;
+    searchCompanies(companySearchQuery.value, companySearchPage.value + 1, true);
+};
+
+const onCompanyDropdownScroll = (event) => {
+    const el = event.target;
+    // ✅ لو المستخدم قرّب من آخر 40px من القايمة، حمّل الصفحة الجاية
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 40) {
+        loadMoreCompanies();
+    }
+};
+
+const onCompanyInput = (value) => {
+    companySearchQuery.value = value;
+    showCompanyDropdown.value = true;
+
+    // لو المستخدم بدأ يكتب من جديد، الشركة المختارة قبل كده بتتلغي
+    if (selectedCompany.value && value !== selectedCompany.value.name) {
+        selectedCompany.value = null;
+        filter.value.member_network_id = null;
+    }
+
+    clearTimeout(companySearchDebounce);
+    companySearchDebounce = setTimeout(() => {
+        // ✅ أي بحث جديد بيرجّع الصفحة لـ 1 ويمسح النتايج القديمة
+        searchCompanies(value, 1, false);
+    }, 350); // ✅ debounce عشان منضربش الـ API مع كل حرف
+};
+
+const openCompanyDropdown = () => {
+
+    showCompanyDropdown.value = true;
+    if (companySearchResults.value.length === 0) {
+        searchCompanies(companySearchQuery.value, 1, false);
+    }
+};
+
+const selectCompany = (company) => {
+    selectedCompany.value = company;
+    filter.value.member_network_id = company.id;
+    companySearchQuery.value = company.name;
+    showCompanyDropdown.value = false;
+};
+
+const clearCompanySelection = () => {
+    selectedCompany.value = null;
+    filter.value.member_network_id = null;
+    companySearchQuery.value = '';
+    companySearchResults.value = [];
+    companySearchPage.value = 1;
+    companySearchLastPage.value = 1;
+    companySearchTotal.value = 0;
+    showCompanyDropdown.value = false;
+};
+
+const closeCompanyDropdownOnBlur = () => {
+    // تأخير بسيط عشان الـ click على عنصر في القايمة يتسجل الأول قبل ما القايمة تختفي
+    setTimeout(() => {
+        showCompanyDropdown.value = false;
+    }, 200);
+};
+// =========================================================================
+
 const resetServerParams = async () => {
     filter.value = {
         name: null,
         email: null,
-        companyName: null,
+        member_network_id: null,
         job_title: null,
     };
+    clearCompanySelection();
     serverParams.value = {
         filters: {},
         orderBy: 'id',
@@ -255,14 +376,9 @@ const onExport = async () => {
         <div class="md:flex md:items-center md:justify-between md:gap-5">
             <div class="flex items-center gap-2">
                 <Icon name="solar:users-group-two-rounded-line-duotone" class="size-5 opacity-75" />
-                <div>{{ serverParams.deleted ? 'Deleted Contact Persons' : 'Contact Persons (Network)' }}</div>
+                <div>{{ serverParams.deleted ? 'Deleted Contact Persons' : 'Contact Persons (company)' }}</div>
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
-                <button v-if="useCheckPermission(['create-members-data-contact-persons'])" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" type="button" @click="openAddModal">
-                    <Icon name="solar:add-square-linear" class="size-5 opacity-75" />
-                    Add New
-                </button>
-
                 <button class="btn btn-dark btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" type="button" @click="onExport">
                     <Icon name="solar:download-outline" class="size-5 opacity-75" />
                     Export XLSX
@@ -302,7 +418,71 @@ const onExport = async () => {
         <div class="grid lg:grid-cols-12 gap-5 items-center p-5 bg-white border rounded-2xl">
             <FormInputField v-model="filter.name" rounded class="xl:col-span-3 lg:col-span-3" placeholder="Name" label="Name" />
             <FormInputField v-model="filter.email" rounded class="xl:col-span-3 lg:col-span-3" placeholder="Email" label="Email" />
-            <FormInputField v-model="filter.companyName" rounded class="xl:col-span-3 lg:col-span-3" placeholder="Company Name" label="Company" />
+
+            <!-- ✅ Company Async Search Dropdown -->
+            <!-- بيدور في /api/member-network/index وبيعرض الاسم + الصورة، ولما تختار شركة بيتبعت member_network_id بتاعها للفلتر -->
+            <div class="xl:col-span-3 lg:col-span-3 relative">
+                <label class="text-xs opacity-75 mb-1 block">Company</label>
+                <div class="relative">
+                    <input
+                        type="text"
+                        :value="companySearchQuery"
+                        placeholder="Search company..."
+                        class="form-input rounded-full w-full pr-9"
+                        @input="onCompanyInput($event.target.value)"
+                        @focus="openCompanyDropdown"
+                        @blur="closeCompanyDropdownOnBlur"
+                    />
+                    <!-- لودينج سبينر جوه الـ input -->
+                    <Icon v-if="companySearchLoading" name="svg-spinners:3-dots-fade" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-60" />
+                    <!-- زرار مسح الاختيار -->
+                    <Icon
+                        v-else-if="selectedCompany"
+                        name="solar:close-circle-linear"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-60 cursor-pointer hover:opacity-100"
+                        @mousedown.prevent="clearCompanySelection"
+                    />
+                </div>
+
+                <!-- ✅ عرض الشركة المختارة (اسم + صورة) -->
+                <div v-if="selectedCompany" class="flex items-center gap-2 mt-1.5 text-xs">
+                    <NuxtImg :src="selectedCompany.imageUrl || '/default-avatar.png'" :alt="selectedCompany.name" class="w-4 h-4 !rounded-full object-cover" />
+                    <span class="opacity-60">Selected: {{ selectedCompany.name }}</span>
+                </div>
+
+                <!-- Dropdown نتايج البحث - مع Infinite Scroll لباقي الصفحات -->
+                <div v-if="showCompanyDropdown" class="absolute z-50 mt-1 w-full bg-white border rounded-xl shadow-lg max-h-64 overflow-y-auto" @scroll="onCompanyDropdownScroll">
+                    <template v-if="companySearchLoading">
+                        <div class="p-3 text-xs opacity-50 text-center">Searching...</div>
+                    </template>
+                    <template v-else-if="companySearchResults.length === 0">
+                        <div class="p-3 text-xs opacity-50 text-center">No companies found</div>
+                    </template>
+                    <template v-else>
+                        <!-- ✅ عداد صغير يوضح كام نتيجة ظاهرة من إجمالي كام -->
+                        <div class="px-2.5 py-1.5 text-[10px] opacity-40 sticky top-0 bg-white border-b">Showing {{ companySearchResults.length }} of {{ companySearchTotal }}</div>
+                        <div
+                            v-for="company in companySearchResults"
+                            :key="company.id"
+                            class="flex items-center gap-2.5 p-2.5 hover:bg-slate-50 cursor-pointer transition-colors"
+                            @mousedown.prevent="selectCompany(company)"
+                        >
+                            <NuxtImg :src="company.imageUrl || '/default-avatar.png'" :alt="company.name" class="w-8 h-8 !rounded-full object-cover ring-1 ring-slate-100 shrink-0" />
+                            <div class="min-w-0">
+                                <div class="text-sm font-medium truncate">{{ company.name }}</div>
+                                <div class="text-[10px] opacity-50 truncate">{{ company.city || 'N/A' }} · ID: #{{ company.id }}</div>
+                            </div>
+                        </div>
+                        <!-- ✅ مؤشر تحميل صفحة إضافية أثناء السكرول -->
+                        <div v-if="companySearchLoadingMore" class="p-2.5 text-center">
+                            <Icon name="svg-spinners:3-dots-fade" class="w-4 h-4 opacity-50 inline-block" />
+                        </div>
+                        <!-- ✅ لو خلص كل النتايج -->
+                        <div v-else-if="!hasMoreCompanies && companySearchResults.length > 0" class="p-2 text-[10px] opacity-30 text-center">— End of results —</div>
+                    </template>
+                </div>
+            </div>
+
             <FormInputField v-model="filter.job_title" rounded class="xl:col-span-3 lg:col-span-3" placeholder="Job Title" label="Job Title" />
 
             <TransitionExpand>
@@ -364,10 +544,10 @@ const onExport = async () => {
                                     <NuxtImg :src="row.imageUrl || '/default-avatar.png'" :alt="row.name" :title="row.name" class="w-10 h-10 !rounded-full object-cover ring-2 ring-slate-100 shrink-0" />
                                     <div>
                                         <div class="font-medium text-sm">{{ row.name }}</div>
-                                        <div class="font-light text-xs opacity-75 truncate max-w-[15rem]">{{ row.job_title }}</div>
+                                        <div class="font-light text-xs opacity-75 truncate max-w-[15rem]">{{ row.jobTitle || 'No Job Title' }}</div>
                                         <div class="flex items-center gap-1 mt-0.5">
                                             <span class="text-[10px] bg-primary/5 text-primary px-1.5 py-0.5 rounded-full">{{ row.title || 'N/A' }}</span>
-                                            <span v-if="row.birth_date" class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded-full">🎂 {{ row.birth_date }}</span>
+                                            <span v-if="row.birthDate" class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded-full">🎂 {{ row.birthDate }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -375,13 +555,19 @@ const onExport = async () => {
                             <td class="text-sm font-normal whitespace-nowrap">
                                 <div class="flex flex-col gap-0.5">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="truncate 2xl:max-w-64 max-w-44 font-medium">{{ row.member_network?.name || 'N/A' }}</span>
+                                        <span class="truncate 2xl:max-w-64 max-w-44 font-medium">{{ row.memberNetwork?.name || 'N/A' }}</span>
+                                        <span v-if="row.memberNetwork?.fpp" class="text-[8px] bg-success/10 text-success px-1.5 py-0.5 rounded-full uppercase font-bold">FPP</span>
                                     </div>
                                     <div class="flex items-center text-xs">
-                                        <span class="opacity-50">ID: #{{ row.member_network_id }}</span>
-                                        <span v-if="row.member_network?.status" class="ml-2">
-                                            <UiStatusBadge :data="row.member_network.status" size="sm" />
+                                        <span class="opacity-50">ID: #{{ row.memberNetwork?.id || row.member_network_id }}</span>
+                                        <span v-if="row.memberNetwork?.status" class="ml-2">
+                                            <UiStatusBadge :data="row.memberNetwork.status" size="sm" />
                                         </span>
+                                    </div>
+                                    <div v-if="row.memberNetwork?.city" class="text-[10px] opacity-50 flex items-center gap-1">
+                                        <Icon name="solar:map-point-outline" class="size-3" />
+                                        {{ row.memberNetwork.city }}
+                                        <span v-if="row.memberNetwork?.country_id" class="ml-1">(ID: {{ row.memberNetwork.country_id }})</span>
                                     </div>
                                 </div>
                             </td>
@@ -395,9 +581,9 @@ const onExport = async () => {
                                         <Icon name="solar:phone-outline" class="size-3" />
                                         <span>{{ row.phone }}</span>
                                     </div>
-                                    <div v-if="row.cell_number" class="opacity-75 flex items-center gap-1">
+                                    <div v-if="row.cell" class="opacity-75 flex items-center gap-1">
                                         <Icon name="solar:phone-outline" class="size-3" />
-                                        <span>{{ row.cell_number }}</span>
+                                        <span>{{ row.cell }}</span>
                                     </div>
                                     <div v-if="row.phoneKeyId" class="text-[10px] opacity-50">Key ID: {{ row.phoneKeyId }}</div>
                                 </div>

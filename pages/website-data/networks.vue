@@ -60,7 +60,7 @@ const {
     data: rows,
     status,
     refresh,
-} = await useApiFetch('/api/board-member/index', {
+} = await useApiFetch('/api/logo-company/index', {
     method: 'POST',
     body: serverParams,
     lazy: true,
@@ -149,7 +149,7 @@ const rules = ref({
 const v$ = useVuelidate(rules, item);
 
 const fetchItem = async (id) => {
-    const { data, error } = await useApiFetch(`/api/board-member/${id}`, {
+    const { data, error } = await useApiFetch(`/api/logo-company/${id}`, {
         lazy: true,
     });
     if (data.value) {
@@ -190,7 +190,7 @@ async function openModal(id = null) {
 }
 
 async function updateItem() {
-    const { data, error } = await useApiFetch(`/api/board-member/${item.value.id}`, {
+    const { data, error } = await useApiFetch(`/api/logo-company/${item.value.id}`, {
         method: 'PATCH',
         body: item,
         lazy: true,
@@ -206,7 +206,7 @@ async function updateItem() {
 }
 
 async function addItem() {
-    const { data, error } = await useApiFetch(`/api/board-member`, {
+    const { data, error } = await useApiFetch(`/api/logo-company`, {
         method: 'POST',
         body: item,
         lazy: true,
@@ -239,7 +239,7 @@ async function handleModalSubmit() {
 async function deleteItems() {
     const confirmed = confirm('Are you sure you want to delete the selected items?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/board-member/delete`, {
+        const { data, error } = await useApiFetch(`/api/logo-company/delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -258,7 +258,7 @@ async function deleteItems() {
 async function forceDeleteItems() {
     const confirmed = confirm('Are you sure you want to permanently delete the selected items?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/board-member/force-delete`, {
+        const { data, error } = await useApiFetch(`/api/logo-company/force-delete`, {
             body: { items: selectedRows.value },
             method: 'DELETE',
             lazy: true,
@@ -277,7 +277,7 @@ async function forceDeleteItems() {
 async function restoreItems() {
     const confirmed = confirm('Are you sure you want to restore the selected items?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/board-member/restore`, {
+        const { data, error } = await useApiFetch(`/api/logo-company/restore`, {
             body: { items: selectedRows.value },
             method: 'POST',
             lazy: true,
@@ -363,7 +363,7 @@ async function restoreItems() {
                             <input v-model="allSelected" type="checkbox" class="form-check-input" :disabled="!rows?.data?.length" @change="selectAllRows" />
                         </th>
                         <th class="text-left">Name</th>
-                        <th class="text-center">Title</th>
+                        <!-- <th class="text-center">Title</th> -->
                         <th class="text-center">Position</th>
                         <th class="text-center">Active</th>
                         <th v-if="serverParams.deleted" class="text-center">Deleted At</th>
@@ -384,9 +384,9 @@ async function restoreItems() {
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-center">
+                            <!-- <td class="text-center">
                                 <span class="text-sm">{{ row.title || '—' }}</span>
-                            </td>
+                            </td> -->
                             <td class="text-center">
                                 {{ row.position || '—' }}
                             </td>
@@ -440,7 +440,7 @@ async function restoreItems() {
                     <!-- Basic Info -->
                     <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5">
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Member Name" />
-                        <FormInputField v-model="item.title" :errors="v$.title.$errors" class="lg:col-span-12" label="Title" name="title" placeholder="Job Title (e.g., CEO, Chairman)" />
+                        <!-- <FormInputField v-model="item.title" :errors="v$.title.$errors" class="lg:col-span-12" label="Title" name="title" placeholder="Job Title (e.g., CEO, Chairman)" /> -->
                         <div class="col-span-12 grid grid-cols-12 gap-5">
                             <FormInputField v-model="item.position" :errors="v$.position.$errors" class="col-span-12 sm:col-span-8" label="Position" name="order-id" placeholder="Position Number" type="number" />
                             <FormSwitch v-model="item.active" :errors="v$.active.$errors" name="active" label="Active" class="col-span-12 sm:col-span-4" />

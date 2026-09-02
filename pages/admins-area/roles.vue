@@ -419,7 +419,6 @@ const isAllPermissionsSelected = computed(() => {
                     <!-- Form Fields -->
                     <div class="grid gap-4 md:grid-cols-2">
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" label="Role name" name="name" placeholder="Admin" />
-                        <FormInputField v-model="item.subTitle" :errors="v$.subTitle.$errors" label="Sub title" name="subTitle" placeholder="Administrator" />
                     </div>
 
                     <!-- Permissions Table -->

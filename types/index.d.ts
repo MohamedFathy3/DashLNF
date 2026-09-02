@@ -117,28 +117,28 @@ type RoomDetails = {
     date: string[];
 };
 
-type ContactPerson = {
+interface ContactPerson {
     id: number;
-    userId: number;
-    title: string;
+    userId: number | null; // user_id من JSON
+    title: string | null;
     name: string;
     email: string;
-    birthDate: string | null;
-    phone: string;
-    phoneKeyId: number;
-    phoneKey: string;
-    cell: string;
-    cellKeyId: number;
-    cellKey: string;
-    company: Company;
-    jobTitle: string;
+    birthDate: string | null; // birth_date
+    phone: string | null;
+    phoneKeyId: number | null; // phoneKeyId
+    phoneKey: string | null; // phoneKey
+    cell: string | null; // cell_number
+    cellKeyId: number | null; // غير موجود في JSON (افتراضي null)
+    cellKey: string | null; // غير موجود في JSON (افتراضي null)
+    company: Company; // memberNetwork
+    jobTitle: string | null; // job_title
     imageUrl: string;
-    image: Media;
+    image: Media | null; // image
     deleted: boolean;
-    deletedAt: string | null;
-    createdAt: string;
-    updatedAt: string;
-};
+    deletedAt: string | null; // deletedAt
+    createdAt: string; // createdAt
+    updatedAt: string; // updatedAt
+}
 
 type CompanyVoteUpdateBody = {
     id: number;
@@ -180,7 +180,54 @@ type PublicSetting = {
     name: string;
     value: any;
 };
-
+function mapToContactPerson(json: any): ContactPerson {
+    return {
+        id: json.id,
+        userId: json.user_id ?? null,
+        title: json.title ?? null,
+        name: json.name,
+        email: json.email,
+        birthDate: json.birth_date ?? null,
+        phone: json.phone ?? null,
+        phoneKeyId: json.phoneKeyId ?? null,
+        phoneKey: json.phoneKey ?? null,
+        cell: json.cell_number ?? null,
+        cellKeyId: null,
+        cellKey: null,
+        memberNetwork: {
+            // ✅ هنا بنحطها تحت memberNetwork
+            id: json.memberNetwork.id,
+            name: json.memberNetwork.name,
+            address: json.memberNetwork.address ?? null,
+            city: json.memberNetwork.city,
+            status: json.memberNetwork.status,
+            company_email: json.memberNetwork.company_email ?? null,
+            type: json.memberNetwork.type,
+            email: json.memberNetwork.email,
+            phone: json.memberNetwork.phone ?? null,
+            website: json.memberNetwork.website ?? null,
+            email_verified_at: json.memberNetwork.email_verified_at ?? null,
+            unhashed_password: json.memberNetwork.unhashed_password ?? null,
+            type_company: json.memberNetwork.type_company ?? null,
+            country_id: json.memberNetwork.country_id,
+            phone_key_id: json.memberNetwork.phone_key_id ?? null,
+            user_id: json.memberNetwork.user_id ?? null,
+            active: json.memberNetwork.active,
+            fpp: json.memberNetwork.fpp,
+            deleted_at: json.memberNetwork.deleted_at ?? null,
+            created_at: json.memberNetwork.created_at,
+            updated_at: json.memberNetwork.updated_at,
+            media: json.memberNetwork.media || [],
+        },
+        jobTitle: json.job_title ?? null,
+        imageUrl: json.imageUrl,
+        image: json.image ?? null,
+        deleted: json.deleted,
+        deletedAt: json.deletedAt ?? null,
+        createdAt: json.createdAt,
+        updatedAt: json.updatedAt,
+    };
+}
 type ConferenceStatisticsBox = {
     totalAmount: number;
     totalApprovedDelegates: number;

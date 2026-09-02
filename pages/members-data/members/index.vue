@@ -891,7 +891,7 @@ onMounted(() => {
                                 keyvalue="value"
                                 required
                             />
-                            <FormSelectField
+                            <!-- <FormSelectField
                                 id="add-network-type"
                                 v-model="selectedNetwork.type"
                                 name="add-network-type"
@@ -907,12 +907,12 @@ onMounted(() => {
                                 labelvalue="name"
                                 keyvalue="value"
                                 required
-                            />
+                            /> -->
                             <FormSelectField
                                 id="add-network-status"
                                 v-model="selectedNetwork.status"
                                 name="add-network-status"
-                                class="lg:col-span-4"
+                                class="lg:col-span-6"
                                 label="Status *"
                                 placeholder="Select status"
                                 :select-data="[
@@ -929,7 +929,7 @@ onMounted(() => {
                                 id="add-network-phone-key"
                                 v-model="selectedNetwork.phone_key_id"
                                 name="add-network-phone-key"
-                                class="lg:col-span-4"
+                                class="lg:col-span-6"
                                 label="Phone Key"
                                 placeholder="Select phone key"
                                 :select-data="resources.countries"
