@@ -151,13 +151,13 @@ async function openModal(id = null) {
     formLoading.value = false;
     isOpen.value = true;
 }
-const { data: activeMembers } = await useApiFetch(`/api/get/member`, {
-    method: 'POST',
-    body: {
-        type: 'members',
-    },
-    lazy: true,
-});
+// const { data: activeMembers } = await useApiFetch(`/api/get/member`, {
+//     method: 'POST',
+//     body: {
+//         type: 'members',
+//     },
+//     lazy: true,
+// });
 async function updateItem() {
     const { data, error } = await useApiFetch(`/api/group/${item.value?.id}`, {
         method: 'PATCH',
