@@ -22,7 +22,7 @@ const filter = ref({
     website: null,
     address: null,
     city: null,
-    userId: null,
+    user_id: null,
 });
 
 const networkFilter = ref({
@@ -161,7 +161,7 @@ const resetServerParams = async () => {
         website: null,
         address: null,
         city: null,
-        userId: null,
+        user_id: null,
     };
     networkFilter.value = {
         status: null,
@@ -619,7 +619,7 @@ onMounted(() => {
 
                     <FormSelectField
                         id="filter-user"
-                        v-model="filter.userId"
+                        v-model="filter.user_id"
                         name="filter-user"
                         class="xl:col-span-4 lg:col-span-4"
                         placeholder="Filter by User"
@@ -768,7 +768,16 @@ onMounted(() => {
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <span class="text-xs text-gray-500">Group:</span>
-                                            <UiCompanyTypeBadge v-if="row.group" :data="row.group" />
+                                            <div v-if="row.group && typeof row.group === 'object'" class="flex min-w-0 flex-col gap-0.5">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="inline-flex items-center rounded-md border border-primary/30 bg-primary/5 px-2 py-1 text-xs font-medium text-primary">
+                                                        {{ row.group.name || 'Group' }}
+                                                    </span>
+                                                    <span v-if="row.group.id" class="text-xs text-gray-500">#{{ row.group.id }}</span>
+                                                </div>
+                                                <span v-if="Array.isArray(row.group.companies)" class="text-[11px] text-gray-500">{{ row.group.companies.length }} {{ row.group.companies.length === 1 ? 'company' : 'companies' }}</span>
+                                            </div>
+                                            <span v-else-if="row.group" class="text-sm font-medium text-gray-700">{{ row.group }}</span>
                                             <span v-else class="text-gray-400 text-sm">—</span>
                                         </div>
                                     </div>
@@ -941,9 +950,10 @@ onMounted(() => {
                                 label="Phone Key"
                                 placeholder="Select phone key"
                                 :select-data="resources.countries"
-                                labelvalue="name"
+                                labelvalue="key"
                                 keyvalue="id"
                                 imgvalue="imageUrl"
+                                prefix="+"
                             />
                             <FormUploader v-model="selectedNetwork.image" class="lg:col-span-12" :allowed-types="['image']" label="Image" name="image" />
                         </div>

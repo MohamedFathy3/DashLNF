@@ -140,6 +140,7 @@ function validateFiles($event) {
 const emit = defineEmits(['update:model-value']);
 const dragging = ref(false);
 const uploading = ref(false);
+const requestTimeout = 60000;
 
 const file = ref();
 const value = ref(props.limit > 1 ? (props.modelValue ? props.modelValue : []) : props.modelValue ? props.modelValue.id : null);
@@ -153,7 +154,13 @@ async function onDropFile($event) {
     resetErrors();
     uploading.value = true;
     const fileInput = $event.dataTransfer?.items[0]?.getAsFile();
-    if (fileInput) {
+    if (!fileInput) {
+        uploading.value = false;
+        dragging.value = false;
+        return;
+    }
+
+    try {
         const formData = new FormData();
         formData.append('file', fileInput);
 
@@ -161,15 +168,20 @@ async function onDropFile($event) {
             method: 'POST',
             body: formData,
             lazy: true,
+            timeout: requestTimeout,
         });
 
-        if (data && data.value) {
-            file.value = data.value;
-            value.value = data.value.id;
+        if (data?.value?.data || data?.value) {
+            const uploadedFile = data.value.data || data.value;
+            file.value = uploadedFile;
+            value.value = uploadedFile.id;
             emit('update:model-value', value.value);
-            uploading.value = false;
-            dragging.value = false;
         }
+    } catch (error) {
+        console.error('File upload failed:', error);
+    } finally {
+        uploading.value = false;
+        dragging.value = false;
     }
 }
 
@@ -187,20 +199,27 @@ async function onUploadFile($event) {
     if (fileInput.files && fileInput.files[0]) {
         formData.append('file', fileInput.files[0]);
     } else {
-        // Handle case where there are no files
+        uploading.value = false;
         return;
     }
 
-    const { data } = await useApiFetch('/api/media', {
-        method: 'POST',
-        body: formData,
-        lazy: true,
-    });
+    try {
+        const { data } = await useApiFetch('/api/media', {
+            method: 'POST',
+            body: formData,
+            lazy: true,
+            timeout: requestTimeout,
+        });
 
-    if (data && data.value) {
-        file.value = data.value.data;
-        value.value = data.value.data.id;
-        emit('update:model-value', value.value);
+        if (data?.value?.data || data?.value) {
+            const uploadedFile = data.value.data || data.value;
+            file.value = uploadedFile;
+            value.value = uploadedFile.id;
+            emit('update:model-value', value.value);
+        }
+    } catch (error) {
+        console.error('File upload failed:', error);
+    } finally {
         uploading.value = false;
     }
 }
@@ -220,32 +239,37 @@ async function onUploadFiles($event) {
             formData.append('files[]', filesInput.files[i]);
         }
     } else {
-        // Handle case where there are no files
+        uploading.value = false;
         return;
     }
 
-    const { data } = await useApiFetch('/api/media-upload-many', {
-        method: 'POST',
-        body: formData,
-        lazy: true,
-    });
-
-    if (data && data.value) {
-        const newFiles = data.value.data;
-        const existingFiles = value.value || [];
-        const existingFileIds = new Set(existingFiles.map((file) => file.id));
-
-        // Merge new files with existing ones, avoiding duplicates
-        newFiles.forEach((file) => {
-            if (!existingFileIds.has(file.id)) {
-                existingFiles.push(file);
-                existingFileIds.add(file.id);
-            }
+    try {
+        const { data } = await useApiFetch('/api/media-upload-many', {
+            method: 'POST',
+            body: formData,
+            lazy: true,
+            timeout: requestTimeout,
         });
 
-        file.value = existingFiles;
-        value.value = existingFiles;
-        emit('update:model-value', value.value);
+        if (data?.value?.data) {
+            const newFiles = data.value.data;
+            const existingFiles = value.value || [];
+            const existingFileIds = new Set(existingFiles.map((file) => file.id));
+
+            newFiles.forEach((uploadedFile) => {
+                if (!existingFileIds.has(uploadedFile.id)) {
+                    existingFiles.push(uploadedFile);
+                    existingFileIds.add(uploadedFile.id);
+                }
+            });
+
+            file.value = existingFiles;
+            value.value = existingFiles;
+            emit('update:model-value', value.value);
+        }
+    } catch (error) {
+        console.error('Files upload failed:', error);
+    } finally {
         uploading.value = false;
     }
 }
@@ -256,23 +280,42 @@ watchEffect(() => {
 
 async function getFile(id) {
     uploading.value = true;
-    const { data } = await useApiFetch(`/api/get-media/${id}`);
-    if (data && data.value.data) {
-        file.value = data.value.data;
+    try {
+        const { data } = await useApiFetch(`/api/get-media/${id}`, {
+            timeout: requestTimeout,
+        });
+        if (data?.value?.data) {
+            file.value = data.value.data;
+        } else {
+            file.value = null;
+        }
+    } catch (error) {
+        console.error('Media lookup failed:', error);
+        file.value = null;
+    } finally {
         uploading.value = false;
     }
 }
 
 async function getFiles(ids) {
     uploading.value = true;
-    const { data } = await useApiFetch(`/api/media-array`, {
-        method: 'POST',
-        body: {
-            images: ids,
-        },
-    });
-    if (data && data.value) {
-        file.value = data.value.data;
+    try {
+        const { data } = await useApiFetch(`/api/media-array`, {
+            method: 'POST',
+            body: {
+                images: ids,
+            },
+            timeout: requestTimeout,
+        });
+        if (data?.value?.data) {
+            file.value = data.value.data;
+        } else {
+            file.value = [];
+        }
+    } catch (error) {
+        console.error('Media lookup failed:', error);
+        file.value = [];
+    } finally {
         uploading.value = false;
     }
 }
