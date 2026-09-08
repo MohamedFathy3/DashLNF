@@ -474,7 +474,7 @@ const companyTypes = ref([
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
                     <FormInputField v-model="item.name" :errors="v$.name?.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Enter Name" />
 
-                    <div class="col-span-12 pt-8 border-slate-200 border-t">
+                    <div v-if="editMode" class="col-span-12 pt-8 border-slate-200 border-t">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-medium text-lg">Companies</h3>
                             <button v-if="useCheckPermission(['update-members-data-groups'])" type="button" class="btn btn-dark btn-sm btn-rounded px-3" @click="addRow">

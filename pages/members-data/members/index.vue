@@ -760,9 +760,17 @@ onMounted(() => {
                             </td>
                             <td>
                                 <div>
-                                    <div>
-                                        <UiCompanyTypeBadge v-if="row.type_company" :data="row.type_company" />
-                                        <span v-else>---</span>
+                                    <div class="flex flex-col gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-gray-500">Type:</span>
+                                            <UiCompanyTypeBadge v-if="row.type_company" :data="row.type_company" />
+                                            <span v-else class="text-gray-400 text-sm">—</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-gray-500">Group:</span>
+                                            <UiCompanyTypeBadge v-if="row.group" :data="row.group" />
+                                            <span v-else class="text-gray-400 text-sm">—</span>
+                                        </div>
                                     </div>
                                     <div class="mt-2 font-medium flex items-center gap-1">
                                         <icon name="solar:hashtag-bold-duotone" class="size-4 opacity-50" />
