@@ -2,6 +2,7 @@
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
 const formLoading = ref(false);
+const resources = useResourceStore();
 const props = defineProps({
     network: {
         required: true,
@@ -27,6 +28,8 @@ const item = ref({
     fpp: props.network?.fpp ?? false,
     startDate: props.network?.startDate ?? null,
     expireDate: props.network?.expireDate ?? null,
+    category: props.network?.category ?? null,
+    phone_key: props.network?.phone_key ?? props.network?.phoneKeyId ?? props.network?.phone_key_id ?? null,
 });
 onMounted(() => {
     if (props.network !== null) {
@@ -39,6 +42,8 @@ onMounted(() => {
         item.value.fpp = props.network?.fpp;
         item.value.startDate = props.network?.startDate;
         item.value.expireDate = props.network?.expireDate;
+        item.value.category = props.network?.category;
+        item.value.phone_key = props.network?.phone_key ?? props.network?.phoneKeyId ?? props.network?.phone_key_id ?? null;
     }
 });
 const rules = ref({
@@ -51,6 +56,7 @@ const rules = ref({
     fpp: {},
     startDate: {},
     expireDate: {},
+    category: {},
 });
 const v$ = useVuelidate(rules, item);
 const emit = defineEmits(['refresh', 'close']);
@@ -65,6 +71,8 @@ const resetNetworkValues = async () => {
         fpp: false,
         startDate: null,
         expireDate: null,
+        category: null,
+        phone_key: null,
     };
 };
 async function closeModal() {
@@ -86,6 +94,13 @@ const membershipTypes = ref([
     { name: 'Vendor', value: 'vendor' },
     { name: 'Non Member', value: 'non_member' },
     { name: 'LNF Team', value: 'wsa_team' },
+]);
+const internalReportTypes = ref([
+    { name: 'Unpaid', value: 'free' },
+    { name: 'Paid', value: 'paid' },
+    { name: 'PFS Team', value: 'pfs_team' },
+    { name: 'Vendor', value: 'vendor' },
+    { name: 'WSA Team', value: 'wsa_team' },
 ]);
 const settings = useSettingsStore();
 async function updateNetwork() {
@@ -146,6 +161,31 @@ async function updateNetwork() {
                     label="Status"
                     name="network-membership-status"
                     placeholder="Membership Status"
+                />
+                <FormSelectField
+                    v-model="item.phone_key"
+                    labelvalue="key"
+                    keyvalue="id"
+                    imgvalue="imageUrl"
+                    prefix="+"
+                    :select-data="resources.countries"
+                    class="lg:col-span-6"
+                    label="Phone Key"
+                    name="network-phone-key"
+                    placeholder="Select phone key"
+                />
+                <FormSelectField
+                    v-model="item.category"
+                    :errors="v$.category.$errors"
+                    labelvalue="name"
+                    keyvalue="value"
+                    :clearable="false"
+                    :select-data="internalReportTypes"
+                    class="lg:col-span-6"
+                    label="Category"
+                    name="member-internal-category"
+                    placeholder="Category - Internal Usage Only"
+                    description="For Reporting and Internal Usage Only"
                 />
                 <FormSwitch v-model="item.active" label="Can login (Active)" class="lg:col-span-4" />
                 <FormSwitch v-model="item.network" label="Show in Network" class="lg:col-span-4" />

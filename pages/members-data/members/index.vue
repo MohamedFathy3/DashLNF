@@ -412,6 +412,7 @@ async function openEditModal(id) {
             ...data.value.data,
             country_id: data.value.data.country?.id || null,
             user_id: data.value.data.user?.id || null,
+            phone_key_id: data.value.data.phone_key_id ?? data.value.data.phoneKeyId ?? data.value.data.phone_key ?? 1,
             image: imageData, // حط الكائن كامل
         };
         formLoading.value = false;
@@ -868,7 +869,20 @@ onMounted(() => {
                             />
                             <FormInputField v-model="selectedNetwork.city" class="lg:col-span-6" label="City" placeholder="Enter city" />
                             <FormInputField v-model="selectedNetwork.address" class="lg:col-span-12" label="Address" placeholder="Enter address" />
-                            <FormInputField v-model="selectedNetwork.phone" class="lg:col-span-6" label="Phone Number" placeholder="Enter phone number" />
+                            <FormSelectField
+                                id="add-network-phone-key"
+                                v-model="selectedNetwork.phone_key_id"
+                                name="add-network-phone-key"
+                                class="lg:col-span-3"
+                                label="Phone Key"
+                                placeholder="Select phone key"
+                                :select-data="resources.countries"
+                                labelvalue="key"
+                                keyvalue="id"
+                                imgvalue="imageUrl"
+                                prefix="+"
+                            />
+                            <FormInputField v-model="selectedNetwork.phone" class="lg:col-span-3" label="Phone Number" placeholder="Enter phone number" />
                             <FormInputField v-model="selectedNetwork.website" class="lg:col-span-6" label="Website" placeholder="Enter website URL" />
                         </div>
                     </div>
@@ -941,19 +955,6 @@ onMounted(() => {
                                 labelvalue="name"
                                 keyvalue="value"
                                 required
-                            />
-                            <FormSelectField
-                                id="add-network-phone-key"
-                                v-model="selectedNetwork.phone_key_id"
-                                name="add-network-phone-key"
-                                class="lg:col-span-6"
-                                label="Phone Key"
-                                placeholder="Select phone key"
-                                :select-data="resources.countries"
-                                labelvalue="key"
-                                keyvalue="id"
-                                imgvalue="imageUrl"
-                                prefix="+"
                             />
                             <FormUploader v-model="selectedNetwork.image" class="lg:col-span-12" :allowed-types="['image']" label="Image" name="image" />
                         </div>

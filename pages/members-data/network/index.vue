@@ -240,6 +240,8 @@ function openAddModal() {
         countryId: null,
         website: '',
         phone: '',
+        phone_key_id: null,
+        type_network: 'member',
         membersCount: null,
         businessEst: null,
         profile: '',
@@ -283,6 +285,8 @@ async function openEditModal(id) {
 
         selectedUser.value = {
             ...data.value.data,
+            phone_key_id: data.value.data.phone_key_id ?? data.value.data.phoneKeyId ?? data.value.data.phone_key ?? null,
+            type_network: data.value.data.type_network ?? data.value.data.typeNetwork ?? data.value.data.type ?? 'member',
             image: imageData,
         };
         formLoading.value = false;
@@ -330,6 +334,8 @@ async function submitUser() {
         countryId: selectedUser.value.countryId,
         website: selectedUser.value.website,
         phone: selectedUser.value.phone,
+        phone_key_id: selectedUser.value.phone_key_id,
+        type_network: selectedUser.value.type_network,
         membersCount: selectedUser.value.membersCount,
         businessEst: selectedUser.value.businessEst,
         profile: selectedUser.value.profile,
@@ -509,6 +515,7 @@ const userInfoBoxes = computed(() => {
                         </th>
                         <th>Name</th>
                         <th>Contact</th>
+                        <th>Network Type</th>
                         <th>Status</th>
                         <th v-if="serverParams.deleted">Deleted At</th>
                         <th class="text-right">Action</th>
@@ -560,6 +567,7 @@ const userInfoBoxes = computed(() => {
                                     </div>
                                 </div>
                             </td>
+                            <td class="text-sm capitalize">{{ row.type_network || 'N/A' }}</td>
                             <td>
                                 <div class="flex flex-col gap-1">
                                     <UiStatusBadge v-if="row.status" :data="row.status" />
@@ -567,7 +575,6 @@ const userInfoBoxes = computed(() => {
                                         <span v-if="row.active" class="text-success">● Active</span>
                                         <span v-else class="text-danger">● Inactive</span>
                                     </div>
-                                    <div v-if="row.show_home" class="text-xs text-primary">🏠 Show on Home</div>
                                 </div>
                             </td>
                             <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
@@ -587,7 +594,7 @@ const userInfoBoxes = computed(() => {
                     </template>
                     <template v-else>
                         <tr v-for="i in serverParams.perPage" :key="i">
-                            <td colspan="6">
+                            <td colspan="7">
                                 <div class="h-12 !opacity-50 animate-pulse" />
                             </td>
                         </tr>
@@ -620,8 +627,33 @@ const userInfoBoxes = computed(() => {
                             <FormInputField v-model="selectedUser.name" class="lg:col-span-6" label="Name *" placeholder="Enter name" required />
                             <FormInputField v-model="selectedUser.email" class="lg:col-span-6" label="Email *" placeholder="Enter email" type="email" required />
                             <!-- <FormInputField v-model="selectedUser.unhashed_password" class="lg:col-span-6" label="Password" placeholder="Enter password" type="text" /> -->
-                            <FormInputField v-model="selectedUser.phone" class="lg:col-span-6" label="Phone" placeholder="Enter phone" />
+                            <FormSelectField
+                                v-model="selectedUser.phone_key_id"
+                                labelvalue="key"
+                                keyvalue="id"
+                                imgvalue="imageUrl"
+                                prefix="+"
+                                :select-data="resources.countries"
+                                class="lg:col-span-3"
+                                label="Phone Key"
+                                name="user-phone-key-id"
+                                placeholder="Phone key"
+                            />
+                            <FormInputField v-model="selectedUser.phone" class="lg:col-span-3" label="Phone" placeholder="Enter phone" />
                             <FormInputField v-model="selectedUser.website" class="lg:col-span-6" label="Website" placeholder="Enter website" />
+                            <FormSelectField
+                                v-model="selectedUser.type_network"
+                                :select-data="[
+                                    { name: 'Member', value: 'member' },
+                                    { name: 'Founder', value: 'founder' },
+                                ]"
+                                labelvalue="name"
+                                keyvalue="value"
+                                class="lg:col-span-6"
+                                label="Network Type"
+                                name="type-network"
+                                placeholder="Select network type"
+                            />
                         </div>
                     </div>
 
@@ -679,7 +711,6 @@ const userInfoBoxes = computed(() => {
                             <FormSelectField v-model="selectedUser.status" class="lg:col-span-4" label="Status *" placeholder="Select status" :select-data="membershipStatuses" labelvalue="name" keyvalue="value" required />
                             <div class="lg:col-span-4 flex items-center gap-5 pt-2">
                                 <FormSwitch v-model="selectedUser.active" label="Active" name="active-toggle" />
-                                <FormSwitch v-model="selectedUser.show_home" label="Show on Home" name="show-home-toggle" />
                             </div>
                         </div>
                     </div>

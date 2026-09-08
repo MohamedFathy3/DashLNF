@@ -1,13 +1,20 @@
 <script setup>
 const route = useRoute();
 const showPassword = ref(false);
+const userModalOpen = ref(false);
+const contactPersonModalOpen = ref(false);
+const selectedContactPersonId = ref(null);
 
 definePageMeta({
     middleware: ['auth', 'permission'],
     permissions: ['network_member_list'],
 });
 
-const { data: user, error } = await useApiFetch(`/api/user/${route.params.id}`, {
+const {
+    data: user,
+    error,
+    refresh,
+} = await useApiFetch(`/api/user/${route.params.id}`, {
     method: 'GET',
     lazy: true,
     transform: (response) => response.data,
@@ -20,6 +27,30 @@ if (error.value) {
 const togglePassword = () => {
     showPassword.value = !showPassword.value;
 };
+
+const openUserModal = () => {
+    userModalOpen.value = true;
+};
+
+const closeUserModal = () => {
+    userModalOpen.value = false;
+};
+
+const openContactPersonModal = (personId = null) => {
+    selectedContactPersonId.value = personId;
+    contactPersonModalOpen.value = true;
+};
+
+const closeContactPersonModal = () => {
+    contactPersonModalOpen.value = false;
+    selectedContactPersonId.value = null;
+};
+
+const activeNetwork = computed(() => user.value?.network || user.value?.memberNetwork || user.value?.networks?.[0] || null);
+const networkSubmittedDate = computed(() => {
+    const submittedAt = activeNetwork.value?.createdAt || user.value?.createdAt;
+    return submittedAt ? String(submittedAt).split(/[T ]/)[0] : 'N/A';
+});
 </script>
 
 <template>
@@ -31,6 +62,10 @@ const togglePassword = () => {
                     <div>User Profile</div>
                 </div>
                 <div class="flex items-center gap-3">
+                    <button class="btn btn-primary btn-rounded btn-sm gap-2" type="button" @click="openUserModal">
+                        <Icon name="solar:pen-new-round-outline" class="size-4" />
+                        Edit User
+                    </button>
                     <NuxtLink to="/members-data/network" class="btn btn-secondary btn-rounded btn-sm gap-2">
                         <Icon name="solar:arrow-left-outline" class="size-4" />
                         Back
@@ -76,20 +111,35 @@ const togglePassword = () => {
 
                 <div class="lg:col-span-12 grid lg:grid-cols-12 gap-5">
                     <UiMemberStatusBox class="lg:col-span-3" :data="user.status" />
-                    <UiMemberIDBox class="lg:col-span-3" :data="'#' + user.id" />
-                    <UiMemberJoinBox class="lg:col-span-3" :data="user.createdAt" />
+                    <div class="lg:col-span-3 shadow-sm bg-white rounded-2xl p-5 text-sm intro-x">
+                        <div class="flex items-center gap-3 whitespace-nowrap">
+                            <Icon name="solar:global-outline" class="size-5 opacity-65" />
+                            <div class="font-medium opacity-75">Network Type</div>
+                        </div>
+                        <div class="pt-3">
+                            <span class="text-xl font-semibold opacity-75 capitalize">{{ user.type_network || 'N/A' }}</span>
+                        </div>
+                    </div>
+                    <UiMemberJoinBox class="lg:col-span-3" :data="networkSubmittedDate" />
                     <UiCompanyTypeBadge class="lg:col-span-3" :data="user.fpp === 'yes' ? 'FPP' : 'Network'" />
                 </div>
 
                 <div class="lg:col-span-12">
                     <h2 class="font-normal text-base flex items-center mb-3">
                         <Icon name="solar:clipboard-list-line-duotone" class="size-5 mr-2 opacity-75" />
-                        User Details
+                        Network Submitted Date
                     </h2>
                     <div class="bg-white shadow-sm rounded-xl p-5 space-y-2">
+                        <div><span class="font-normal mr-2">Submitted Date:</span>{{ networkSubmittedDate }}</div>
                         <div><span class="font-normal mr-2">Name:</span>{{ user.name || 'N/A' }}</div>
                         <div><span class="font-normal mr-2">Phone:</span>{{ user.phone || 'N/A' }}</div>
-                        <div><span class="font-normal mr-2">Website:</span>{{ user.website || 'N/A' }}</div>
+                        <div>
+                            <span class="font-normal mr-2">Website:</span>
+                            <a v-if="user.website" :href="useCheckUrl(user.website)" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                                {{ useCheckUrl(user.website) }}
+                            </a>
+                            <span v-else>N/A</span>
+                        </div>
                         <div><span class="font-normal mr-2">Address:</span>{{ user.addressLineOne || 'N/A' }}</div>
                         <div><span class="font-normal mr-2">Address Line 2:</span>{{ user.addressLineTwo || 'N/A' }}</div>
                         <div><span class="font-normal mr-2">State:</span>{{ user.state || 'N/A' }}</div>
@@ -102,16 +152,15 @@ const togglePassword = () => {
             </div>
 
             <div class="lg:col-span-4 flex flex-col gap-5">
+                <!-- <MemberNetworkCard v-if="activeNetwork" :network="activeNetwork" :member-id="user.id" @refresh="refresh" /> -->
+                <!-- <div v-else class="bg-white shadow-sm rounded-xl p-5 text-center text-sm opacity-60">This user is not assigned to a network.</div> -->
+
                 <div class="bg-white shadow-sm rounded-xl p-5 flex flex-col gap-3">
                     <div class="flex items-center gap-2 border-b border-dashed pb-3">
                         <Icon name="solar:info-circle-outline" class="size-5 opacity-75" />
                         <span class="font-medium text-sm">Additional Info</span>
                     </div>
                     <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="opacity-50">ID</span>
-                            <span class="font-medium">#{{ user.id }}</span>
-                        </div>
                         <div class="flex justify-between">
                             <span class="opacity-50">Created</span>
                             <span>{{ user.createdAt || 'N/A' }}</span>
@@ -128,10 +177,6 @@ const togglePassword = () => {
                             <span class="opacity-50">Active</span>
                             <span :class="user.active ? 'text-green-600 font-medium' : 'text-red-600 font-medium'">{{ user.active ? 'Active' : 'Inactive' }}</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="opacity-50">Show on Home</span>
-                            <span>{{ user.show_home ? 'Yes' : 'No' }}</span>
-                        </div>
                     </div>
                 </div>
 
@@ -142,10 +187,14 @@ const togglePassword = () => {
                             <span class="font-medium text-sm">Contact Persons</span>
                             <span class="text-xs bg-slate-100 px-2 py-0.5 rounded-full opacity-75">{{ user.contactPersons?.length || 0 }}</span>
                         </div>
+                        <button class="btn btn-sm btn-primary btn-rounded gap-1.5 px-3" type="button" @click="openContactPersonModal()">
+                            <Icon name="solar:add-circle-linear" class="size-4" />
+                            Add
+                        </button>
                     </div>
 
                     <div v-if="user.contactPersons?.length" class="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
-                        <div v-for="person in user.contactPersons" :key="person.id" class="border rounded-xl p-3 hover:shadow-md transition-all hover:border-primary/30 group">
+                        <div v-for="person in user.contactPersons" :key="person.id" class="border rounded-xl p-3 hover:shadow-md transition-all hover:border-primary/30 group cursor-pointer" @click="openContactPersonModal(person.id)">
                             <div class="flex items-start gap-3">
                                 <NuxtImg
                                     :src="person.imageUrl || '/default-avatar.png'"
@@ -187,6 +236,8 @@ const togglePassword = () => {
                 </div>
             </div>
         </div>
+        <MemberNetworkUserUpdateModal v-if="userModalOpen" :open="userModalOpen" :user="user" @close="closeUserModal" @refresh="refresh" />
+        <MemberNetworkContactPersonModal v-if="contactPersonModalOpen" :open="contactPersonModalOpen" :person-id="selectedContactPersonId" :network-id="user.id" @close="closeContactPersonModal" @refresh="refresh" />
     </div>
     <div v-else class="flex justify-center py-20"><Icon name="svg-spinners:3-dots-fade" class="size-12 text-primary" /></div>
 </template>

@@ -4,7 +4,7 @@ import useVuelidate from '@vuelidate/core';
 
 const formLoading = ref(false);
 const loadingModal = ref(true);
-const editMode = ref(false);
+const isEditMode = ref(false);
 const resources = useResourceStore();
 
 const props = defineProps({
@@ -262,7 +262,7 @@ async function handleModalSubmit() {
         return false;
     }
 
-    if (editMode.value || props.editMode) {
+    if (isEditMode.value || props.editMode) {
         await updateItem();
     } else {
         await addItem();
@@ -274,10 +274,10 @@ watch(
     () => props.open,
     (newVal) => {
         if (newVal && props.personId) {
-            editMode.value = true;
+            isEditMode.value = true;
             fetchItem(props.personId);
         } else if (newVal) {
-            editMode.value = false;
+            isEditMode.value = false;
             item.value.member_network_id = props.memberId;
             loadingModal.value = false;
         }
@@ -290,7 +290,7 @@ watch(
     <TheModal :open-modal="props.open" size="4xl" @close-modal="closeModal()">
         <template #header>
             <div class="flex justify-between items-center">
-                <div class="font-medium text-lg">{{ editMode ? 'Update Contact Person' : 'Add New Contact Person' }}</div>
+                <div class="font-medium text-lg">{{ isEditMode ? 'Update Contact Person' : 'Add New Contact Person' }}</div>
                 <Icon class="w-8 h-8 opacity-50 cursor-pointer hover:opacity-100 ease-in-out duration-300" name="solar:close-square-outline" @click="closeModal" />
             </div>
         </template>
@@ -304,7 +304,7 @@ watch(
                     <FormUploader v-model="item.image" :errors="v$.image.$errors" :allowed-types="['image']" label="Profile Image" name="image" />
 
                     <!-- ✅ عرض معلومات الشركة في حالة التعديل -->
-                    <div v-if="editMode && item.memberNetwork" class="mt-4 p-3 bg-slate-50 rounded-xl">
+                    <div v-if="isEditMode && item.memberNetwork" class="mt-4 p-3 bg-slate-50 rounded-xl">
                         <div class="text-xs font-medium text-slate-500 mb-2">Company Details</div>
                         <div class="text-sm font-medium">{{ item.memberNetwork.name }}</div>
                         <div class="text-xs text-slate-500">{{ item.memberNetwork.city }}{{ item.memberNetwork.country_id ? `, ID: ${item.memberNetwork.country_id}` : '' }}</div>
@@ -392,7 +392,7 @@ watch(
                 </button>
                 <button :disabled="formLoading" class="btn-rounded btn-sm btn btn-primary px-4" type="button" @click="handleModalSubmit">
                     <Icon :name="formLoading ? 'svg-spinners:3-dots-fade' : 'solar:check-circle-broken'" class="w-5 h-5 mr-2" />
-                    <span>{{ editMode ? 'Update' : 'Save' }}</span>
+                    <span>{{ isEditMode ? 'Update' : 'Save' }}</span>
                 </button>
             </div>
         </template>
