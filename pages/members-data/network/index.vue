@@ -573,6 +573,10 @@ const userInfoBoxes = computed(() => {
                             <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                             <td class="text-right">
                                 <div class="flex items-center justify-end gap-2">
+                                    <NuxtLink :to="`/members-data/network/${row.id}`" class="btn btn-primary btn-rounded btn-sm gap-3">
+                                        <Icon name="solar:eye-outline" class="size-4" />
+                                        View
+                                    </NuxtLink>
                                     <button v-if="useCheckPermission(['update-members-data-network'])" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openEditModal(row.id)">
                                         <Icon name="solar:pen-outline" class="size-4" />
                                         Edit
@@ -615,7 +619,7 @@ const userInfoBoxes = computed(() => {
                         <div class="grid lg:grid-cols-12 gap-5">
                             <FormInputField v-model="selectedUser.name" class="lg:col-span-6" label="Name *" placeholder="Enter name" required />
                             <FormInputField v-model="selectedUser.email" class="lg:col-span-6" label="Email *" placeholder="Enter email" type="email" required />
-                            <FormInputField v-model="selectedUser.unhashed_password" class="lg:col-span-6" label="Password" placeholder="Enter password" type="text" />
+                            <!-- <FormInputField v-model="selectedUser.unhashed_password" class="lg:col-span-6" label="Password" placeholder="Enter password" type="text" /> -->
                             <FormInputField v-model="selectedUser.phone" class="lg:col-span-6" label="Phone" placeholder="Enter phone" />
                             <FormInputField v-model="selectedUser.website" class="lg:col-span-6" label="Website" placeholder="Enter website" />
                         </div>

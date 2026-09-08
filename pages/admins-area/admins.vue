@@ -17,9 +17,9 @@ const canRestore = useCheckPermission([`restore-${pageSlug}`]);
 const canShow = useCheckPermission([`show-${pageSlug}`]);
 // ========== End Permissions ==========
 
-// Get current user from auth store
-const { $auth } = useNuxtApp();
-const currentUser = computed(() => $auth?.user || {});
+// Get current user from the authenticated admin endpoint
+const userStore = useUserStore();
+const currentUser = computed(() => userStore.user || {});
 const isCurrentUserSuperAdmin = computed(() => currentUser.value?.superAdmin === true);
 
 const selectedRows = ref([]);
@@ -91,6 +91,22 @@ const { data: permissionResponse } = await useApiFetch('/api/permission', {
     query: { page: 1, perPage: 100 },
 });
 
+const userSearchParams = ref({
+    filters: {},
+    orderBy: 'name',
+    orderByDirection: 'asc',
+    perPage: 1000,
+    page: 1,
+    paginate: false,
+    deleted: false,
+});
+
+const { data: usersData } = await useApiFetch('/api/user/index', {
+    method: 'POST',
+    body: userSearchParams,
+    lazy: true,
+});
+
 const normalizeCollection = (response) => {
     if (Array.isArray(response)) return response;
     if (Array.isArray(response?.data)) return response.data;
@@ -99,6 +115,7 @@ const normalizeCollection = (response) => {
 };
 
 const permissionCatalog = computed(() => normalizeCollection(permissionResponse.value));
+const userOptions = computed(() => normalizeCollection(usersData.value));
 const extraPermissionIds = ref([]);
 
 const extraPermissionSelection = computed({
@@ -178,6 +195,7 @@ const toggleRowSelection = (id) => {
 const item = ref({
     name: null,
     roleId: null,
+    user_id: null,
     email: null,
     password: null,
     superAdmin: true,
@@ -205,10 +223,6 @@ const fetchItem = async (id) => {
         } else {
             extraPermissionIds.value = (data.value.data.extra_permissions ?? []).map((permission) => permission.id);
         }
-        // Update matrix mode
-        if (permissionMatrixRef.value) {
-            permissionMatrixRef.value.setSuperAdminMode(item.value.superAdmin);
-        }
     }
     if (error.value) {
         useToast({ title: 'Error', message: error.value.message, type: 'error', duration: 5000 });
@@ -219,6 +233,7 @@ const resetItemValues = async () => {
     item.value = {
         name: null,
         roleId: null,
+        user_id: null,
         email: null,
         password: null,
         superAdmin: true,
@@ -229,6 +244,7 @@ const resetItemValues = async () => {
 async function closeModal() {
     isOpen.value = false;
     editMode.value = false;
+    formLoading.value = false;
     v$.value.$reset();
     await resetItemValues();
     await refreshRoles();
@@ -385,10 +401,6 @@ watch(
         if (isSuperAdmin) {
             extraPermissionIds.value = [];
         }
-        // Update matrix mode
-        if (permissionMatrixRef.value) {
-            permissionMatrixRef.value.setSuperAdminMode(isSuperAdmin);
-        }
     },
 );
 </script>
@@ -492,7 +504,7 @@ watch(
                             </td>
                             <td class="text-center text-sm text-slate-500">{{ row.extra_permissions?.length ?? 0 }}</td>
                             <td class="text-center">
-                                <FormSwitch :id="'row-super-admin-' + row.id" v-model="row.superAdmin" :disabled="serverParams.deleted" @change="useToggleSwitch(row.id, 'super_admin', 'admin')" />
+                                <FormSwitch :id="'row-super-admin-' + row.id" v-model="row.superAdmin" :disabled="!isCurrentUserSuperAdmin || serverParams.deleted" @change="useToggleSwitch(row.id, 'super_admin', 'admin')" />
                             </td>
                             <td v-if="serverParams.deleted" class="text-center text-sm">{{ row.deletedAt }}</td>
                             <td class="text-right">
@@ -536,6 +548,7 @@ watch(
                     <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Admin Name" />
                     <FormInputField v-model="item.email" :errors="v$.email.$errors" class="lg:col-span-6" label="Email" name="email" placeholder="admin@example.com" type="email" />
                     <FormInputField v-model.trim="item.password" :errors="v$.password.$errors" class="lg:col-span-6" label="Password" name="password" :placeholder="editMode ? 'Leave blank to keep current' : 'Password'" type="password" />
+                    <FormSelectField v-model="item.user_id" :select-data="userOptions" labelvalue="name" keyvalue="id" imgvalue="imageUrl" is-rounded-image class="lg:col-span-6" label="User" name="user-id" placeholder="Select a user" />
 
                     <!-- Super Admin Switch - disabled if not super admin -->
                     <FormSwitch id="super-admin" v-model="item.superAdmin" label="Super Admin" class="lg:col-span-6" :disabled="!isCurrentUserSuperAdmin" />
@@ -554,6 +567,7 @@ watch(
                         ref="permissionMatrixRef"
                         v-model="extraPermissionSelection"
                         :permissions="permissionCatalog"
+                        :disabled="item.superAdmin"
                         title="Extra Permissions"
                         description="These permissions are added directly to this admin in addition to the selected role."
                     />
@@ -569,8 +583,8 @@ watch(
             </template>
             <template #footer>
                 <div class="w-full flex items-center justify-end gap-5">
-                    <button :disabled="formLoading" class="btn-rounded btn-sm btn btn-danger px-4" type="button" @click="closeModal">
-                        <Icon :name="formLoading ? 'svg-spinners:3-dots-fade' : 'solar:close-circle-linear'" class="w-5 h-5 mr-2" />
+                    <button class="btn-rounded btn-sm btn btn-danger px-4" type="button" @click="closeModal">
+                        <Icon name="solar:close-circle-linear" class="w-5 h-5 mr-2" />
                         <span>Cancel</span>
                     </button>
                     <button :disabled="formLoading || (editMode ? !canUpdate : !canCreate)" class="btn-rounded btn-sm btn btn-primary px-4" type="button" @click="handleModalSubmit()">

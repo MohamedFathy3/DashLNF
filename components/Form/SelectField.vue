@@ -90,8 +90,8 @@ const props = defineProps({
         default: false,
     },
     modelValue: {
-        type: Object,
-        default: () => {},
+        type: [Object, String, Number, Boolean, Array],
+        default: null,
     },
     selectData: {
         type: Array,
