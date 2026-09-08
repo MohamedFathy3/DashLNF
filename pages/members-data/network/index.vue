@@ -245,6 +245,7 @@ function openAddModal() {
         profile: '',
         fpp: 'no',
         email: '',
+        unhashed_password: '',
         status: 'pending',
         active: false,
         show_home: false,
@@ -334,6 +335,7 @@ async function submitUser() {
         profile: selectedUser.value.profile,
         fpp: selectedUser.value.fpp || 'no',
         email: selectedUser.value.email,
+        unhashed_password: selectedUser.value.unhashed_password,
         status: selectedUser.value.status || 'pending',
         active: selectedUser.value.active || false,
         show_home: selectedUser.value.show_home || false,
@@ -613,6 +615,7 @@ const userInfoBoxes = computed(() => {
                         <div class="grid lg:grid-cols-12 gap-5">
                             <FormInputField v-model="selectedUser.name" class="lg:col-span-6" label="Name *" placeholder="Enter name" required />
                             <FormInputField v-model="selectedUser.email" class="lg:col-span-6" label="Email *" placeholder="Enter email" type="email" required />
+                            <FormInputField v-model="selectedUser.unhashed_password" class="lg:col-span-6" label="Password" placeholder="Enter password" type="text" />
                             <FormInputField v-model="selectedUser.phone" class="lg:col-span-6" label="Phone" placeholder="Enter phone" />
                             <FormInputField v-model="selectedUser.website" class="lg:col-span-6" label="Website" placeholder="Enter website" />
                         </div>
