@@ -38,7 +38,8 @@ export const SITE_MENU_GROUPS: SiteMenuGroup[] = [
         icon: 'solar:clipboard-check-linear',
         items: [
             page('Members', '/members-data/members', 'solar:case-minimalistic-linear'),
-            page('Network', '/members-data/network', 'solar:map-point-linear'),
+            page('Network', '/members-data/network', 'solar:global-outline'),
+            page('pending-network', '/members-data/pending-network', 'solar:hourglass-line-linear'),
             // page('Applications', '/members-data/applications', 'solar:users-group-two-rounded-outline'),
             // page('Claim Forms', '/members-data/claim-forms', 'solar:square-transfer-horizontal-broken'),
             page('Contact Persons', '/members-data/contact-persons', 'solar:users-group-two-rounded-line-duotone'),

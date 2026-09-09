@@ -25,8 +25,8 @@ const filter = ref({
 
 const serverParams = ref({
     filters: {
-        active: true,
-        Status: 'approved',
+        active: false,
+        Status: 'pending',
     },
     orderBy: 'id',
     orderByDirection: 'desc',

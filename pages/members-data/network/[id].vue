@@ -2,6 +2,7 @@
 const route = useRoute();
 const showPassword = ref(false);
 const userModalOpen = ref(false);
+const networkModalOpen = ref(false);
 const contactPersonModalOpen = ref(false);
 const selectedContactPersonId = ref(null);
 
@@ -36,6 +37,42 @@ const closeUserModal = () => {
     userModalOpen.value = false;
 };
 
+const openNetworkModal = () => {
+    networkModalOpen.value = true;
+};
+
+const closeNetworkModal = () => {
+    networkModalOpen.value = false;
+};
+
+const sendWelcomeEmail = async () => {
+    const { data, error } = await useApiFetch('/api/email-approved', {
+        method: 'POST',
+        body: { userId: user.value?.id },
+    });
+
+    if (data.value) {
+        useToast({ title: 'Success', message: data.value.message, type: 'success', duration: 5000 });
+    }
+    if (error.value) {
+        useToast({ title: 'Error', message: error.value.message || 'Failed to send welcome email', type: 'error', duration: 5000 });
+    }
+};
+
+const sendResetPasswordEmail = async () => {
+    const { data, error } = await useApiFetch('/api/email-reset-password', {
+        method: 'POST',
+        body: { userId: user.value?.id },
+    });
+
+    if (data.value) {
+        useToast({ title: 'Success', message: data.value.message, type: 'success', duration: 5000 });
+    }
+    if (error.value) {
+        useToast({ title: 'Error', message: error.value.message || 'Failed to send reset password email', type: 'error', duration: 5000 });
+    }
+};
+
 const openContactPersonModal = (personId = null) => {
     selectedContactPersonId.value = personId;
     contactPersonModalOpen.value = true;
@@ -66,6 +103,35 @@ const networkSubmittedDate = computed(() => {
                         <Icon name="solar:pen-new-round-outline" class="size-4" />
                         Edit Network
                     </button>
+                    <HeadlessMenu as="div" class="relative inline-block">
+                        <HeadlessMenuButton>
+                            <Icon class="size-6 opacity-75 hover:scale-105 transition-all" name="solar:hamburger-menu-outline" />
+                        </HeadlessMenuButton>
+                        <TransitionExpand>
+                            <HeadlessMenuItems as="div" class="absolute text-sm right-0 mt-3 w-56 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black/5 focus:outline-none text-slate-600 z-50">
+                                <ul class="p-1">
+                                    <HeadlessMenuItem as="li" class="py-0.5" @click="openNetworkModal">
+                                        <div class="flex items-center gap-3 px-2 py-1.5 cursor-pointer hover:bg-slate-100 rounded-full transition-all">
+                                            <Icon name="solar:settings-linear" class="size-5 opacity-75" />
+                                            <span>Network Details</span>
+                                        </div>
+                                    </HeadlessMenuItem>
+                                    <HeadlessMenuItem as="li" class="py-0.5" @click="sendWelcomeEmail">
+                                        <div class="flex items-center gap-3 px-2 py-1.5 cursor-pointer hover:bg-slate-100 rounded-full transition-all">
+                                            <Icon name="solar:letter-opened-outline" class="size-5 opacity-75" />
+                                            <span>Send Welcome Email</span>
+                                        </div>
+                                    </HeadlessMenuItem>
+                                    <HeadlessMenuItem as="li" class="py-0.5" @click="sendResetPasswordEmail">
+                                        <div class="flex items-center gap-3 px-2 py-1.5 cursor-pointer hover:bg-slate-100 rounded-full transition-all">
+                                            <Icon name="solar:password-minimalistic-input-broken" class="size-5 opacity-75" />
+                                            <span>Reset Password</span>
+                                        </div>
+                                    </HeadlessMenuItem>
+                                </ul>
+                            </HeadlessMenuItems>
+                        </TransitionExpand>
+                    </HeadlessMenu>
                     <NuxtLink to="/members-data/network" class="btn btn-secondary btn-rounded btn-sm gap-2">
                         <Icon name="solar:arrow-left-outline" class="size-4" />
                         Back
@@ -237,6 +303,7 @@ const networkSubmittedDate = computed(() => {
             </div>
         </div>
         <MemberNetworkUserUpdateModal v-if="userModalOpen" :open="userModalOpen" :user="user" @close="closeUserModal" @refresh="refresh" />
+        <MemberNetworkUserUpdateModal v-if="networkModalOpen" :open="networkModalOpen" :user="user" network-only @close="closeNetworkModal" @refresh="refresh" />
         <MemberNetworkContactPersonModal v-if="contactPersonModalOpen" :open="contactPersonModalOpen" :person-id="selectedContactPersonId" :network-id="user.id" @close="closeContactPersonModal" @refresh="refresh" />
     </div>
     <div v-else class="flex justify-center py-20"><Icon name="svg-spinners:3-dots-fade" class="size-12 text-primary" /></div>
