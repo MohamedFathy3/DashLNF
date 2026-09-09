@@ -17,7 +17,6 @@ const {
     refresh,
 } = await useApiFetch(`/api/user/${route.params.id}`, {
     method: 'GET',
-    lazy: true,
     transform: (response) => response.data,
 });
 
@@ -176,8 +175,8 @@ const networkSubmittedDate = computed(() => {
                 </div>
 
                 <div class="lg:col-span-12 grid lg:grid-cols-12 gap-5">
-                    <UiMemberStatusBox class="lg:col-span-3" :data="user.status" />
-                    <div class="lg:col-span-3 shadow-sm bg-white rounded-2xl p-5 text-sm intro-x">
+                    <UiMemberStatusBox class="lg:col-span-4" :data="user.status" />
+                    <div class="lg:col-span-4 shadow-sm bg-white rounded-2xl p-5 text-sm intro-x">
                         <div class="flex items-center gap-3 whitespace-nowrap">
                             <Icon name="solar:global-outline" class="size-5 opacity-65" />
                             <div class="font-medium opacity-75">Network Type</div>
@@ -186,8 +185,7 @@ const networkSubmittedDate = computed(() => {
                             <span class="text-xl font-semibold opacity-75 capitalize">{{ user.type_network || 'N/A' }}</span>
                         </div>
                     </div>
-                    <UiMemberJoinBox class="lg:col-span-3" :data="networkSubmittedDate" />
-                    <UiCompanyTypeBadge class="lg:col-span-3" :data="user.fpp === 'yes' ? 'FPP' : 'Network'" />
+                    <UiMemberFPPBox class="lg:col-span-4" :data="user.fpp === 'yes'" />
                 </div>
 
                 <div class="lg:col-span-12">

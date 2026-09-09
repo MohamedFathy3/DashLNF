@@ -307,6 +307,7 @@ async function resendPassword() {
                     <div class="mt-2 border border-slate-100 bg-slate-50/50 rounded-lg grid grid-cols-12 p-5 gap-5">
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" class="col-span-12 lg:col-span-6" label="Company Name *" name="company-name" placeholder="Company Name" required />
                         <FormInputField v-model="item.company_email" :errors="v$.company_email.$errors" class="col-span-12 lg:col-span-6" label="Company Email" name="company-email" placeholder="Company Email" type="email" />
+                        <FormInputField v-model="item.website" class="col-span-12 lg:col-span-6" label="Website" name="company-website" placeholder="Website" />
 
                         <FormSelectField
                             id="edit-company-country"
@@ -323,9 +324,21 @@ async function resendPassword() {
                             required
                         />
                         <FormInputField v-model="item.city" class="col-span-12 lg:col-span-6" label="City" name="company-city" placeholder="City" />
-                        <FormInputField v-model="item.address" class="col-span-12" label="Address" name="company-address" placeholder="Address" />
-                        <FormInputField v-model="item.phone" class="col-span-12 lg:col-span-6" label="Phone" name="company-phone" placeholder="Phone" />
-                        <FormInputField v-model="item.website" class="col-span-12 lg:col-span-6" label="Website" name="company-website" placeholder="Website" />
+                        <FormInputField v-model="item.address" class="col-span-12 lg:col-span-6" label="Address" name="company-address" placeholder="Address" />
+                        <FormSelectField
+                            id="edit-company-phone-key"
+                            v-model="item.phone_key_id"
+                            name="edit-company-phone-key"
+                            class="col-span-12 lg:col-span-3"
+                            label="Phone Key"
+                            placeholder="Select code"
+                            :select-data="resources.countries"
+                            labelvalue="key"
+                            keyvalue="id"
+                            imgvalue="imageUrl"
+                            prefix="+"
+                        />
+                        <FormInputField v-model="item.phone" class="col-span-12 lg:col-span-9" label="Phone" name="company-phone" placeholder="Phone" />
                     </div>
                 </div>
 
@@ -387,19 +400,6 @@ async function resendPassword() {
                             keyvalue="value"
                             required
                         />
-                        <FormSelectField
-                            id="edit-company-phone-key"
-                            v-model="item.phone_key_id"
-                            name="edit-company-phone-key"
-                            class="col-span-12 lg:col-span-4"
-                            label="Phone Key"
-                            placeholder="Select phone key"
-                            :select-data="resources.countries"
-                            labelvalue="name"
-                            keyvalue="id"
-                            imgvalue="imageUrl"
-                        />
-
                         <!-- FPP و Active Switches -->
                         <div class="col-span-12 grid lg:grid-cols-12 gap-5 pt-2 border-t border-dashed">
                             <div class="lg:col-span-6 flex items-center gap-5">

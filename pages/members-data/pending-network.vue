@@ -587,10 +587,10 @@ const userInfoBoxes = computed(() => {
                                         <Icon name="solar:eye-outline" class="size-4" />
                                         View
                                     </NuxtLink>
-                                    <button v-if="useCheckPermission(['update-members-data-network'])" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openEditModal(row.id)">
+                                    <!-- <button v-if="useCheckPermission(['update-members-data-network'])" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openEditModal(row.id)">
                                         <Icon name="solar:pen-outline" class="size-4" />
                                         Edit
-                                    </button>
+                                    </button> -->
                                 </div>
                             </td>
                         </tr>

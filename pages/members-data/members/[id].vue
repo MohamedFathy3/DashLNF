@@ -7,6 +7,7 @@ definePageMeta({
 import CompanyUpdateModal from '@/components/Member/CompanyUpdateModal.vue';
 
 const settings = useSettingsStore();
+const resources = useResourceStore();
 const networkModalOpen = ref(false);
 const updateModalOpen = ref(false);
 const contactPersonModalOpen = ref(false);
@@ -32,6 +33,17 @@ function openUpdateModal() {
 }
 function closeUpdateModal() {
     updateModalOpen.value = false;
+}
+
+function formatPhoneKey(person, field) {
+    const number = field === 'cell' ? person.cell_number : person.phone;
+    if (String(number || '').trim().startsWith('+')) return '';
+
+    const phoneKey = field === 'cell' ? person.phone_key?.key || person.phone_key || person.phoneKey : person.phoneKey?.key || person.phoneKey || person.phone_key?.key || person.phone_key;
+    if (!phoneKey) return '';
+
+    const value = String(phoneKey).trim();
+    return value.startsWith('+') ? value : `+${value}`;
 }
 
 // جلب بيانات الشركة
@@ -84,6 +96,7 @@ function openAddContactPerson() {
         phone: '',
         cell_number: '',
         phone_key_id: 1,
+        phone_key: null,
         image: null,
     };
     contactPersonModalOpen.value = true;
@@ -99,9 +112,12 @@ async function openEditContactPerson(person) {
     });
 
     if (data.value) {
+        const personData = data.value.data;
         selectedPerson.value = {
-            ...data.value.data,
-            image: data.value.data.image || null,
+            ...personData,
+            phone_key_id: personData.phone_key_id || personData.phoneKeyId || null,
+            phone_key: personData.phone_key || personData.phoneKey || null,
+            image: personData.image || null,
         };
     }
     if (error.value) {
@@ -145,6 +161,7 @@ async function submitContactPerson() {
         phone: selectedPerson.value.phone,
         cell_number: selectedPerson.value.cell_number,
         phone_key_id: selectedPerson.value.phone_key_id || 1,
+        phone_key: selectedPerson.value.phone_key || null,
         image: imageId,
     };
 
@@ -257,7 +274,7 @@ async function deleteContactPerson(id) {
                     <div v-if="company.user" class="mt-3 pt-3 border-t border-dashed">
                         <div class="flex items-center gap-2 text-xs opacity-75">
                             <Icon name="solar:user-circle-outline" class="size-4" />
-                            <span class="font-medium">Associated User:</span>
+                            <span class="font-medium">Associated Network:</span>
                             <NuxtImg :src="company.user.imageUrl" class="w-5 h-5 rounded-full object-cover ring-1 ring-slate-200" />
                             <span class="font-medium">{{ company.user.name }}</span>
                         </div>
@@ -285,44 +302,17 @@ async function deleteContactPerson(id) {
 
                 <!-- Status Boxes -->
                 <template v-if="company">
-                    <UiMemberStatusBox class="lg:col-span-3" :data="company.status" />
-                    <UiMemberIDBox class="lg:col-span-3" :data="'#' + company.id" />
-                    <UiMemberJoinBox class="lg:col-span-3" :data="company.createdAt" />
-                    <UiCompanyTypeBadge class="lg:col-span-3" :data="company.type_company" />
+                    <UiMemberStatusBox class="lg:col-span-4" :data="company.status" />
+                    <!-- <UiMemberJoinBox class="lg:col-span-3" :data="company.createdAt" /> -->
+                    <UiMemberFPPBox
+                        class="lg:col-span-4"
+                        label="LNF Company Type"
+                        :value="company.type_company === 'hq' ? 'Headquarters' : company.type_company === 'branch' ? 'Branch' : company.type_company || 'N/A'"
+                        icon="solar:buildings-2-linear"
+                    />
+                    <UiMemberFPPBox class="lg:col-span-4" :data="company.fpp === true || company.fpp === 'yes'" />
                 </template>
 
-                <!-- ✅ FPP و Active Badges -->
-                <div class="lg:col-span-12 grid lg:grid-cols-12 gap-5">
-                    <div class="lg:col-span-6 flex items-center gap-5">
-                        <!-- FPP Badge -->
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs opacity-50">FPP:</span>
-                            <span
-                                :class="[
-                                    company.fpp === true || company.fpp === 'yes' ? 'bg-green-100 text-green-700 border border-green-300 shadow-sm shadow-green-200' : 'bg-red-100 text-red-700 border border-red-300 shadow-sm shadow-red-200',
-                                    'text-xs font-medium py-1 px-3 rounded-full inline-flex items-center gap-1.5',
-                                ]"
-                            >
-                                <span class="w-1.5 h-1.5 rounded-full" :class="company.fpp === true || company.fpp === 'yes' ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></span>
-                                {{ company.fpp === true || company.fpp === 'yes' ? 'Active' : 'Inactive' }}
-                            </span>
-                        </div>
-
-                        <!-- Active Badge -->
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs opacity-50">Status:</span>
-                            <span
-                                :class="[
-                                    company.active === true ? 'bg-blue-100 text-blue-700 border border-blue-300 shadow-sm shadow-blue-200' : 'bg-gray-100 text-gray-700 border border-gray-300 shadow-sm shadow-gray-200',
-                                    'text-xs font-medium py-1 px-3 rounded-full inline-flex items-center gap-1.5',
-                                ]"
-                            >
-                                <span class="w-1.5 h-1.5 rounded-full" :class="company.active === true ? 'bg-blue-500 animate-pulse' : 'bg-gray-500'"></span>
-                                {{ company.active === true ? 'Active' : 'Inactive' }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Company Details -->
                 <div class="lg:col-span-12">
@@ -381,7 +371,7 @@ async function deleteContactPerson(id) {
                                             </span>
                                         </div>
                                         <div v-if="company.user" class="mt-1 opacity-75">
-                                            <span class="font-normal mr-2">Associated User:</span>
+                                            <span class="font-normal mr-2">Associated Network:</span>
                                             <span class="flex items-center gap-1.5">
                                                 <NuxtImg :src="company.user.imageUrl" class="w-5 h-5 rounded-full object-cover" />
                                                 {{ company.user.name }}
@@ -497,8 +487,8 @@ async function deleteContactPerson(id) {
                                         </span>
                                     </div>
                                     <div class="text-xs opacity-50 flex items-center gap-2 mt-0.5">
-                                        <span v-if="person.phone">📞 {{ person.phone }}</span>
-                                        <span v-if="person.cell_number">📱 {{ person.cell_number }}</span>
+                                        <span v-if="person.phone">📞 {{ formatPhoneKey(person, 'phone') }} {{ person.phone }}</span>
+                                        <span v-if="person.cell_number">📱 {{ formatPhoneKey(person, 'cell') }} {{ person.cell_number }}</span>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
@@ -527,10 +517,6 @@ async function deleteContactPerson(id) {
                         <span class="font-medium text-sm">Additional Info</span>
                     </div>
                     <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="opacity-50">ID</span>
-                            <span class="font-medium">#{{ company.id }}</span>
-                        </div>
                         <div class="flex justify-between">
                             <span class="opacity-50">Created</span>
                             <span>{{ company.createdAt }}</span>
@@ -608,8 +594,32 @@ async function deleteContactPerson(id) {
                     <FormInputField v-model="selectedPerson.name" class="lg:col-span-6" label="Full Name *" placeholder="Enter full name" required />
                     <FormInputField v-model="selectedPerson.email" class="lg:col-span-6" label="Email *" placeholder="Enter email" type="email" required />
                     <FormInputField v-model="selectedPerson.job_title" class="lg:col-span-6" label="Job Title" placeholder="Enter job title" />
-                    <FormInputField v-model="selectedPerson.phone" class="lg:col-span-6" label="Phone Number" placeholder="Enter phone number" />
-                    <FormInputField v-model="selectedPerson.cell_number" class="lg:col-span-6" label="Cell Number" placeholder="Enter cell number" />
+                    <FormSelectField
+                        v-model="selectedPerson.phone_key_id"
+                        class="lg:col-span-3"
+                        label="Phone Key"
+                        name="person-phone-key"
+                        placeholder="Phone Key"
+                        labelvalue="key"
+                        keyvalue="id"
+                        imgvalue="imageUrl"
+                        prefix="+"
+                        :select-data="resources.countries"
+                    />
+                    <FormInputField v-model="selectedPerson.phone" class="lg:col-span-9" label="Phone Number" placeholder="Enter phone number" />
+                    <!-- <FormSelectField
+                        v-model="selectedPerson.phone_key"
+                        class="lg:col-span-3"
+                        label="Cell Phone Key"
+                        name="person-cell-phone-key"
+                        placeholder="Phone Key"
+                        labelvalue="key"
+                        keyvalue="key"
+                        imgvalue="imageUrl"
+                        prefix="+"
+                        :select-data="resources.countries"
+                    /> -->
+                    <FormInputField v-model="selectedPerson.cell_number" class="lg:col-span-9" label="Cell Number" placeholder="Enter cell number" />
                     <FormInputField v-model="selectedPerson.birth_date" class="lg:col-span-6" label="Birth Date" placeholder="YYYY-MM-DD" type="date" />
                 </div>
             </template>
