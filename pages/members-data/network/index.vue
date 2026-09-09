@@ -407,12 +407,12 @@ const userInfoBoxes = computed(() => {
         <div class="lg:flex lg:items-center lg:justify-between md:gap-5">
             <div class="flex items-center gap-2">
                 <Icon name="solar:users-group-two-rounded-outline" class="size-5 opacity-75" />
-                <div>{{ serverParams.deleted ? 'Deleted Users' : 'Users' }}</div>
+                <div>{{ serverParams.deleted ? 'Deleted Network' : 'Network' }}</div>
             </div>
             <div class="flex lg:flex-row flex-col lg:items-center lg:gap-5 lg:space-y-0 space-y-5">
                 <button v-if="useCheckPermission(['create-members-data-network'])" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" type="button" @click="openAddModal">
                     <Icon name="solar:add-circle-linear" class="size-5 opacity-75" />
-                    <span>Add User</span>
+                    <span>Add Network</span>
                 </button>
 
                 <button class="btn btn-dark btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" type="button" @click="onExport">
@@ -442,7 +442,7 @@ const userInfoBoxes = computed(() => {
                 </template>
                 <button class="btn btn-primary btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" @click="toggleDeleted">
                     <Icon :name="serverParams.deleted ? 'solar:hamburger-menu-line-duotone' : 'solar:trash-bin-minimalistic-line-duotone'" class="size-5 opacity-75" />
-                    {{ serverParams.deleted ? 'Active Users List' : 'Deleted Users' }}
+                    {{ serverParams.deleted ? 'Active Network List' : 'Deleted Network' }}
                 </button>
             </div>
         </div>

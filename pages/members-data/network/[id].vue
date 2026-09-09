@@ -59,12 +59,12 @@ const networkSubmittedDate = computed(() => {
             <div class="lg:flex lg:items-center lg:justify-between lg:gap-5">
                 <div class="flex items-center gap-2">
                     <Icon name="solar:user-circle-outline" class="size-5 opacity-75" />
-                    <div>User Profile</div>
+                    <div>Network Profile</div>
                 </div>
                 <div class="flex items-center gap-3">
                     <button class="btn btn-primary btn-rounded btn-sm gap-2" type="button" @click="openUserModal">
                         <Icon name="solar:pen-new-round-outline" class="size-4" />
-                        Edit User
+                        Edit Network
                     </button>
                     <NuxtLink to="/members-data/network" class="btn btn-secondary btn-rounded btn-sm gap-2">
                         <Icon name="solar:arrow-left-outline" class="size-4" />
