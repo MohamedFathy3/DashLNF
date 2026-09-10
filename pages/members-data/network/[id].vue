@@ -257,36 +257,36 @@ const networkSubmittedDate = computed(() => {
                         </button>
                     </div>
 
-                    <div v-if="user.contactPersons?.length" class="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
-                        <div v-for="person in user.contactPersons" :key="person.id" class="border rounded-xl p-3 hover:shadow-md transition-all hover:border-primary/30 group cursor-pointer" @click="openContactPersonModal(person.id)">
+                    <div v-if="user.contactPersons?.length" class="flex flex-col gap-2.5 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
+                        <div v-for="person in user.contactPersons" :key="person.id" class="rounded-xl border border-slate-100 bg-slate-50/50 p-3 transition-all hover:border-primary/30 hover:bg-white hover:shadow-sm cursor-pointer" @click="openContactPersonModal(person.id)">
                             <div class="flex items-start gap-3">
                                 <NuxtImg
                                     :src="person.imageUrl || '/default-avatar.png'"
-                                    class="w-10 h-10 rounded-full object-cover ring-2 ring-slate-100 shrink-0"
+                                    class="size-11 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
                                     :alt="`${person.firstName || ''} ${person.lastName || ''}`"
                                     :title="`${person.firstName || ''} ${person.lastName || ''}`"
                                 />
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="font-medium text-sm truncate">{{ [person.title, person.firstName, person.lastName].filter(Boolean).join(' ') || 'N/A' }}</span>
-                                        <span v-if="person.jobTitle" class="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full truncate max-w-[120px]">{{ person.jobTitle }}</span>
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <div class="font-medium text-sm truncate">{{ [person.title, person.firstName, person.lastName].filter(Boolean).join(' ') || 'N/A' }}</div>
+                                            <div v-if="person.jobTitle" class="text-xs opacity-60 truncate mt-0.5">{{ person.jobTitle }}</div>
+                                        </div>
+                                        <Icon name="solar:alt-arrow-right-outline" class="size-4 opacity-40 shrink-0 mt-0.5" />
                                     </div>
-                                    <div class="text-xs opacity-75 truncate">
-                                        <span v-if="person.email" class="hover:text-warning cursor-pointer" @click="useClipboard(person.email)">{{ person.email }}</span>
+                                    <div v-if="person.email || person.phoneNumber || person.cellNumber" class="mt-2 pt-2 border-t border-dashed border-slate-200 flex flex-col gap-1 text-xs">
+                                        <span v-if="person.email" class="flex items-center gap-1.5 truncate hover:text-warning" @click.stop="useClipboard(person.email)">
+                                            <Icon name="solar:letter-outline" class="size-3.5 shrink-0 opacity-60" />
+                                            <span class="truncate">{{ person.email }}</span>
+                                        </span>
+                                        <span v-if="person.phoneNumber || person.cellNumber" class="flex items-center gap-1.5 truncate opacity-60">
+                                            <Icon name="solar:phone-outline" class="size-3.5 shrink-0" />
+                                            <span class="truncate">{{ [person.phoneNumber, person.cellNumber].filter(Boolean).join(' / ') }}</span>
+                                        </span>
                                     </div>
-                                    <div class="text-xs opacity-50 flex items-center gap-2 mt-0.5">
-                                        <span v-if="person.phoneNumber">Phone: {{ person.phoneNumber }}</span>
-                                        <span v-if="person.cellNumber">Cell: {{ person.cellNumber }}</span>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-x-3 gap-y-1 mt-3 pt-3 border-t border-dashed text-xs">
-                                        <div><span class="opacity-50">ID:</span> {{ person.id }}</div>
-                                        <div><span class="opacity-50">User ID:</span> {{ person.userId || 'N/A' }}</div>
-                                        <div><span class="opacity-50">Title:</span> {{ person.title || 'N/A' }}</div>
-                                        <div><span class="opacity-50">Job:</span> {{ person.jobTitle || 'N/A' }}</div>
-                                    </div>
-                                    <div v-if="person.passportImageUrl" class="mt-3 pt-3 border-t border-dashed">
-                                        <div class="text-xs opacity-50 mb-1">Passport</div>
-                                        <NuxtImg :src="person.passportImageUrl" :alt="`Passport of ${person.firstName || ''} ${person.lastName || ''}`" class="h-24 w-full rounded-lg object-contain bg-slate-50" />
+                                    <div v-if="person.passportImageUrl" class="mt-2 flex items-center gap-2 text-xs opacity-60">
+                                        <NuxtImg :src="person.passportImageUrl" :alt="`Passport of ${person.firstName || ''} ${person.lastName || ''}`" class="size-9 rounded object-cover bg-white border border-slate-100" />
+                                        <span>Passport attached</span>
                                     </div>
                                 </div>
                             </div>
