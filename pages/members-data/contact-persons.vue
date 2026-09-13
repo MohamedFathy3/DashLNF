@@ -125,7 +125,6 @@ const onCompanyInput = (value) => {
 };
 
 const openCompanyDropdown = () => {
-
     showCompanyDropdown.value = true;
     if (companySearchResults.value.length === 0) {
         searchCompanies(companySearchQuery.value, 1, false);
@@ -544,7 +543,7 @@ const onExport = async () => {
                                     <NuxtImg :src="row.imageUrl || '/default-avatar.png'" :alt="row.name" :title="row.name" class="w-10 h-10 !rounded-full object-cover ring-2 ring-slate-100 shrink-0" />
                                     <div>
                                         <div class="font-medium text-sm">{{ row.name }}</div>
-                                        <div class="font-light text-xs opacity-75 truncate max-w-[15rem]">{{ row.jobTitle || 'No Job Title' }}</div>
+                                        <div class="font-light text-xs opacity-75 truncate max-w-[15rem]">{{ row.job_title || row.jobTitle || 'No Job Title' }}</div>
                                         <div class="flex items-center gap-1 mt-0.5">
                                             <span class="text-[10px] bg-primary/5 text-primary px-1.5 py-0.5 rounded-full">{{ row.title || 'N/A' }}</span>
                                             <span v-if="row.birthDate" class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded-full">🎂 {{ row.birthDate }}</span>

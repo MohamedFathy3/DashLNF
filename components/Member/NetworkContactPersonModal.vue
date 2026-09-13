@@ -8,6 +8,7 @@ const props = defineProps({
     networkId: { type: Number, required: true },
 });
 const emit = defineEmits(['close', 'refresh']);
+const resources = useResourceStore();
 const formLoading = ref(false);
 const loadingModal = ref(false);
 const isEditMode = computed(() => Boolean(props.personId));
@@ -18,7 +19,11 @@ const item = ref({
     job_title: '',
     email: '',
     phone_number: '',
+    phone_key_id: null,
+    phoneKeyId: null,
     cell_number: '',
+    cell_key_id: null,
+    cellKeyId: null,
     image: null,
     passport: null,
 });
@@ -29,6 +34,7 @@ const rules = {
     job_title: { required },
     email: { required, email },
     phone_number: { required },
+    phone_key_id: { required },
 };
 const v$ = useVuelidate(rules, item);
 
@@ -40,7 +46,11 @@ const resetItem = () => {
         job_title: '',
         email: '',
         phone_number: '',
+        phone_key_id: null,
+        phoneKeyId: null,
         cell_number: '',
+        cell_key_id: null,
+        cellKeyId: null,
         image: null,
         passport: null,
     };
@@ -66,7 +76,11 @@ const fetchItem = async (id) => {
             job_title: person.jobTitle || person.job_title || '',
             email: person.email || '',
             phone_number: person.phoneNumber || person.phone_number || person.phone || '',
+            phone_key_id: person.phoneKeyId ?? person.phone_key_id ?? person.phone_key ?? null,
+            phoneKeyId: person.phoneKeyId ?? person.phone_key_id ?? person.phone_key ?? null,
             cell_number: person.cellNumber || person.cell_number || '',
+            cell_key_id: person.cellKeyId ?? person.cell_key_id ?? null,
+            cellKeyId: person.cellKeyId ?? person.cell_key_id ?? null,
             image: person.image || null,
             passport: person.passport || null,
         };
@@ -94,7 +108,11 @@ const submit = async () => {
         job_title: item.value.job_title,
         email: item.value.email,
         phone_number: item.value.phone_number,
+        phone_key_id: item.value.phone_key_id ?? item.value.phoneKeyId ?? null,
+        phoneKeyId: item.value.phoneKeyId ?? item.value.phone_key_id ?? null,
         cell_number: item.value.cell_number || null,
+        cell_key_id: item.value.cell_key_id ?? item.value.cellKeyId ?? null,
+        cellKeyId: item.value.cellKeyId ?? item.value.cell_key_id ?? null,
         image: typeof item.value.image === 'object' ? item.value.image?.id : item.value.image,
         passport: typeof item.value.passport === 'object' ? item.value.passport?.id : item.value.passport,
     };
@@ -146,8 +164,36 @@ watch(
                     <FormInputField v-model="item.last_name" :errors="v$.last_name.$errors" class="lg:col-span-4" label="Last Name" name="network-contact-last-name" required />
                     <FormInputField v-model="item.job_title" :errors="v$.job_title.$errors" class="lg:col-span-6" label="Job Title" name="network-contact-job-title" required />
                     <FormInputField v-model="item.email" :errors="v$.email.$errors" class="lg:col-span-6" label="Email" name="network-contact-email" type="email" required />
-                    <FormInputField v-model="item.phone_number" :errors="v$.phone_number.$errors" class="lg:col-span-12" label="Phone Number" name="network-contact-phone-number" required />
-                    <FormInputField v-model="item.cell_number" class="lg:col-span-12" label="Cell Number" name="network-contact-cell" />
+
+                    <FormSelectField
+                        v-model="item.phone_key_id"
+                        :errors="v$.phone_key_id.$errors"
+                        labelvalue="key"
+                        keyvalue="id"
+                        imgvalue="imageUrl"
+                        :select-data="resources.countries"
+                        class="lg:col-span-3"
+                        label="Phone Key"
+                        name="network-contact-phone-key"
+                        placeholder="Phone key"
+                        prefix="+"
+                        required
+                    />
+                    <FormInputField v-model="item.phone_number" :errors="v$.phone_number.$errors" class="lg:col-span-9" label="Phone Number" name="network-contact-phone-number" required />
+
+                    <FormSelectField
+                        v-model="item.cell_key_id"
+                        labelvalue="key"
+                        keyvalue="id"
+                        imgvalue="imageUrl"
+                        :select-data="resources.countries"
+                        class="lg:col-span-3"
+                        label="Cell Key"
+                        name="network-contact-cell-key"
+                        placeholder="Cell key"
+                        prefix="+"
+                    />
+                    <FormInputField v-model="item.cell_number" class="lg:col-span-9" label="Cell Number" name="network-contact-cell" />
                 </div>
             </div>
         </template>
