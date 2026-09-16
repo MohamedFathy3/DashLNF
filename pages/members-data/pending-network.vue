@@ -4,7 +4,7 @@ import FileSaver from 'file-saver';
 
 definePageMeta({
     middleware: ['auth', 'permission'],
-    permissions: ['network_member_list'],
+    permissions: ['network_pending_list'],
 });
 
 const selectedRows = ref([]);
@@ -413,7 +413,7 @@ const userInfoBoxes = computed(() => {
                 <div>{{ serverParams.deleted ? 'Deleted Network' : 'Network' }}</div>
             </div>
             <div class="flex lg:flex-row flex-col lg:items-center lg:gap-5 lg:space-y-0 space-y-5">
-                <button v-if="useCheckPermission(['create-members-data-network'])" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" type="button" @click="openAddModal">
+                <button v-if="useCheckPermission(['create-members-data-pending-network'])" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" type="button" @click="openAddModal">
                     <Icon name="solar:add-circle-linear" class="size-5 opacity-75" />
                     <span>Add Network</span>
                 </button>
@@ -424,13 +424,13 @@ const userInfoBoxes = computed(() => {
                 </button>
 
                 <template v-if="selectedRows.length > 0">
-                    <template v-if="serverParams.deleted && useCheckPermission(['forceDelete-members-data-network'])">
+                    <template v-if="serverParams.deleted && useCheckPermission(['forceDelete-members-data-pending-network'])">
                         <button class="btn btn-danger btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" @click="forceDeleteItems">
                             <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                             Delete Permanently
                         </button>
                     </template>
-                    <template v-else-if="useCheckPermission(['delete-members-data-network'])">
+                    <template v-else-if="useCheckPermission(['delete-members-data-pending-network'])">
                         <button class="btn btn-danger btn-rounded px-6 btn-sm gap-3 lg:w-fit w-full lg:mt-0 mt-5" @click="deleteItems">
                             <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
                             Delete Items
@@ -587,7 +587,7 @@ const userInfoBoxes = computed(() => {
                                         <Icon name="solar:eye-outline" class="size-4" />
                                         View
                                     </NuxtLink>
-                                    <!-- <button v-if="useCheckPermission(['update-members-data-network'])" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openEditModal(row.id)">
+                                    <!-- <button v-if="useCheckPermission(['update-members-data-pending-network'])" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openEditModal(row.id)">
                                         <Icon name="solar:pen-outline" class="size-4" />
                                         Edit
                                     </button> -->

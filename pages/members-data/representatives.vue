@@ -5,20 +5,33 @@ definePageMeta({
 });
 import ContactPersonModalNetowrk from '@/components/Member/ContactPersonModalNetowrk.vue';
 
+// 🔒 User Store للفلتر الإجباري
+const userStore = useUserStore();
+
 const selectedRows = ref([]);
 const sortByList = ref([
     { name: 'Sort By ID', value: 'id' },
     { name: 'Sort By First Name', value: 'first_name' },
     { name: 'Sort By Last Name', value: 'last_name' },
 ]);
+
 const filter = ref({
     firstName: null,
     lastName: null,
     email: null,
+    user_id: null,
+});
+
+// 🔒 الفلتر الإجباري للأدمن العادي
+const forcedUserId = computed(() => {
+    if (!userStore.isSuperAdmin && userStore.getUserId) {
+        return userStore.getUserId;
+    }
+    return null;
 });
 
 const serverParams = ref({
-    filters: {},
+    filters: { user_id: null },
     orderBy: 'id',
     orderByDirection: 'desc',
     perPage: 25,
@@ -28,14 +41,52 @@ const serverParams = ref({
 });
 const formLoading = ref(false);
 const isOpen = ref(false);
+
+// ✅ جلب قائمة الـ Users (Networks) للفلتر
+const userSearchParams = ref({
+    filters: {},
+    orderBy: 'id',
+    orderByDirection: 'desc',
+    perPage: 1000,
+    page: 1,
+    paginate: true,
+    deleted: false,
+});
+
+const { data: usersData } = await useApiFetch('/api/user/index', {
+    method: 'POST',
+    body: userSearchParams,
+    lazy: true,
+});
+
+// ✅ نسخة مختصرة (الاسم + الصورة بس)
+const usersOptions = computed(() => {
+    if (!usersData.value?.data) return [];
+    return usersData.value.data.map((user) => ({
+        id: user.id,
+        name: user.name,
+        imageUrl: user.imageUrl,
+    }));
+});
+
+// 🔒 دالة مساعدة لبناء الفلتر الإجباري
+const buildForcedFilters = () => {
+    const filters = {};
+    if (forcedUserId.value) {
+        filters.user_id = forcedUserId.value;
+    }
+    return filters;
+};
+
 const resetServerParams = async () => {
     filter.value = {
         firstName: null,
         lastName: null,
         email: null,
+        user_id: null,
     };
     serverParams.value = {
-        filters: {},
+        filters: buildForcedFilters(), // 🔒 الفلتر الإجباري
         orderBy: 'id',
         orderByDirection: 'desc',
         perPage: 25,
@@ -46,6 +97,7 @@ const resetServerParams = async () => {
     selectedRows.value = [];
     await refresh();
 };
+
 const {
     data: rows,
     status,
@@ -55,10 +107,15 @@ const {
     body: serverParams,
     lazy: true,
 });
+
 watch(
     filter,
     (newVal) => {
         for (const key in newVal) {
+            // 🚫 الأدمن العادي ميقدرش يغير user_id
+            if (key === 'user_id' && !userStore.isSuperAdmin) {
+                continue;
+            }
             const value = newVal[key];
             if (value) {
                 serverParams.value.filters[key] = value;
@@ -66,21 +123,40 @@ watch(
                 delete serverParams.value.filters[key];
             }
         }
+        // 🔒 تأكيد الفلتر الإجباري دايماً
+        if (forcedUserId.value) {
+            serverParams.value.filters.user_id = forcedUserId.value;
+        }
     },
     { deep: true },
 );
+
+// 🔒 راقب أي محاولة تلاعب بـ user_id
+watch(
+    () => serverParams.value.filters.user_id,
+    (newVal) => {
+        if (forcedUserId.value && newVal !== forcedUserId.value) {
+            serverParams.value.filters.user_id = forcedUserId.value;
+        }
+    },
+);
+
 const toggleDeleted = async () => {
     serverParams.value.deleted = !serverParams.value.deleted;
     selectedRows.value = [];
     await refresh();
 };
+
 const isSelected = (id) => {
     return selectedRows.value.some((r) => r === id);
 };
+
 const allSelected = computed(() => {
-    return rows?.value?.data.every((row) => selectedRows.value.includes(row.id));
+    return rows?.value?.data?.every((row) => selectedRows.value.includes(row.id)) || false;
 });
+
 const selectAllRows = () => {
+    if (!rows.value?.data) return;
     const allSelected = rows.value.data.every((row) => isSelected(row.id));
     if (allSelected) {
         selectedRows.value = [];
@@ -93,6 +169,7 @@ const selectAllRows = () => {
         });
     }
 };
+
 const changePage = async (value) => {
     const pageNumber = parseInt(value);
     if (!isNaN(pageNumber)) {
@@ -103,6 +180,7 @@ const changePage = async (value) => {
     selectedRows.value = [];
     await refresh();
 };
+
 const toggleRowSelection = (id) => {
     const index = selectedRows.value.indexOf(id);
     if (index === -1) {
@@ -111,6 +189,7 @@ const toggleRowSelection = (id) => {
         selectedRows.value.splice(index, 1);
     }
 };
+
 const selectedId = ref(null);
 
 async function closeModal() {
@@ -180,7 +259,23 @@ async function restoreItems() {
         }
     }
 }
+
+// 🔒 أول ما الصفحة تفتح: تأكد إن اليوزر محمّل، وفلتر user_id تلقائي
+onMounted(async () => {
+    // انتظر اليوزر يتحمّل
+    if (!userStore.user) {
+        await userStore.fetchAuthUser();
+    }
+
+    // 🔒 حقن الفلتر الإجباري
+    if (forcedUserId.value) {
+        serverParams.value.filters.user_id = forcedUserId.value;
+    }
+
+    await refresh();
+});
 </script>
+
 <template>
     <div class="flex flex-col gap-8">
         <!-- Page Title & Action Buttons -->
@@ -204,10 +299,6 @@ async function restoreItems() {
                         Restore Items
                     </button>
                 </template>
-                <!--                <button v-if="useCheckPermission(['create-contact-people'])" :disabled="serverParams.deleted" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="openModal()">-->
-                <!--                    <Icon name="solar:add-square-linear" class="size-5 opacity-75" />-->
-                <!--                    Add New-->
-                <!--                </button>-->
                 <button class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="toggleDeleted">
                     <Icon :name="serverParams.deleted ? 'solar:hamburger-menu-line-duotone' : 'solar:trash-bin-minimalistic-line-duotone'" class="size-5 opacity-75" />
                     {{ serverParams.deleted ? 'Items List' : 'Deleted Items' }}
@@ -218,6 +309,22 @@ async function restoreItems() {
         <div class="grid lg:grid-cols-12 gap-5 items-center p-5 bg-white border rounded-2xl">
             <FormInputField v-model="filter.firstName" rounded class="xl:col-span-6 lg:col-span-4" placeholder="First Name" />
             <FormInputField v-model="filter.lastName" rounded class="xl:col-span-6 lg:col-span-4" placeholder="Last Name" />
+
+            <!-- 🔒 بيظهر بس للسوبر أدمن -->
+            <FormSelectField
+                v-if="userStore.isSuperAdmin"
+                id="filter-user"
+                v-model="filter.user_id"
+                name="filter-user"
+                class="xl:col-span-6 lg:col-span-4"
+                placeholder="Filter by User"
+                label="User (Network)"
+                :select-data="usersOptions"
+                labelvalue="name"
+                keyvalue="id"
+                imgvalue="imageUrl"
+            />
+
             <FormSelectField v-model="serverParams.orderBy" :clearable="false" class="xl:col-span-4 lg:col-span-4" labelvalue="name" keyvalue="value" placeholder="Sort Direction" :select-data="sortByList" />
             <FormSelectField
                 v-model="serverParams.orderByDirection"

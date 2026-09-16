@@ -2,6 +2,7 @@ import type { LocationQueryValue } from 'vue-router';
 
 export const useUserStore = defineStore('user', () => {
     const user = ref<Admin>();
+    const getUserId = computed(() => user.value?.user_id ?? null);
 
     // 👇 تعريف الكوكيز - بس دول
     const token = useCookie('LNF_ADMIN_AUTH_TOKEN', {
@@ -216,6 +217,7 @@ export const useUserStore = defineStore('user', () => {
         login,
         fetchAuthUser,
         setUser,
+        getUserId,
         setToken,
         checkToken,
     };

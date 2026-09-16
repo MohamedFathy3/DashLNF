@@ -144,12 +144,6 @@ const syncMissing = async () => {
 
 const savePermission = async () => {
     isSaving.value = true;
-    const valid = await v$.value.$validate();
-    if (!valid) {
-        useToast({ title: 'Error', message: 'Role, name, and slug are required.', type: 'error', duration: 5000 });
-        isSaving.value = false;
-        return;
-    }
     const endpoint = isEdit.value ? `/api/permission/${(form.value as any).id}` : '/api/permission';
     const options: any = {
         method: isEdit.value ? 'PATCH' : 'POST',

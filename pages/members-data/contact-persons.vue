@@ -7,6 +7,9 @@ definePageMeta({
     permissions: ['network_contact_person_list'],
 });
 
+// 🔒 User Store للفلتر الإجباري
+const userStore = useUserStore();
+
 const selectedRows = ref([]);
 const sortByList = ref([
     { name: 'Sort By ID', value: 'id' },
@@ -17,13 +20,21 @@ const sortByList = ref([
 const filter = ref({
     name: null,
     email: null,
-    member_network_id: null, // ✅ بديل companyName - ده اللي هيتبعت فعليًا للـ backend
+    member_network_id: null,
     user_id: null,
     job_title: null,
 });
 
+// 🔒 الفلتر الإجباري للأدمن العادي
+const forcedUserId = computed(() => {
+    if (!userStore.isSuperAdmin && userStore.getUserId) {
+        return userStore.getUserId;
+    }
+    return null;
+});
+
 const serverParams = ref({
-    filters: {},
+    filters: { user_id: null },
     orderBy: 'id',
     orderByDirection: 'desc',
     perPage: 25,
@@ -57,18 +68,26 @@ const { data: usersData } = await useApiFetch('/api/user/index', {
 });
 
 // ===================== 🏢 Company Search Dropdown =====================
-const companySearchQuery = ref(''); // النص المكتوب في الـ input
-const companySearchResults = ref([]); // نتائج البحث (شركات) - متراكمة عبر الصفحات
-const companySearchLoading = ref(false); // لودينج أول تحميل / بحث جديد
-const companySearchLoadingMore = ref(false); // لودينج تحميل صفحة إضافية (سكرول)
+const companySearchQuery = ref('');
+const companySearchResults = ref([]);
+const companySearchLoading = ref(false);
+const companySearchLoadingMore = ref(false);
 const showCompanyDropdown = ref(false);
-const selectedCompany = ref(null); // الشركة المختارة (id, name, imageUrl)
+const selectedCompany = ref(null);
 let companySearchDebounce = null;
 
-// ✅ حالة الـ pagination الخاصة بالبحث
 const companySearchPage = ref(1);
 const companySearchLastPage = ref(1);
 const companySearchTotal = ref(0);
+
+// 🔒 دالة مساعدة لبناء الفلتر الإجباري
+const buildForcedFilters = () => {
+    const filters = {};
+    if (forcedUserId.value) {
+        filters.user_id = forcedUserId.value;
+    }
+    return filters;
+};
 
 const searchCompanies = async (query, page = 1, append = false) => {
     if (append) {
@@ -78,10 +97,16 @@ const searchCompanies = async (query, page = 1, append = false) => {
     }
 
     try {
+        // 🔒 لما ندور على شركات، نفلتر بـ user_id بتاعه لو أدمن عادي
+        const searchFilters = query ? { name: query } : {};
+        if (forcedUserId.value) {
+            searchFilters.user_id = forcedUserId.value;
+        }
+
         const { data } = await useApiFetch('/api/member-network/index', {
             method: 'POST',
             body: {
-                filters: query ? { name: query } : {},
+                filters: searchFilters,
                 orderBy: 'id',
                 orderByDirection: 'desc',
                 perPage: 10,
@@ -107,10 +132,8 @@ const searchCompanies = async (query, page = 1, append = false) => {
     }
 };
 
-// ✅ هل لسه فيه صفحات هتتحمل؟
 const hasMoreCompanies = computed(() => companySearchPage.value < companySearchLastPage.value);
 
-// ✅ بتتنادى لما المستخدم يوصل لآخر الـ scroll جوه القايمة
 const loadMoreCompanies = () => {
     if (companySearchLoadingMore.value || companySearchLoading.value || !hasMoreCompanies.value) return;
     searchCompanies(companySearchQuery.value, companySearchPage.value + 1, true);
@@ -118,7 +141,6 @@ const loadMoreCompanies = () => {
 
 const onCompanyDropdownScroll = (event) => {
     const el = event.target;
-    // ✅ لو المستخدم قرّب من آخر 40px من القايمة، حمّل الصفحة الجاية
     if (el.scrollHeight - el.scrollTop - el.clientHeight < 40) {
         loadMoreCompanies();
     }
@@ -128,7 +150,6 @@ const onCompanyInput = (value) => {
     companySearchQuery.value = value;
     showCompanyDropdown.value = true;
 
-    // لو المستخدم بدأ يكتب من جديد، الشركة المختارة قبل كده بتتلغي
     if (selectedCompany.value && value !== selectedCompany.value.name) {
         selectedCompany.value = null;
         filter.value.member_network_id = null;
@@ -136,9 +157,8 @@ const onCompanyInput = (value) => {
 
     clearTimeout(companySearchDebounce);
     companySearchDebounce = setTimeout(() => {
-        // ✅ أي بحث جديد بيرجّع الصفحة لـ 1 ويمسح النتايج القديمة
         searchCompanies(value, 1, false);
-    }, 350); // ✅ debounce عشان منضربش الـ API مع كل حرف
+    }, 350);
 };
 
 const openCompanyDropdown = () => {
@@ -167,7 +187,6 @@ const clearCompanySelection = () => {
 };
 
 const closeCompanyDropdownOnBlur = () => {
-    // تأخير بسيط عشان الـ click على عنصر في القايمة يتسجل الأول قبل ما القايمة تختفي
     setTimeout(() => {
         showCompanyDropdown.value = false;
     }, 200);
@@ -184,7 +203,7 @@ const resetServerParams = async () => {
     };
     clearCompanySelection();
     serverParams.value = {
-        filters: {},
+        filters: buildForcedFilters(), // 🔒 الفلتر الإجباري
         orderBy: 'id',
         orderByDirection: 'desc',
         perPage: 25,
@@ -210,6 +229,10 @@ watch(
     filter,
     (newVal) => {
         for (const key in newVal) {
+            // 🚫 الأدمن العادي ميقدرش يغير user_id
+            if (key === 'user_id' && !userStore.isSuperAdmin) {
+                continue;
+            }
             const value = newVal[key];
             if (value) {
                 serverParams.value.filters[key] = value;
@@ -217,8 +240,22 @@ watch(
                 delete serverParams.value.filters[key];
             }
         }
+        // 🔒 تأكيد الفلتر الإجباري دايماً
+        if (forcedUserId.value) {
+            serverParams.value.filters.user_id = forcedUserId.value;
+        }
     },
     { deep: true },
+);
+
+// 🔒 راقب أي محاولة تلاعب بـ user_id
+watch(
+    () => serverParams.value.filters.user_id,
+    (newVal) => {
+        if (forcedUserId.value && newVal !== forcedUserId.value) {
+            serverParams.value.filters.user_id = forcedUserId.value;
+        }
+    },
 );
 
 const toggleDeleted = async () => {
@@ -390,6 +427,21 @@ const onExport = async () => {
         console.error('Error exporting data:', errorExport.value);
     }
 };
+
+// 🔒 أول ما الصفحة تفتح: تأكد إن اليوزر محمّل، وفلتر user_id تلقائي
+onMounted(async () => {
+    // انتظر اليوزر يتحمّل
+    if (!userStore.user) {
+        await userStore.fetchAuthUser();
+    }
+
+    // 🔒 حقن الفلتر الإجباري
+    if (forcedUserId.value) {
+        serverParams.value.filters.user_id = forcedUserId.value;
+    }
+
+    await refresh();
+});
 </script>
 
 <template>
@@ -441,7 +493,9 @@ const onExport = async () => {
             <FormInputField v-model="filter.name" rounded class="xl:col-span-3 lg:col-span-3" placeholder="Name" label="Name" />
             <FormInputField v-model="filter.email" rounded class="xl:col-span-3 lg:col-span-3" placeholder="Email" label="Email" />
 
+            <!-- 🔒 بيظهر بس للسوبر أدمن -->
             <FormSelectField
+                v-if="userStore.isSuperAdmin"
                 id="filter-user"
                 v-model="filter.user_id"
                 name="filter-user"
@@ -457,7 +511,6 @@ const onExport = async () => {
             />
 
             <!-- ✅ Company Async Search Dropdown -->
-            <!-- بيدور في /api/member-network/index وبيعرض الاسم + الصورة، ولما تختار شركة بيتبعت member_network_id بتاعها للفلتر -->
             <div class="xl:col-span-3 lg:col-span-3 relative">
                 <label class="text-xs opacity-75 mb-1 block">Company</label>
                 <div class="relative">
@@ -470,9 +523,7 @@ const onExport = async () => {
                         @focus="openCompanyDropdown"
                         @blur="closeCompanyDropdownOnBlur"
                     />
-                    <!-- لودينج سبينر جوه الـ input -->
                     <Icon v-if="companySearchLoading" name="svg-spinners:3-dots-fade" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-60" />
-                    <!-- زرار مسح الاختيار -->
                     <Icon
                         v-else-if="selectedCompany"
                         name="solar:close-circle-linear"
@@ -481,13 +532,11 @@ const onExport = async () => {
                     />
                 </div>
 
-                <!-- ✅ عرض الشركة المختارة (اسم + صورة) -->
                 <div v-if="selectedCompany" class="flex items-center gap-2 mt-1.5 text-xs">
                     <NuxtImg :src="selectedCompany.imageUrl || '/default-avatar.png'" :alt="selectedCompany.name" class="w-4 h-4 !rounded-full object-cover" />
                     <span class="opacity-60">Selected: {{ selectedCompany.name }}</span>
                 </div>
 
-                <!-- Dropdown نتايج البحث - مع Infinite Scroll لباقي الصفحات -->
                 <div v-if="showCompanyDropdown" class="absolute z-50 mt-1 w-full bg-white border rounded-xl shadow-lg max-h-64 overflow-y-auto" @scroll="onCompanyDropdownScroll">
                     <template v-if="companySearchLoading">
                         <div class="p-3 text-xs opacity-50 text-center">Searching...</div>
@@ -496,7 +545,6 @@ const onExport = async () => {
                         <div class="p-3 text-xs opacity-50 text-center">No companies found</div>
                     </template>
                     <template v-else>
-                        <!-- ✅ عداد صغير يوضح كام نتيجة ظاهرة من إجمالي كام -->
                         <div class="px-2.5 py-1.5 text-[10px] opacity-40 sticky top-0 bg-white border-b">Showing {{ companySearchResults.length }} of {{ companySearchTotal }}</div>
                         <div
                             v-for="company in companySearchResults"
@@ -510,11 +558,9 @@ const onExport = async () => {
                                 <div class="text-[10px] opacity-50 truncate">{{ company.city || 'N/A' }} · ID: #{{ company.id }}</div>
                             </div>
                         </div>
-                        <!-- ✅ مؤشر تحميل صفحة إضافية أثناء السكرول -->
                         <div v-if="companySearchLoadingMore" class="p-2.5 text-center">
                             <Icon name="svg-spinners:3-dots-fade" class="w-4 h-4 opacity-50 inline-block" />
                         </div>
-                        <!-- ✅ لو خلص كل النتايج -->
                         <div v-else-if="!hasMoreCompanies && companySearchResults.length > 0" class="p-2 text-[10px] opacity-30 text-center">— End of results —</div>
                     </template>
                 </div>

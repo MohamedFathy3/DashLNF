@@ -7,6 +7,7 @@ definePageMeta({
     permissions: ['network_member_list'],
 });
 
+const userStore = useUserStore();
 const selectedRows = ref([]);
 const sortByList = ref([
     { name: 'Sort By Name', value: 'name' },
@@ -42,8 +43,16 @@ const membershipStatuses = [
     { name: 'Blacklisted', value: 'blacklisted' },
 ];
 
+// 🔒 الفلتر الإجباري للأدمن العادي
+const forcedUserId = computed(() => {
+    if (!userStore.isSuperAdmin && userStore.getUserId) {
+        return userStore.getUserId;
+    }
+    return null;
+});
+
 const serverParams = ref({
-    filters: {},
+    filters: { user_id: null },
     networkFilter: {
         status: ['approved', 'suspended', 'blacklisted'],
         type: [],
@@ -178,12 +187,20 @@ const networkInfoBoxes = computed(() => {
 
 async function prepareInfoBoxes() {
     await fetchNetworkStatistics();
-    // الـ computed هيتكفل بعرض القيم
 }
 
 function toggleShowMoreFilterOptions() {
     showFilter.value = !showFilter.value;
 }
+
+// 🔒 دالة مساعدة لبناء الفلتر الإجباري
+const buildForcedFilters = () => {
+    const filters = {};
+    if (forcedUserId.value) {
+        filters.user_id = forcedUserId.value;
+    }
+    return filters;
+};
 
 const resetServerParams = async () => {
     filter.value = {
@@ -202,7 +219,7 @@ const resetServerParams = async () => {
         typeCompany: null,
     };
     serverParams.value = {
-        filters: {},
+        filters: buildForcedFilters(), // 🔒 الفلتر الإجباري
         networkFilter: {
             status: ['approved', 'suspended', 'blacklisted'],
             type: [],
@@ -249,12 +266,20 @@ watch(
     filter,
     (newVal) => {
         for (const key in newVal) {
+            // 🚫 الأدمن العادي ميقدرش يغير user_id
+            if (key === 'user_id' && !userStore.isSuperAdmin) {
+                continue;
+            }
             const value = newVal[key];
             if (value !== null && value !== '') {
                 serverParams.value.filters[key] = value;
             } else {
                 delete serverParams.value.filters[key];
             }
+        }
+        // 🔒 تأكيد الفلتر الإجباري دايماً
+        if (forcedUserId.value) {
+            serverParams.value.filters.user_id = forcedUserId.value;
         }
     },
     { deep: true },
@@ -273,6 +298,16 @@ watch(
         }
     },
     { deep: true },
+);
+
+// 🔒 راقب أي محاولة تلاعب بـ user_id في serverParams
+watch(
+    () => serverParams.value.filters.user_id,
+    (newVal) => {
+        if (forcedUserId.value && newVal !== forcedUserId.value) {
+            serverParams.value.filters.user_id = forcedUserId.value;
+        }
+    },
 );
 
 const toggleDeleted = async () => {
@@ -393,7 +428,8 @@ function openAddModal() {
         status: 'pending',
         type: 'member',
         unhashed_password: '',
-        user_id: null,
+        // 🔒 لو أدمن عادي → user_id بتاعه، ولو سوبر → فاضي
+        user_id: forcedUserId.value || null,
         phone_key_id: 1,
         image: null,
     };
@@ -411,10 +447,8 @@ async function openEditModal(id) {
     });
 
     if (data.value) {
-        // خد الصورة كاملة زي ما هي (object كامل)
         let imageData = data.value.data.image || null;
 
-        // لو الصورة جاية كـ string (URL) بدل object
         if (typeof imageData === 'string') {
             imageData = {
                 id: data.value.data.id,
@@ -423,7 +457,6 @@ async function openEditModal(id) {
             };
         }
 
-        // لو في imageUrl بس ومفيش image object
         if (!imageData && data.value.data.imageUrl) {
             imageData = {
                 id: data.value.data.id,
@@ -437,7 +470,7 @@ async function openEditModal(id) {
             country_id: data.value.data.country?.id || null,
             user_id: data.value.data.user?.id || null,
             phone_key_id: data.value.data.phone_key_id ?? data.value.data.phoneKeyId ?? data.value.data.phone_key ?? 1,
-            image: imageData, // حط الكائن كامل
+            image: imageData,
         };
         formLoading.value = false;
     }
@@ -465,7 +498,6 @@ async function submitNetwork() {
 
     const method = isEditMode.value ? 'PUT' : 'POST';
 
-    // استخرج الـ ID من الصورة
     let imageId = null;
     if (selectedNetwork.value.image) {
         if (typeof selectedNetwork.value.image === 'number') {
@@ -473,7 +505,6 @@ async function submitNetwork() {
         } else if (selectedNetwork.value.image.id) {
             imageId = selectedNetwork.value.image.id;
         } else if (selectedNetwork.value.image.fullUrl) {
-            // لو الصورة object مع fullUrl بس
             imageId = selectedNetwork.value.image.id || null;
         }
     }
@@ -492,8 +523,9 @@ async function submitNetwork() {
         type_company: selectedNetwork.value.type_company,
         phone_key_id: selectedNetwork.value.phone_key_id || 1,
         country_id: selectedNetwork.value.country_id,
-        user_id: selectedNetwork.value.user_id,
-        image: imageId, // نبعت الـ ID بس
+        // 🔒 الأدمن العادي يبعت user_id بتاعه إجباري
+        user_id: forcedUserId.value || selectedNetwork.value.user_id,
+        image: imageId,
     };
 
     const { data, error } = await useApiFetch(url, {
@@ -558,8 +590,20 @@ function openModalExport() {
     appliedCatTypes.value = [];
 }
 
-onMounted(() => {
+// 🔒 أول ما الصفحة تفتح: تأكد إن اليوزر محمّل، وفلتر user_id تلقائي
+onMounted(async () => {
+    // انتظر اليوزر يتحمّل
+    if (!userStore.user) {
+        await userStore.fetchAuthUser();
+    }
+
+    // 🔒 حقن الفلتر الإجباري
+    if (forcedUserId.value) {
+        serverParams.value.filters.user_id = forcedUserId.value;
+    }
+
     prepareInfoBoxes();
+    await refresh();
 });
 </script>
 
@@ -642,7 +686,9 @@ onMounted(() => {
                     <FormInputField v-model="filter.address" rounded class="xl:col-span-4 lg:col-span-4" placeholder="Address" label="Address" />
                     <FormInputField v-model="filter.city" rounded class="xl:col-span-4 lg:col-span-4" placeholder="City" label="City" />
 
+                    <!-- 🔒 بيظهر بس للسوبر أدمن -->
                     <FormSelectField
+                        v-if="userStore.isSuperAdmin"
                         id="filter-user"
                         v-model="filter.user_id"
                         name="filter-user"
@@ -909,7 +955,9 @@ onMounted(() => {
                     <div class="lg:col-span-12">
                         <h4 class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-4">Company Settings</h4>
                         <div class="grid lg:grid-cols-12 gap-5">
+                            <!-- 🔒 بيظهر بس للسوبر أدمن -->
                             <FormSelectField
+                                v-if="userStore.isSuperAdmin"
                                 id="add-network-user"
                                 v-model="selectedNetwork.user_id"
                                 name="add-network-user"
@@ -938,23 +986,6 @@ onMounted(() => {
                                 keyvalue="value"
                                 required
                             />
-                            <!-- <FormSelectField
-                                id="add-network-type"
-                                v-model="selectedNetwork.type"
-                                name="add-network-type"
-                                class="lg:col-span-4"
-                                label="Member Type *"
-                                placeholder="Select member type"
-                                :select-data="[
-                                    { name: 'Member', value: 'member' },
-                                    { name: 'Founder', value: 'founder' },
-                                    { name: 'Vendor', value: 'vendor' },
-                                    { name: 'Partner', value: 'partner' },
-                                ]"
-                                labelvalue="name"
-                                keyvalue="value"
-                                required
-                            /> -->
                             <FormSelectField
                                 id="add-network-status"
                                 v-model="selectedNetwork.status"
