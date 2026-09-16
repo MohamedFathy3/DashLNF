@@ -3,6 +3,8 @@ definePageMeta({
     middleware: ['auth', 'permission'],
     permissions: ['list-contact-people'],
 });
+import ContactPersonModalNetowrk from '@/components/Member/ContactPersonModalNetowrk.vue';
+
 const selectedRows = ref([]);
 const sortByList = ref([
     { name: 'Sort By ID', value: 'id' },
@@ -307,6 +309,6 @@ async function restoreItems() {
         </table>
         <!-- Pagination -->
         <TablePagination :pending="status === 'pending'" :rows="rows" :page="serverParams.page" @change-page="changePage" />
-        <MemberContactPersonModal v-if="isOpen" :open="isOpen" :person-id="selectedId ? selectedId : null" @close="closeModal" @refresh="refresh" />
+        <ContactPersonModalNetowrk v-if="isOpen" :open="isOpen" :person-id="selectedId ? selectedId : null" @close="closeModal" @refresh="refresh" />
     </div>
 </template>

@@ -183,11 +183,11 @@ const saveItem = async () => {
 const handleModalSubmit = async () => {
     formLoading.value = true;
     const valid = await v$.value.$validate();
-    if (!valid) {
-        useToast({ title: 'Error', message: 'Enter role name and page URL.', type: 'error', duration: 5000 });
-        formLoading.value = false;
-        return;
-    }
+    // if (!valid) {
+    //     useToast({ title: 'Error', message: 'Enter role name and page URL.', type: 'error', duration: 5000 });
+    //     formLoading.value = false;
+    //     return;
+    // }
     try {
         await saveItem();
     } finally {
@@ -356,8 +356,6 @@ const isAllPermissionsSelected = computed(() => {
                             <input v-model="allSelected" type="checkbox" class="form-check-input" :disabled="!rows?.data?.length" @change="selectAllRows" />
                         </th>
                         <th>Role name</th>
-                        <th>Page URL / role slug</th>
-                        <th class="text-center">Permissions</th>
                         <th v-if="serverParams.deleted" class="text-center">Deleted at</th>
                         <th class="text-right">Action</th>
                     </tr>
@@ -372,12 +370,7 @@ const isAllPermissionsSelected = computed(() => {
                                 <div class="font-medium text-slate-800">{{ row.name }}</div>
                                 <div class="text-xs text-slate-400">Role ID #{{ row.id }}</div>
                             </td>
-                            <td>
-                                <code class="rounded-lg bg-slate-100 px-2 py-1 text-xs text-primary">{{ row.slug || '—' }}</code>
-                            </td>
-                            <td class="text-center">
-                                <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"> {{ row.permissions?.length ?? 0 }} permissions </span>
-                            </td>
+                       
                             <td v-if="serverParams.deleted" class="text-center text-sm">{{ row.deletedAt }}</td>
                             <td class="text-right">
                                 <button v-if="canUpdate" :disabled="serverParams.deleted" class="btn btn-secondary btn-rounded btn-sm gap-2" @click="openModal(row.id)">

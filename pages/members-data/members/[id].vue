@@ -48,7 +48,6 @@ function formatPhoneKey(person, field) {
 
 // جلب بيانات الشركة
 const { data: company, refresh } = await useApiFetch(`/api/member-network/${route.params?.id}`, {
-    lazy: true,
     transform: (company) => company.data,
 });
 
@@ -96,7 +95,9 @@ function openAddContactPerson() {
         phone: '',
         cell_number: '',
         phone_key_id: 1,
+        cell_key_id: 1,
         phone_key: null,
+        cell_key: null,
         image: null,
     };
     contactPersonModalOpen.value = true;
@@ -117,6 +118,8 @@ async function openEditContactPerson(person) {
             ...personData,
             phone_key_id: personData.phone_key_id || personData.phoneKeyId || null,
             phone_key: personData.phone_key || personData.phoneKey || null,
+            cell_key_id: personData.cell_key_id || personData.cellKeyId || null,
+            cell_key: personData.cell_key || personData.cellKey || null,
             image: personData.image || null,
         };
     }
@@ -161,7 +164,9 @@ async function submitContactPerson() {
         phone: selectedPerson.value.phone,
         cell_number: selectedPerson.value.cell_number,
         phone_key_id: selectedPerson.value.phone_key_id || 1,
+        cell_key_id: selectedPerson.value.cell_key_id || 1,
         phone_key: selectedPerson.value.phone_key || null,
+        cell_key: selectedPerson.value.cell_key || null,
         image: imageId,
     };
 
@@ -306,7 +311,7 @@ async function deleteContactPerson(id) {
                     <!-- <UiMemberJoinBox class="lg:col-span-3" :data="company.createdAt" /> -->
                     <UiMemberFPPBox
                         class="lg:col-span-4"
-                        label="LNF Company Type"
+                        label="Company Type"
                         :value="company.type_company === 'hq' ? 'Headquarters' : company.type_company === 'branch' ? 'Branch' : company.type_company || 'N/A'"
                         icon="solar:buildings-2-linear"
                     />
@@ -607,20 +612,20 @@ async function deleteContactPerson(id) {
                         :select-data="resources.countries"
                     />
                     <FormInputField v-model="selectedPerson.phone" class="lg:col-span-9" label="Phone Number" placeholder="Enter phone number" />
-                    <!-- <FormSelectField
-                        v-model="selectedPerson.phone_key"
+                    <FormSelectField
+                        v-model="selectedPerson.cell_key_id"
                         class="lg:col-span-3"
                         label="Cell Phone Key"
                         name="person-cell-phone-key"
                         placeholder="Phone Key"
                         labelvalue="key"
-                        keyvalue="key"
+                        keyvalue="id"
                         imgvalue="imageUrl"
                         prefix="+"
                         :select-data="resources.countries"
-                    /> -->
+                    />
                     <FormInputField v-model="selectedPerson.cell_number" class="lg:col-span-9" label="Cell Number" placeholder="Enter cell number" />
-                    <FormInputField v-model="selectedPerson.birth_date" class="lg:col-span-6" label="Birth Date" placeholder="YYYY-MM-DD" type="date" />
+                    <!-- <FormInputField v-model="selectedPerson.birth_date" class="lg:col-span-6" label="Birth Date" placeholder="YYYY-MM-DD" type="date" /> -->
                 </div>
             </template>
             <template #footer>

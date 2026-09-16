@@ -18,6 +18,7 @@ const filter = ref({
     name: null,
     email: null,
     member_network_id: null, // ✅ بديل companyName - ده اللي هيتبعت فعليًا للـ backend
+    user_id: null,
     job_title: null,
 });
 
@@ -38,6 +39,22 @@ const isEditMode = ref(false);
 const showFilter = ref(false);
 
 const resources = useResourceStore();
+
+const userSearchParams = ref({
+    filters: {},
+    orderBy: 'id',
+    orderByDirection: 'desc',
+    perPage: 1000,
+    page: 1,
+    paginate: true,
+    deleted: false,
+});
+
+const { data: usersData } = await useApiFetch('/api/user/index', {
+    method: 'POST',
+    body: userSearchParams,
+    lazy: true,
+});
 
 // ===================== 🏢 Company Search Dropdown =====================
 const companySearchQuery = ref(''); // النص المكتوب في الـ input
@@ -162,6 +179,7 @@ const resetServerParams = async () => {
         name: null,
         email: null,
         member_network_id: null,
+        user_id: null,
         job_title: null,
     };
     clearCompanySelection();
@@ -250,6 +268,11 @@ const toggleRowSelection = (id) => {
     } else {
         selectedRows.value.splice(index, 1);
     }
+};
+
+const formatTitle = (title) => {
+    if (!title) return 'N/A';
+    return title.charAt(0).toUpperCase() + title.slice(1);
 };
 
 async function closeModal() {
@@ -418,6 +441,21 @@ const onExport = async () => {
             <FormInputField v-model="filter.name" rounded class="xl:col-span-3 lg:col-span-3" placeholder="Name" label="Name" />
             <FormInputField v-model="filter.email" rounded class="xl:col-span-3 lg:col-span-3" placeholder="Email" label="Email" />
 
+            <FormSelectField
+                id="filter-user"
+                v-model="filter.user_id"
+                name="filter-user"
+                class="xl:col-span-3 lg:col-span-3"
+                placeholder="Filter by User"
+                label="User (Network)"
+                :select-data="usersData?.data || []"
+                labelvalue="name"
+                keyvalue="id"
+                imgvalue="imageUrl"
+                secondlabelvalue="email"
+                thirdlabelvalue="country.name"
+            />
+
             <!-- ✅ Company Async Search Dropdown -->
             <!-- بيدور في /api/member-network/index وبيعرض الاسم + الصورة، ولما تختار شركة بيتبعت member_network_id بتاعها للفلتر -->
             <div class="xl:col-span-3 lg:col-span-3 relative">
@@ -545,7 +583,7 @@ const onExport = async () => {
                                         <div class="font-medium text-sm">{{ row.name }}</div>
                                         <div class="font-light text-xs opacity-75 truncate max-w-[15rem]">{{ row.job_title || row.jobTitle || 'No Job Title' }}</div>
                                         <div class="flex items-center gap-1 mt-0.5">
-                                            <span class="text-[10px] bg-primary/5 text-primary px-1.5 py-0.5 rounded-full">{{ row.title || 'N/A' }}</span>
+                                            <span class="text-[10px] bg-primary/5 text-primary px-1.5 py-0.5 rounded-full">{{ formatTitle(row.title) }}</span>
                                             <span v-if="row.birthDate" class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded-full">🎂 {{ row.birthDate }}</span>
                                         </div>
                                     </div>

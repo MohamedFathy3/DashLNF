@@ -74,6 +74,16 @@ const { data: usersData, refresh: refreshUsers } = await useApiFetch('/api/user/
     lazy: true,
 });
 
+// ✅ نسخة مختصرة من اليوزرز (الاسم + الصورة بس)
+const usersOptions = computed(() => {
+    if (!usersData.value?.data) return [];
+    return usersData.value.data.map((user) => ({
+        id: user.id,
+        name: user.name,
+        imageUrl: user.imageUrl,
+    }));
+});
+
 const resources = useResourceStore();
 const showFilter = ref(false);
 const formLoading = ref(false);
@@ -88,63 +98,87 @@ const { data: networkStatistics, execute: fetchNetworkStatistics } = await useAp
     lazy: true,
 });
 
-const networkInfoBoxes = ref([
-    {
-        title: 'Total Companies',
-        icon: 'solar:users-group-two-rounded-outline',
-        value: 0,
-        description: 'Companies',
-    },
-    {
-        title: 'Countries',
-        icon: 'solar:earth-outline',
-        value: 0,
-        description: 'With Companies',
-    },
-    {
-        title: 'Approved',
-        icon: 'solar:check-circle-line-duotone',
-        value: 0,
-        description: 'Companies',
-    },
-    {
-        title: 'Pending',
-        icon: 'solar:clock-circle-line-duotone',
-        value: 0,
-        description: 'Companies',
-    },
-]);
+const {
+    data: rows,
+    status,
+    refresh,
+} = await useApiFetch('/api/member-network/index', {
+    method: 'POST',
+    body: serverParams,
+    lazy: true,
+});
+
+// ✅ هل في فلتر نشط؟
+const hasActiveFilters = computed(() => {
+    const f = serverParams.value.filters || {};
+    const hasFilters = Object.keys(f).some((key) => {
+        const val = f[key];
+        return val !== null && val !== undefined && val !== '';
+    });
+    const hasUserFilter = !!serverParams.value.filters?.user_id;
+    const hasNetworkFilter = serverParams.value.networkFilter?.status?.length > 0 || serverParams.value.networkFilter?.type?.length > 0;
+    return hasFilters || hasUserFilter || hasNetworkFilter;
+});
+
+// ✅ عدد الدول الفريدة في النتائج
+const countFilteredCountries = computed(() => {
+    if (!rows.value?.data) return 0;
+    const countries = new Set();
+    rows.value.data.forEach((row) => {
+        if (row.country?.id) countries.add(row.country.id);
+        else if (row.country?.name) countries.add(row.country.name);
+    });
+    return countries.size;
+});
+
+// ✅ عدد الـ Approved في النتائج
+const countFilteredApproved = computed(() => {
+    if (!rows.value?.data) return 0;
+    return rows.value.data.filter((row) => row.status === 'approved').length;
+});
+
+// ✅ عدد الـ Pending في النتائج
+const countFilteredPending = computed(() => {
+    if (!rows.value?.data) return 0;
+    return rows.value.data.filter((row) => row.status === 'pending').length;
+});
+
+// ✅ Info Boxes بقت computed عشان تتحدث مع الفلتر
+const networkInfoBoxes = computed(() => {
+    const stats = networkStatistics.value?.data || {};
+    const isFiltered = hasActiveFilters.value;
+
+    return [
+        {
+            title: 'Total Companies',
+            icon: 'solar:users-group-two-rounded-outline',
+            value: isFiltered ? rows.value?.meta?.total || 0 : stats.total || 0,
+            description: isFiltered ? 'Filtered Results' : 'Companies',
+        },
+        {
+            title: 'Countries',
+            icon: 'solar:earth-outline',
+            value: isFiltered ? countFilteredCountries.value : stats.totalCountries || 0,
+            description: 'With Companies',
+        },
+        {
+            title: 'Approved',
+            icon: 'solar:check-circle-line-duotone',
+            value: isFiltered ? countFilteredApproved.value : stats.totalApproved || 0,
+            description: 'Companies',
+        },
+        {
+            title: 'Pending',
+            icon: 'solar:clock-circle-line-duotone',
+            value: isFiltered ? countFilteredPending.value : stats.totalPending || 0,
+            description: 'Companies',
+        },
+    ];
+});
 
 async function prepareInfoBoxes() {
     await fetchNetworkStatistics();
-    if (networkStatistics.value?.data) {
-        networkInfoBoxes.value = [
-            {
-                title: 'Total Companies',
-                icon: 'solar:users-group-two-rounded-outline',
-                value: networkStatistics.value.data.total || 0,
-                description: 'Companies',
-            },
-            {
-                title: 'Countries',
-                icon: 'solar:earth-outline',
-                value: networkStatistics.value.data.totalCountries || 0,
-                description: 'With Companies',
-            },
-            {
-                title: 'Approved',
-                icon: 'solar:check-circle-line-duotone',
-                value: networkStatistics.value.data.totalApproved || 0,
-                description: 'Companies',
-            },
-            {
-                title: 'Pending',
-                icon: 'solar:clock-circle-line-duotone',
-                value: networkStatistics.value.data.totalPending || 0,
-                description: 'Companies',
-            },
-        ];
-    }
+    // الـ computed هيتكفل بعرض القيم
 }
 
 function toggleShowMoreFilterOptions() {
@@ -184,16 +218,6 @@ const resetServerParams = async () => {
     selectedRows.value = [];
     await refresh();
 };
-
-const {
-    data: rows,
-    status,
-    refresh,
-} = await useApiFetch('/api/member-network/index', {
-    method: 'POST',
-    body: serverParams,
-    lazy: true,
-});
 
 const applySearch = async () => {
     serverParams.value.page = 1;
@@ -625,12 +649,10 @@ onMounted(() => {
                         class="xl:col-span-4 lg:col-span-4"
                         placeholder="Filter by User"
                         label="User (Network)"
-                        :select-data="usersData?.data || []"
+                        :select-data="usersOptions"
                         labelvalue="name"
                         keyvalue="id"
                         imgvalue="imageUrl"
-                        secondlabelvalue="email"
-                        thirdlabelvalue="country.name"
                     />
 
                     <div class="lg:col-span-12">
@@ -782,10 +804,6 @@ onMounted(() => {
                                             <span v-else class="text-gray-400 text-sm">—</span>
                                         </div>
                                     </div>
-                                    <div class="mt-2 font-medium flex items-center gap-1">
-                                        <icon name="solar:hashtag-bold-duotone" class="size-4 opacity-50" />
-                                        <span class="text-sm opacity-75">#{{ row.id }}</span>
-                                    </div>
                                 </div>
                             </td>
                             <td v-if="!serverParams.deleted">
@@ -898,12 +916,10 @@ onMounted(() => {
                                 class="lg:col-span-6"
                                 label="Associated User (Network) *"
                                 placeholder="Select user"
-                                :select-data="usersData?.data || []"
+                                :select-data="usersOptions"
                                 labelvalue="name"
                                 keyvalue="id"
                                 imgvalue="imageUrl"
-                                secondlabelvalue="email"
-                                thirdlabelvalue="country.name"
                                 required
                                 :disabled="isEditMode"
                             />
