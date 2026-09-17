@@ -701,6 +701,7 @@ onMounted(async () => {
                 class="lg:col-span-4 xl:col-span-4"
                 placeholder="Please select a country..."
                 label="Country"
+                searchable
                 :select-data="resources.countries"
                 labelvalue="name"
                 keyvalue="id"
@@ -724,6 +725,7 @@ onMounted(async () => {
                         class="xl:col-span-4 lg:col-span-4"
                         placeholder="Filter by User"
                         label="User (Network)"
+                        searchable
                         :select-data="usersOptions"
                         labelvalue="name"
                         keyvalue="id"
@@ -786,11 +788,12 @@ onMounted(async () => {
                         </div>
                     </div>
 
-                    <FormSelectField v-model="serverParams.orderBy" :clearable="false" class="xl:col-span-6 lg:col-span-6" label="Sort By" labelvalue="name" keyvalue="value" placeholder="Sort By" :select-data="sortByList" />
+                    <FormSelectField v-model="serverParams.orderBy" :clearable="false" searchable class="xl:col-span-6 lg:col-span-6" label="Sort By" labelvalue="name" keyvalue="value" placeholder="Sort By" :select-data="sortByList" />
                     <FormSelectField
                         v-model="serverParams.orderByDirection"
                         class="xl:col-span-6 lg:col-span-6"
                         :clearable="false"
+                        searchable
                         label="Sort Direction"
                         labelvalue="name"
                         keyvalue="value"
@@ -998,7 +1001,6 @@ onMounted(async () => {
                                 keyvalue="id"
                                 imgvalue="imageUrl"
                                 required
-                                :disabled="isEditMode"
                             />
                             <FormSelectField
                                 id="add-network-type-company"

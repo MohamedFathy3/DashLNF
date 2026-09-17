@@ -224,6 +224,7 @@ input[type='number']::-webkit-outer-spin-button {
 
 .vs__selected-options .vs__selected {
     @apply absolute py-1.5 mx-5 inset-0 mr-14 flex items-center gap-3;
+    pointer-events: none;
 }
 
 .vs--multiple .vs__deselect {
@@ -231,12 +232,13 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 .vs__search {
-    @apply rounded-full;
+    @apply rounded-full w-full;
 }
 
 .vs--searching .vs__selected,
 .vs--open .vs__selected {
-    @apply opacity-10 ease-in-out duration-150;
+    opacity: 0.2;
+    transition: opacity 0.15s ease-in-out;
 }
 
 .vs--multiple .vs__selected-options {
