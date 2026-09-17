@@ -104,10 +104,32 @@ const isEditMode = ref(false);
 const isOpen = ref(false);
 
 // جلب الإحصائيات من API
-const { data: networkStatistics, execute: fetchNetworkStatistics } = await useApiFetch('/api/dashboard/network/statistic', {
-    immediate: false,
-    lazy: true,
-});
+const networkStatistics = ref({});
+const buildStatisticUrl = () => {
+    const params = new URLSearchParams();
+    const selectedUserId = serverParams.value.filters?.user_id ?? forcedUserId.value ?? null;
+
+    if (selectedUserId !== null && selectedUserId !== undefined && selectedUserId !== '') {
+        params.set('user_id', String(selectedUserId));
+    }
+
+    return `/api/statistic${params.toString() ? `?${params.toString()}` : ''}`;
+};
+
+const fetchNetworkStatistics = async () => {
+    const { data, error } = await useApiFetch(buildStatisticUrl(), {
+        method: 'GET',
+        lazy: true,
+    });
+
+    if (data.value) {
+        networkStatistics.value = data.value;
+    }
+
+    if (error.value) {
+        console.error('Error loading statistics:', error.value);
+    }
+};
 
 const {
     data: rows,
@@ -156,7 +178,7 @@ const countFilteredPending = computed(() => {
 
 // ✅ Info Boxes بقت computed عشان تتحدث مع الفلتر
 const networkInfoBoxes = computed(() => {
-    const stats = networkStatistics.value?.data || {};
+    const stats = networkStatistics.value?.data || networkStatistics.value || {};
     const isFiltered = hasActiveFilters.value;
 
     return [
@@ -164,7 +186,7 @@ const networkInfoBoxes = computed(() => {
             title: 'Total Companies',
             icon: 'solar:users-group-two-rounded-outline',
             value: isFiltered ? rows.value?.meta?.total || 0 : stats.total || 0,
-            description: isFiltered ? 'Filtered Results' : 'Companies',
+            description: 'Companies',
         },
         {
             title: 'Countries',
@@ -266,7 +288,7 @@ const onExport = async () => {
 
 watch(
     filter,
-    (newVal) => {
+    async (newVal) => {
         for (const key in newVal) {
             // 🚫 الأدمن العادي ميقدرش يغير user_id
             if (key === 'user_id' && !canShowUserFilter.value) {
@@ -283,6 +305,9 @@ watch(
         if (forcedUserId.value) {
             serverParams.value.filters.user_id = forcedUserId.value;
         }
+
+        await prepareInfoBoxes();
+        await refresh();
     },
     { deep: true },
 );
@@ -305,10 +330,12 @@ watch(
 // 🔒 راقب أي محاولة تلاعب بـ user_id في serverParams
 watch(
     () => serverParams.value.filters.user_id,
-    (newVal) => {
+    async (newVal) => {
         if (forcedUserId.value && newVal !== forcedUserId.value) {
             serverParams.value.filters.user_id = forcedUserId.value;
         }
+
+        await prepareInfoBoxes();
     },
 );
 

@@ -227,6 +227,35 @@ const {
     lazy: true,
 });
 
+const contactReport = computed(() => {
+    const data = rows.value?.data || [];
+    const companies = new Set(data.map((row) => row.memberNetwork?.id || row.member_network_id).filter(Boolean));
+
+    return [
+        {
+            title: 'Companies',
+            icon: 'solar:buildings-2-outline',
+            value: companies.size,
+            description: 'Filtered companies',
+        },
+        {
+            title: 'Contact Persons',
+            icon: 'solar:users-group-two-rounded-outline',
+            value: rows.value?.meta?.total ?? data.length,
+            description: 'Filtered contacts',
+        },
+    ];
+});
+
+let filterRefreshTimer = null;
+const refreshFilteredReport = () => {
+    clearTimeout(filterRefreshTimer);
+    filterRefreshTimer = setTimeout(() => {
+        serverParams.value.page = 1;
+        refresh();
+    }, 300);
+};
+
 watch(
     filter,
     (newVal) => {
@@ -246,6 +275,7 @@ watch(
         if (forcedUserId.value) {
             serverParams.value.filters.user_id = forcedUserId.value;
         }
+        refreshFilteredReport();
     },
     { deep: true },
 );
@@ -386,28 +416,6 @@ async function restoreItems() {
     }
 }
 
-// Statistics
-const contactPersonInfoBoxes = computed(() => {
-    if (!rows.value?.data || rows.value.data.length === 0) {
-        return [
-            { title: 'Total Persons', icon: 'solar:users-group-two-rounded-outline', value: 0, description: 'Contact Persons' },
-            { title: 'Active', icon: 'solar:check-circle-line-duotone', value: 0, description: 'Active' },
-            { title: 'Deleted', icon: 'solar:trash-bin-minimalistic-line-duotone', value: 0, description: 'Deleted' },
-        ];
-    }
-
-    const data = rows.value.data;
-    const total = data.length;
-    const active = data.filter((p) => p.deleted === false).length;
-    const deleted = data.filter((p) => p.deleted === true).length;
-
-    return [
-        { title: 'Total Persons', icon: 'solar:users-group-two-rounded-outline', value: total, description: 'Contact Persons' },
-        { title: 'Active', icon: 'solar:check-circle-line-duotone', value: active, description: 'Active' },
-        { title: 'Deleted', icon: 'solar:trash-bin-minimalistic-line-duotone', value: deleted, description: 'Deleted' },
-    ];
-});
-
 // Export function
 const onExport = async () => {
     const exportServerParams = { ...serverParams.value };
@@ -488,7 +496,7 @@ onMounted(async () => {
         </div>
 
         <!-- Statistics -->
-        <UiInfoBox :data="contactPersonInfoBoxes" />
+        <UiInfoBox :data="contactReport" />
 
         <!-- Filter & Search -->
         <div class="grid lg:grid-cols-12 gap-4 items-end p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
