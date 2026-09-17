@@ -48,7 +48,7 @@ const props = defineProps({
         default: 'checkbox',
     },
     modelValue: {
-        type: Object,
+        type: [Boolean, Number, Array, Object],
         default: null,
     },
     flexTitle: {
@@ -56,6 +56,10 @@ const props = defineProps({
         default: false,
     },
     disabled: {
+        type: Boolean,
+        default: false,
+    },
+    emitBoolean: {
         type: Boolean,
         default: false,
     },
@@ -70,35 +74,28 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:modelValue']);
 
-const value = ref();
+const normalizeValue = (modelValue) => {
+    if (props.multiple) return (modelValue || []).map((item) => !!item);
+    if (typeof modelValue === 'boolean') return modelValue;
+    if (typeof modelValue === 'number') return modelValue === 1;
+    return false;
+};
+
+const value = ref(normalizeValue(props.modelValue));
 
 onMounted(() => {
-    if (props.multiple) {
-        value.value = (props.modelValue || []).map((item) => !!item);
-    } else {
-        if (typeof props.modelValue === 'boolean') {
-            value.value = props.modelValue;
-        } else if (typeof props.modelValue === 'number') {
-            value.value = props.modelValue === 1;
-        }
-    }
+    value.value = normalizeValue(props.modelValue);
 });
 
 watch(
     () => props.modelValue,
     (newValue) => {
-        // Handle both 0/1 and true/false values
-        if (typeof newValue === 'boolean') {
-            value.value = newValue;
-        } else if (typeof newValue === 'number') {
-            value.value = newValue === 1;
-        }
+        value.value = normalizeValue(newValue);
     },
 );
 
 watch(value, (newValue) => {
-    // Convert true/false to 1/0 before emitting the update
-    const newModelValue = newValue ? 1 : 0;
+    const newModelValue = props.emitBoolean ? Boolean(newValue) : newValue ? 1 : 0;
     emit('update:modelValue', newModelValue);
 });
 </script>

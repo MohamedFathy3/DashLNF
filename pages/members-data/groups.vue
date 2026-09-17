@@ -7,6 +7,10 @@ definePageMeta({
     permissions: ['network_group_list'],
 });
 
+const userStore = useUserStore();
+const canChooseNetwork = computed(() => userStore.isSuperAdmin || userStore.user?.showNonUser === true);
+const forcedUserId = computed(() => (canChooseNetwork.value ? null : userStore.getUserId));
+
 const selectedRows = ref([]);
 const sortByList = ref([
     { name: 'Sort By ID', value: 'id' },
@@ -15,10 +19,11 @@ const sortByList = ref([
 
 const filter = ref({
     name: null,
+    user_id: null,
 });
 
 const serverParams = ref({
-    filters: {},
+    filters: forcedUserId.value ? { user_id: forcedUserId.value } : {},
     orderBy: 'id',
     orderByDirection: 'desc',
     perPage: 15,
@@ -34,9 +39,10 @@ const editMode = ref(false);
 const resetServerParams = async () => {
     filter.value = {
         name: null,
+        user_id: null,
     };
     serverParams.value = {
-        filters: {},
+        filters: forcedUserId.value ? { user_id: forcedUserId.value } : {},
         orderBy: 'id',
         orderByDirection: 'desc',
         perPage: 15,
@@ -66,10 +72,21 @@ watch(
         } else {
             delete serverParams.value.filters.name;
         }
+        if (canChooseNetwork.value) {
+            if (newVal.user_id) serverParams.value.filters.user_id = newVal.user_id;
+            else delete serverParams.value.filters.user_id;
+        } else if (forcedUserId.value) {
+            serverParams.value.filters.user_id = forcedUserId.value;
+        }
         serverParams.value.page = 1;
     },
     { deep: true },
 );
+
+watch(forcedUserId, (userId) => {
+    if (userId) serverParams.value.filters.user_id = userId;
+    else if (!filter.value.user_id) delete serverParams.value.filters.user_id;
+});
 
 const toggleDeleted = async () => {
     serverParams.value.deleted = !serverParams.value.deleted;
@@ -120,6 +137,7 @@ const toggleRowSelection = (id) => {
 
 const item = ref({
     name: null,
+    user_id: null,
     companies: [],
 });
 
@@ -136,6 +154,7 @@ const fetchItem = async (id) => {
     });
     if (data.value) {
         item.value = data.value.data;
+        item.value.user_id = item.value.user_id ?? item.value.userId ?? item.value.user?.id ?? null;
         if (!item.value.companies) {
             item.value.companies = [];
         }
@@ -158,6 +177,7 @@ const fetchItem = async (id) => {
 const resetItemValues = async () => {
     item.value = {
         name: null,
+        user_id: canChooseNetwork.value ? null : userStore.getUserId,
         companies: [],
     };
 };
@@ -182,25 +202,76 @@ async function openModal(id = null) {
     isOpen.value = true;
 }
 
-// جلب الشركات للـ select مع perPage كبير عشان يجيب كل الشركات
+// Cache companies by user so the page preloads them and the modal opens instantly.
+const memberSearchParams = ref({
+    filters: canChooseNetwork.value ? {} : forcedUserId.value ? { user_id: forcedUserId.value } : {},
+    orderBy: 'id',
+    orderByDirection: 'desc',
+    perPage: 1000,
+    page: 1,
+    paginate: false,
+    deleted: false,
+});
+
 const { data: activeMembers, refresh: refreshMembers } = await useApiFetch(`/api/member-network/index`, {
     method: 'POST',
-    body: {
-        filters: {},
-        orderBy: 'id',
-        orderByDirection: 'desc',
-        perPage: 1000, // عشان يجيب كل الشركات
-        page: 1,
-        paginate: true,
-        deleted: false,
-    },
+    body: memberSearchParams,
     lazy: true,
 });
+
+const loadedMemberUserId = ref(canChooseNetwork.value ? null : forcedUserId.value || null);
+const loadMembersForUser = async (userId) => {
+    const normalizedUserId = userId || null;
+    if (loadedMemberUserId.value === normalizedUserId && activeMembers.value) return;
+
+    memberSearchParams.value.filters = normalizedUserId ? { user_id: normalizedUserId } : {};
+    loadedMemberUserId.value = normalizedUserId;
+    await refreshMembers();
+};
+
+const userSearchParams = ref({
+    filters: {},
+    orderBy: 'name',
+    orderByDirection: 'asc',
+    perPage: 1000,
+    page: 1,
+    paginate: false,
+    deleted: false,
+});
+
+const { data: usersData } = await useApiFetch('/api/user/index', {
+    method: 'POST',
+    body: userSearchParams,
+    lazy: true,
+});
+
+const userOptions = computed(() => usersData.value?.data || []);
+const selectedUserId = computed(() => (canChooseNetwork.value ? item.value.user_id : userStore.getUserId));
+const availableMembers = computed(() => {
+    const members = Array.isArray(activeMembers.value?.data) ? activeMembers.value.data : activeMembers.value?.data?.data || [];
+    if (canChooseNetwork.value && !selectedUserId.value) return members;
+    if (!selectedUserId.value) return [];
+
+    return members.filter((member) => {
+        const memberUserId = member.user_id ?? member.userId ?? member.user?.id ?? member.user?.user_id ?? member.memberNetwork?.user_id ?? member.memberNetwork?.userId;
+        return Number(memberUserId) === Number(selectedUserId.value);
+    });
+});
+
+watch(
+    () => item.value.user_id,
+    async (userId, previousUserId) => {
+        if (canChooseNetwork.value && userId && userId !== previousUserId) {
+            await loadMembersForUser(userId);
+        }
+    },
+);
 
 async function updateItem() {
     // تحويل البيانات للصيغة المطلوبة من الباك
     const payload = {
         name: item.value.name,
+        user_id: canChooseNetwork.value ? item.value.user_id : userStore.getUserId,
         companies: item.value.companies.map((company) => ({
             idCompany: company.id_company,
             typeCompany: company.type_company,
@@ -226,6 +297,7 @@ async function addItem() {
     // تحويل البيانات للصيغة المطلوبة من الباك
     const payload = {
         name: item.value.name,
+        user_id: canChooseNetwork.value ? item.value.user_id : userStore.getUserId,
         companies: item.value.companies.map((company) => ({
             idCompany: company.id_company,
             typeCompany: company.type_company,
@@ -384,12 +456,26 @@ const companyTypes = ref([
 
         <!-- Filter & Search -->
         <div class="grid lg:grid-cols-12 gap-5 items-center p-5 bg-white border rounded-2xl">
-            <FormInputField v-model="filter.name" rounded class="xl:col-span-4 lg:col-span-4" placeholder="Search by Name" />
-            <FormSelectField v-model="serverParams.orderBy" :clearable="false" class="xl:col-span-4 lg:col-span-4" labelvalue="name" keyvalue="value" placeholder="Sort By" :select-data="sortByList" />
+            <FormInputField v-model="filter.name" rounded class="xl:col-span-3 lg:col-span-3" placeholder="Search by Name" label="Name" />
+            <FormSelectField
+                v-if="canChooseNetwork"
+                v-model="filter.user_id"
+                class="xl:col-span-3 lg:col-span-3"
+                label="User (Network)"
+                labelvalue="name"
+                keyvalue="id"
+                imgvalue="imageUrl"
+                is-rounded-image
+                placeholder="Filter by User"
+                :select-data="userOptions"
+                searchable
+            />
+            <FormSelectField v-model="serverParams.orderBy" :clearable="false" class="xl:col-span-3 lg:col-span-3" label="Sort By" labelvalue="name" keyvalue="value" placeholder="Sort By" :select-data="sortByList" />
             <FormSelectField
                 v-model="serverParams.orderByDirection"
-                class="xl:col-span-4 lg:col-span-4"
+                class="xl:col-span-3 lg:col-span-3"
                 :clearable="false"
+                label="Sort Direction"
                 labelvalue="name"
                 keyvalue="value"
                 placeholder="Sort Direction"
@@ -473,6 +559,20 @@ const companyTypes = ref([
             <template #content>
                 <div class="grid lg:grid-cols-12 gap-5 items-start">
                     <FormInputField v-model="item.name" :errors="v$.name?.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Enter Name" />
+                    <FormSelectField
+                        v-if="!editMode && canChooseNetwork"
+                        v-model="item.user_id"
+                        :select-data="userOptions"
+                        labelvalue="name"
+                        keyvalue="id"
+                        imgvalue="imageUrl"
+                        is-rounded-image
+                        class="lg:col-span-12"
+                        label="Network User"
+                        name="group-user"
+                        placeholder="Select a network"
+                        searchable
+                    />
 
                     <div v-if="editMode" class="col-span-12 pt-8 border-slate-200 border-t">
                         <div class="flex justify-between items-center mb-4">
@@ -492,7 +592,7 @@ const companyTypes = ref([
                                     :disabled="!useCheckPermission(['update-members-data-groups'])"
                                     imgvalue="imageUrl"
                                     keyvalue="id"
-                                    :select-data="activeMembers?.data || []"
+                                    :select-data="availableMembers"
                                     class="col-span-2"
                                     :name="'company-' + index"
                                     :placeholder="'Search and Select Member ' + (index + 1)"

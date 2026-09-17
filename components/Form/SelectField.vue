@@ -130,6 +130,7 @@ watchEffect(() => {
                 :required="required"
                 :autofocus="autofocus"
                 :name="name"
+                :searchable="searchable"
                 :is-rounded-image="isRoundedImage"
                 :clearable="clearable"
                 :autocomplete="autocomplete"

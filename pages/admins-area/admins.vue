@@ -475,8 +475,8 @@ watch(
                         </th>
                         <th class="text-left">Name</th>
                         <th class="text-center">Role</th>
-                        <th class="text-center">Extra Permissions</th>
                         <th class="text-center">Super Admin</th>
+                        <th class="text-center">Show All Data</th>
                         <th v-if="serverParams.deleted" class="text-center">Deleted At</th>
                         <th class="text-right">Action</th>
                     </tr>
@@ -502,9 +502,11 @@ watch(
                                     <span v-else class="font-light text-sm opacity-75">—</span>
                                 </div>
                             </td>
-                            <td class="text-center text-sm text-slate-500">{{ row.extra_permissions?.length ?? 0 }}</td>
                             <td class="text-center">
                                 <FormSwitch :id="'row-super-admin-' + row.id" v-model="row.superAdmin" :disabled="!isCurrentUserSuperAdmin || serverParams.deleted" @change="useToggleSwitch(row.id, 'super_admin', 'admin')" />
+                            </td>
+                            <td class="text-center">
+                                <FormSwitch :id="'row-show-non-user-' + row.id" v-model="row.showNonUser" :disabled="!isCurrentUserSuperAdmin || serverParams.deleted" @change="useToggleSwitch(row.id, 'show_non_user', 'admin')" />
                             </td>
                             <td v-if="serverParams.deleted" class="text-center text-sm">{{ row.deletedAt }}</td>
                             <td class="text-right">
@@ -517,13 +519,13 @@ watch(
                     </template>
                     <template v-else>
                         <tr v-for="i in serverParams.perPage" :key="i">
-                            <td colspan="7">
+                            <td :colspan="serverParams.deleted ? 8 : 7">
                                 <div class="h-12 !opacity-50 animate-pulse" />
                             </td>
                         </tr>
                     </template>
                     <tr v-if="!pending && rows?.data?.length === 0">
-                        <td colspan="7" class="p-8 text-center text-sm text-slate-500">No admins found.</td>
+                        <td :colspan="serverParams.deleted ? 8 : 7" class="p-8 text-center text-sm text-slate-500">No admins found.</td>
                     </tr>
                 </tbody>
             </table>
@@ -533,28 +535,34 @@ watch(
         <TablePagination :pending="pending" :rows="rows" :page="serverParams.page" @change-page="changePage" />
 
         <!-- Modal -->
-        <TheModal :open-modal="isOpen" size="6xl" @close-modal="closeModal()">
+        <TheModal :open-modal="isOpen" size="5xl" @close-modal="closeModal()">
             <template #header>
-                <div class="flex justify-between items-center">
-                    <div>
-                        <div class="text-lg font-semibold text-slate-800">{{ editMode ? 'Update Admin' : 'Add New Admin' }}</div>
-                        <div class="text-xs text-slate-500">{{ editMode ? 'Edit admin details' : 'Create a new admin' }}</div>
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <Icon name="solar:shield-user-linear" class="size-5" />
+                        </div>
+                        <div>
+                            <div class="text-lg font-semibold text-slate-800">{{ editMode ? 'Update Admin' : 'Add New Admin' }}</div>
+                            <div class="text-xs text-slate-500">{{ editMode ? 'Edit admin details' : 'Create a new admin' }}</div>
+                        </div>
                     </div>
-                    <Icon class="w-8 h-8 opacity-50 cursor-pointer hover:opacity-100 ease-in-out duration-300" name="solar:close-square-outline" @click="closeModal" />
+                    <Icon class="size-7 shrink-0 cursor-pointer rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" name="solar:close-square-outline" @click="closeModal" />
                 </div>
             </template>
             <template #content>
-                <div class="grid lg:grid-cols-12 gap-5 items-start">
+                <div class="grid items-start gap-x-6 gap-y-5 lg:grid-cols-12">
                     <FormInputField v-model="item.name" :errors="v$.name.$errors" class="lg:col-span-12" label="Name" name="name" placeholder="Admin Name" />
                     <FormInputField v-model="item.email" :errors="v$.email.$errors" class="lg:col-span-6" label="Email" name="email" placeholder="admin@example.com" type="email" />
                     <FormInputField v-model.trim="item.password" :errors="v$.password.$errors" class="lg:col-span-6" label="Password" name="password" :placeholder="editMode ? 'Leave blank to keep current' : 'Password'" type="password" />
                     <FormSelectField v-model="item.user_id" :select-data="userOptions" labelvalue="name" keyvalue="id" imgvalue="imageUrl" is-rounded-image class="lg:col-span-6" label="User" name="user-id" placeholder="Select a user" />
-
                     <!-- Super Admin Switch - disabled if not super admin -->
-                    <FormSwitch id="super-admin" v-model="item.superAdmin" label="Super Admin" class="lg:col-span-6" :disabled="!isCurrentUserSuperAdmin" />
-                    <div v-if="!isCurrentUserSuperAdmin" class="lg:col-span-6 text-xs text-slate-400 flex items-center gap-1">
-                        <Icon name="solar:info-circle-outline" class="size-4" />
-                        Only Super Admins can change this setting
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 lg:col-span-6">
+                        <FormSwitch id="super-admin" v-model="item.superAdmin" label="Super Admin" :disabled="!isCurrentUserSuperAdmin" />
+                        <div v-if="!isCurrentUserSuperAdmin" class="mt-2 flex items-center gap-1 text-xs text-slate-400">
+                            <Icon name="solar:info-circle-outline" class="size-4" />
+                            Only Super Admins can change this setting
+                        </div>
                     </div>
 
                     <!-- Role Select - disabled when superAdmin is true -->
@@ -582,7 +590,7 @@ watch(
                 </div>
             </template>
             <template #footer>
-                <div class="w-full flex items-center justify-end gap-5">
+                <div class="flex w-full items-center justify-end gap-3">
                     <button class="btn-rounded btn-sm btn btn-danger px-4" type="button" @click="closeModal">
                         <Icon name="solar:close-circle-linear" class="w-5 h-5 mr-2" />
                         <span>Cancel</span>

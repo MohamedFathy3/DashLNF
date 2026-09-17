@@ -157,6 +157,7 @@ async function submitContactPerson() {
     const payload = {
         member_network_id: company.value.id,
         title: selectedPerson.value.title,
+        user_id: company.value.user?.id ?? company.value.user_id ?? null,
         name: selectedPerson.value.name,
         email: selectedPerson.value.email,
         job_title: selectedPerson.value.job_title,
@@ -200,7 +201,8 @@ async function submitContactPerson() {
 async function deleteContactPerson(id) {
     const confirmed = confirm('Are you sure you want to delete this person?');
     if (confirmed) {
-        const { data, error } = await useApiFetch(`/api/contact-person-network/${id}`, {
+        const { data, error } = await useApiFetch(`/api/contact-person-network/delete`, {
+            body: { items: [id] },
             method: 'DELETE',
             lazy: true,
         });

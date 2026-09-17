@@ -26,8 +26,10 @@ const filter = ref({
 });
 
 // 🔒 الفلتر الإجباري للأدمن العادي
+const canShowUserFilter = computed(() => userStore.isSuperAdmin || userStore.user?.showNonUser === true);
+
 const forcedUserId = computed(() => {
-    if (!userStore.isSuperAdmin && userStore.getUserId) {
+    if (!canShowUserFilter.value && userStore.getUserId) {
         return userStore.getUserId;
     }
     return null;
@@ -230,7 +232,7 @@ watch(
     (newVal) => {
         for (const key in newVal) {
             // 🚫 الأدمن العادي ميقدرش يغير user_id
-            if (key === 'user_id' && !userStore.isSuperAdmin) {
+            if (key === 'user_id' && !canShowUserFilter.value) {
                 continue;
             }
             const value = newVal[key];
@@ -489,25 +491,25 @@ onMounted(async () => {
         <UiInfoBox :data="contactPersonInfoBoxes" />
 
         <!-- Filter & Search -->
-        <div class="grid lg:grid-cols-12 gap-5 items-center p-5 bg-white border rounded-2xl">
+        <div class="grid lg:grid-cols-12 gap-4 items-end p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
             <FormInputField v-model="filter.name" rounded class="xl:col-span-3 lg:col-span-3" placeholder="Name" label="Name" />
             <FormInputField v-model="filter.email" rounded class="xl:col-span-3 lg:col-span-3" placeholder="Email" label="Email" />
 
             <!-- 🔒 بيظهر بس للسوبر أدمن -->
             <FormSelectField
-                v-if="userStore.isSuperAdmin"
+                v-if="canShowUserFilter"
                 id="filter-user"
                 v-model="filter.user_id"
                 name="filter-user"
                 class="xl:col-span-3 lg:col-span-3"
                 placeholder="Filter by User"
                 label="User (Network)"
+                searchable
+                is-rounded-image
                 :select-data="usersData?.data || []"
                 labelvalue="name"
                 keyvalue="id"
                 imgvalue="imageUrl"
-                secondlabelvalue="email"
-                thirdlabelvalue="country.name"
             />
 
             <!-- ✅ Company Async Search Dropdown -->
@@ -587,18 +589,20 @@ onMounted(async () => {
                 </div>
             </TransitionExpand>
 
-            <button class="xl:col-span-4 lg:col-span-4 btn btn-rounded btn-sm btn-primary gap-3 w-full" @click="refresh">
-                <Icon name="solar:rounded-magnifer-line-duotone" class="size-5 shrink-0" />
-                Filter
-            </button>
-            <button class="xl:col-span-4 lg:col-span-4 btn btn-rounded btn-sm btn-secondary gap-3 w-full" @click="resetServerParams">
-                <Icon name="solar:restart-circle-outline" class="size-5 shrink-0" />
-                Reset
-            </button>
-            <button class="xl:col-span-4 lg:col-span-4 btn btn-rounded btn-sm btn-secondary gap-3 w-full" @click="showFilter = !showFilter">
-                <Icon name="solar:filter-linear" class="size-5 shrink-0" />
-                More Filter Options
-            </button>
+            <div class="lg:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                <button class="btn btn-rounded btn-sm btn-primary gap-3 w-full" @click="refresh">
+                    <Icon name="solar:rounded-magnifer-line-duotone" class="size-5 shrink-0" />
+                    Filter
+                </button>
+                <button class="btn btn-rounded btn-sm btn-secondary gap-3 w-full" @click="resetServerParams">
+                    <Icon name="solar:restart-circle-outline" class="size-5 shrink-0" />
+                    Reset
+                </button>
+                <button class="btn btn-rounded btn-sm btn-secondary gap-3 w-full" @click="showFilter = !showFilter">
+                    <Icon name="solar:filter-linear" class="size-5 shrink-0" />
+                    More Filter Options
+                </button>
+            </div>
         </div>
 
         <!-- Table -->
@@ -611,6 +615,7 @@ onMounted(async () => {
                         </th>
                         <th>Name / Contact</th>
                         <th>Company</th>
+                        <th>Network User</th>
                         <th>Details</th>
                         <th v-if="serverParams.deleted">Deleted At</th>
                         <th class="text-right">Action</th>
@@ -650,9 +655,18 @@ onMounted(async () => {
                                     <div v-if="row.memberNetwork?.city" class="text-[10px] opacity-50 flex items-center gap-1">
                                         <Icon name="solar:map-point-outline" class="size-3" />
                                         {{ row.memberNetwork.city }}
-                                        <span v-if="row.memberNetwork?.country_id" class="ml-1">(ID: {{ row.memberNetwork.country_id }})</span>
+                                        <span v-if="row.memberNetwork?.country_id" class="ml-1">(Country ID: {{ row.memberNetwork.country_id }})</span>
                                     </div>
                                 </div>
+                            </td>
+                            <td class="text-sm font-normal whitespace-nowrap">
+                                <div v-if="row.user" class="flex flex-col gap-0.5">
+                                    <div class="flex items-center gap-2">
+                                        <NuxtImg :src="row.user.imageUrl || '/default-avatar.png'" :alt="row.user.name" :title="row.user.name" class="w-8 h-8 !rounded-full object-cover ring-1 ring-slate-100 shrink-0" />
+                                        <span class="truncate 2xl:max-w-64 max-w-44 font-medium">{{ row.user.name || 'N/A' }}</span>
+                                    </div>
+                                </div>
+                                <span v-else class="opacity-50">N/A</span>
                             </td>
                             <td>
                                 <div class="text-xs space-y-1">
@@ -684,14 +698,14 @@ onMounted(async () => {
                     </template>
                     <template v-else>
                         <tr v-for="i in serverParams.perPage" :key="i">
-                            <td colspan="6">
+                            <td colspan="7">
                                 <div class="h-12 !opacity-50 animate-pulse" />
                             </td>
                         </tr>
                     </template>
                     <template v-if="status !== 'pending' && rows && rows.data.length === 0">
                         <tr>
-                            <td colspan="6">
+                            <td colspan="7">
                                 <div class="text-center py-10">
                                     <Icon name="solar:users-group-two-rounded-line-duotone" class="size-12 mx-auto opacity-30" />
                                     <div class="text-sm mt-3 opacity-50">No contact persons found</div>

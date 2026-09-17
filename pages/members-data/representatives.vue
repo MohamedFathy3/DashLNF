@@ -23,8 +23,10 @@ const filter = ref({
 });
 
 // 🔒 الفلتر الإجباري للأدمن العادي
+const canShowUserFilter = computed(() => userStore.isSuperAdmin || userStore.user?.showNonUser === true);
+
 const forcedUserId = computed(() => {
-    if (!userStore.isSuperAdmin && userStore.getUserId) {
+    if (!canShowUserFilter.value && userStore.getUserId) {
         return userStore.getUserId;
     }
     return null;
@@ -113,7 +115,7 @@ watch(
     (newVal) => {
         for (const key in newVal) {
             // 🚫 الأدمن العادي ميقدرش يغير user_id
-            if (key === 'user_id' && !userStore.isSuperAdmin) {
+            if (key === 'user_id' && !canShowUserFilter.value) {
                 continue;
             }
             const value = newVal[key];
@@ -312,7 +314,7 @@ onMounted(async () => {
 
             <!-- 🔒 بيظهر بس للسوبر أدمن -->
             <FormSelectField
-                v-if="userStore.isSuperAdmin"
+                v-if="canShowUserFilter"
                 id="filter-user"
                 v-model="filter.user_id"
                 name="filter-user"
