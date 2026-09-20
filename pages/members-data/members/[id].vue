@@ -46,10 +46,28 @@ function formatPhoneKey(person, field) {
     return value.startsWith('+') ? value : `+${value}`;
 }
 
-// جلب بيانات الشركة
-const { data: company, refresh } = await useApiFetch(`/api/member-network/${route.params?.id}`, {
-    transform: (company) => company.data,
-});
+// جلب بيانات الشركة وإعادة جلبها عند تغيير العضو بدون إعادة تحميل الصفحة
+const company = ref(null);
+const companyError = ref(null);
+
+const fetchCompany = async (id) => {
+    companyError.value = null;
+    const { data, error } = await useApiFetch(`/api/member-network/${id}`, {
+        transform: (response) => response.data,
+    });
+    company.value = data.value;
+    companyError.value = error.value;
+};
+
+await fetchCompany(route.params?.id);
+watch(
+    () => route.params?.id,
+    (id) => {
+        if (id) fetchCompany(id);
+    },
+);
+
+const refresh = () => fetchCompany(route.params?.id);
 
 const sendWelcomeEmail = async () => {
     const { data, error } = await useApiFetch('/api/email-approved', {
