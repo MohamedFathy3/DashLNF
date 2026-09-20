@@ -33,7 +33,7 @@ const forcedUserId = computed(() => {
 });
 
 const serverParams = ref({
-    filters: { user_id: null, active: 1 }, // 🔒 الفلتر الإجباري للأدمن العادي
+    filters: { user_id: null }, // 🔒 الفلتر الإجباري للأدمن العادي
     orderBy: 'id',
     orderByDirection: 'desc',
     perPage: 25,
