@@ -204,18 +204,12 @@ async function openModal(id = null) {
 
 // Cache companies by user so the page preloads them and the modal opens instantly.
 const memberSearchParams = ref({
-    filters: canChooseNetwork.value ? {} : forcedUserId.value ? { user_id: forcedUserId.value } : {},
-    orderBy: 'id',
-    orderByDirection: 'desc',
-    perPage: 1000,
-    page: 1,
-    paginate: false,
-    deleted: false,
+    user_id: canChooseNetwork.value ? null : forcedUserId.value || null,
 });
 
-const { data: activeMembers, refresh: refreshMembers } = await useApiFetch(`/api/member-network/index`, {
-    method: 'POST',
-    body: memberSearchParams,
+const { data: activeMembers, refresh: refreshMembers } = await useApiFetch('/api/get-companies', {
+    method: 'GET',
+    query: memberSearchParams,
     lazy: true,
 });
 
@@ -224,13 +218,13 @@ const loadMembersForUser = async (userId) => {
     const normalizedUserId = userId || null;
     if (loadedMemberUserId.value === normalizedUserId && activeMembers.value) return;
 
-    memberSearchParams.value.filters = normalizedUserId ? { user_id: normalizedUserId } : {};
+    memberSearchParams.value.user_id = normalizedUserId;
     loadedMemberUserId.value = normalizedUserId;
     await refreshMembers();
 };
 
 const userSearchParams = ref({
-    filters: {},
+    filters: {"status": "approved", },
     orderBy: 'name',
     orderByDirection: 'asc',
     perPage: 1000,

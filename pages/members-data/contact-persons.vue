@@ -54,7 +54,7 @@ const showFilter = ref(false);
 const resources = useResourceStore();
 
 const userSearchParams = ref({
-    filters: {},
+    filters: {"status": "approved", },
     orderBy: 'id',
     orderByDirection: 'desc',
     perPage: 1000,

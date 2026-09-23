@@ -70,7 +70,7 @@ const serverParams = ref({
 
 // جلب الـ Users للـ Select
 const userSearchParams = ref({
-    filters: {},
+    filters: { status: 'approved' },
     orderBy: 'id',
     orderByDirection: 'desc',
     perPage: 1000,
@@ -113,14 +113,20 @@ const buildStatisticUrl = () => {
         params.set('user_id', String(selectedUserId));
     }
 
-    return `/api/statistic${params.toString() ? `?${params.toString()}` : ''}`;
+    return `/api/dashboard/network/statistic${params.toString() ? `?${params.toString()}` : ''}`;
 };
 
 const fetchNetworkStatistics = async () => {
-    const { data, error } = await useApiFetch(buildStatisticUrl(), {
+    const {
+        data,
+        error,
+        refresh: refreshStatistics,
+    } = await useApiFetch(buildStatisticUrl(), {
         method: 'GET',
         lazy: true,
     });
+
+    await refreshStatistics();
 
     if (data.value) {
         networkStatistics.value = data.value;
@@ -141,69 +147,51 @@ const {
     lazy: true,
 });
 
-// ✅ هل في فلتر نشط؟
-const hasActiveFilters = computed(() => {
-    const f = serverParams.value.filters || {};
-    const hasFilters = Object.keys(f).some((key) => {
-        const val = f[key];
-        return val !== null && val !== undefined && val !== '';
-    });
-    const hasUserFilter = !!serverParams.value.filters?.user_id;
-    const hasNetworkFilter = serverParams.value.networkFilter?.status?.length > 0 || serverParams.value.networkFilter?.type?.length > 0;
-    return hasFilters || hasUserFilter || hasNetworkFilter;
-});
-
-// ✅ عدد الدول الفريدة في النتائج
-const countFilteredCountries = computed(() => {
-    if (!rows.value?.data) return 0;
-    const countries = new Set();
-    rows.value.data.forEach((row) => {
-        if (row.country?.id) countries.add(row.country.id);
-        else if (row.country?.name) countries.add(row.country.name);
-    });
-    return countries.size;
-});
-
-// ✅ عدد الـ Approved في النتائج
-const countFilteredApproved = computed(() => {
-    if (!rows.value?.data) return 0;
-    return rows.value.data.filter((row) => row.status === 'approved').length;
-});
-
-// ✅ عدد الـ Pending في النتائج
-const countFilteredPending = computed(() => {
-    if (!rows.value?.data) return 0;
-    return rows.value.data.filter((row) => row.status === 'pending').length;
-});
-
-// ✅ Info Boxes بقت computed عشان تتحدث مع الفلتر
+// Statistics are provided by the dashboard endpoint, including when filters are active.
 const networkInfoBoxes = computed(() => {
     const stats = networkStatistics.value?.data || networkStatistics.value || {};
-    const isFiltered = hasActiveFilters.value;
 
     return [
         {
             title: 'Total Companies',
             icon: 'solar:users-group-two-rounded-outline',
-            value: isFiltered ? rows.value?.meta?.total || 0 : stats.total || 0,
+            value: stats.total || 0,
             description: 'Companies',
         },
         {
             title: 'Countries',
             icon: 'solar:earth-outline',
-            value: isFiltered ? countFilteredCountries.value : stats.totalCountries || 0,
+            value: stats.totalCountries || 0,
             description: 'With Companies',
         },
         {
             title: 'Approved',
             icon: 'solar:check-circle-line-duotone',
-            value: isFiltered ? countFilteredApproved.value : stats.totalApproved || 0,
+            value: stats.totalApproved || 0,
             description: 'Companies',
         },
         {
             title: 'Pending',
             icon: 'solar:clock-circle-line-duotone',
-            value: isFiltered ? countFilteredPending.value : stats.totalPending || 0,
+            value: stats.totalPending || 0,
+            description: 'Companies',
+        },
+        {
+            title: 'Suspended',
+            icon: 'solar:pause-circle-line-duotone',
+            value: stats.totalSuspended || 0,
+            description: 'Companies',
+        },
+        {
+            title: 'Blacklisted',
+            icon: 'solar:close-circle-line-duotone',
+            value: stats.totalBlacklisted || 0,
+            description: 'Companies',
+        },
+        {
+            title: 'Contact Persons',
+            icon: 'solar:users-group-rounded-outline',
+            value: stats.totalContactPersons || 0,
             description: 'Companies',
         },
     ];
