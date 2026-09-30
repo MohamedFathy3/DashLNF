@@ -279,16 +279,14 @@ const getCompany = (id) => membersMap.value.get(Number(id)) || null;
 
 const buildLocation = (c) => [c?.city, c?.countryName].filter(Boolean).join(', ');
 
-// Picker options: same company but with extra info so similar names can be told apart.
+// Picker options include location details to distinguish companies with similar names.
 // - location: "City, Country"
-// - meta: "ID #12"  (+ "Already added" if it is already in the group)
 const addedIds = computed(() => new Set((item.value.companies || []).map((c) => Number(c.id_company))));
 
 const companyOptions = computed(() =>
     availableMembers.value.map((m) => ({
         ...m,
         location: buildLocation(m) || 'No location',
-        meta: `ID #${m.id}` + (addedIds.value.has(Number(m.id)) ? ' · Already added' : ''),
     })),
 );
 
@@ -651,7 +649,6 @@ function removeCompany(idCompany) {
                                 v-model="companyDraft.id_company"
                                 labelvalue="name"
                                 secondlabelvalue="location"
-                                thirdlabelvalue="meta"
                                 imgvalue="imageUrl"
                                 keyvalue="id"
                                 :select-data="draftOptions"
@@ -694,7 +691,6 @@ function removeCompany(idCompany) {
                                             <Icon name="solar:map-point-linear" class="size-3.5 shrink-0" />
                                             <span class="truncate">{{ info.location || 'No location' }}</span>
                                         </span>
-                                        <span class="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500">ID #{{ member.id_company }}</span>
                                     </div>
                                 </div>
 
