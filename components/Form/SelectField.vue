@@ -158,17 +158,24 @@ watchEffect(() => {
                     </div>
                 </template>
                 <template #selected-option="selectedOption">
-                    <div>
-                        <div :class="[icon && 'pl-5', 'flex items-center whitespace-nowrap truncate text-sm']">
-                            <img
-                                v-if="$attrs.imgvalue && (selectedOption.option || selectedOption)?.[$attrs.imgvalue]"
-                                :class="[isRoundedImage ? 'rounded-full w-5 h-5' : 'rounded-sm w-6 h-4', 'mr-2 object-contain bg-white shrink-0']"
-                                :src="(selectedOption.option || selectedOption)[$attrs.imgvalue]"
-                                :alt="(selectedOption.option || selectedOption)[$attrs.labelvalue]"
-                                :title="(selectedOption.option || selectedOption)[$attrs.labelvalue]"
-                            />
-                            <div v-if="prefix" class="truncate">{{ prefix }}</div>
-                            <div v-if="$attrs.labelvalue" class="truncate font-normal opacity-75">{{ useStripHtml((selectedOption.option || selectedOption)[$attrs.labelvalue]) }}</div>
+                    <div :class="[icon && 'pl-5', 'flex min-w-0 items-center text-sm']">
+                        <img
+                            v-if="$attrs.imgvalue && (selectedOption.option || selectedOption)?.[$attrs.imgvalue]"
+                            :class="[isRoundedImage ? 'rounded-full w-5 h-5' : 'rounded-sm w-6 h-4', 'mr-2 object-contain bg-white shrink-0']"
+                            :src="(selectedOption.option || selectedOption)[$attrs.imgvalue]"
+                            :alt="(selectedOption.option || selectedOption)[$attrs.labelvalue]"
+                            :title="(selectedOption.option || selectedOption)[$attrs.labelvalue]"
+                        />
+                        <div class="min-w-0 truncate">
+                            <div class="flex min-w-0 items-center truncate">
+                                <span v-if="prefix" class="shrink-0">{{ prefix }}</span>
+                                <span v-if="$attrs.labelvalue" class="truncate font-normal opacity-75">{{ useStripHtml((selectedOption.option || selectedOption)[$attrs.labelvalue]) }}</span>
+                            </div>
+                            <div v-if="$attrs.secondlabelvalue || $attrs.thirdlabelvalue" class="truncate text-xs font-light text-slate-500">
+                                <span v-if="$attrs.secondlabelvalue && (selectedOption.option || selectedOption)[$attrs.secondlabelvalue]">{{ (selectedOption.option || selectedOption)[$attrs.secondlabelvalue] }}</span>
+                                <span v-if="$attrs.secondlabelvalue && $attrs.thirdlabelvalue && (selectedOption.option || selectedOption)[$attrs.secondlabelvalue] && (selectedOption.option || selectedOption)[$attrs.thirdlabelvalue]">, </span>
+                                <span v-if="$attrs.thirdlabelvalue && (selectedOption.option || selectedOption)[$attrs.thirdlabelvalue]">{{ (selectedOption.option || selectedOption)[$attrs.thirdlabelvalue] }}</span>
+                            </div>
                         </div>
                     </div>
                 </template>

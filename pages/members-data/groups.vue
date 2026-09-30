@@ -140,6 +140,11 @@ const item = ref({
     user_id: null,
     companies: [],
 });
+const companyDraft = ref({
+    id_company: null,
+    type_company: null,
+});
+const companySearch = ref('');
 
 const rules = ref({
     name: { required },
@@ -159,9 +164,11 @@ const fetchItem = async (id) => {
             item.value.companies = [];
         }
         // تأكد من أن المفاتيح صحيحة
+        // ونحتفظ بأي بيانات للشركة راجعة من الـ API (company) كـ fallback للعرض
         item.value.companies = item.value.companies.map((company) => ({
             id_company: company.idCompany || company.id_company,
-            type_company: company.typeCompany || company.type_company,
+            type_company: (company.typeCompany || company.type_company || '').toString().toLowerCase(),
+            company: company.company || null,
         }));
     }
     if (error.value) {
@@ -180,6 +187,8 @@ const resetItemValues = async () => {
         user_id: canChooseNetwork.value ? null : userStore.getUserId,
         companies: [],
     };
+    companyDraft.value = { id_company: null, type_company: null };
+    companySearch.value = '';
 };
 
 async function closeModal() {
@@ -224,7 +233,7 @@ const loadMembersForUser = async (userId) => {
 };
 
 const userSearchParams = ref({
-    filters: {"status": "approved", },
+    filters: { status: 'approved' },
     orderBy: 'name',
     orderByDirection: 'asc',
     perPage: 1000,
@@ -252,6 +261,68 @@ const availableMembers = computed(() => {
     });
 });
 
+/* ---------- Company helpers ---------- */
+
+const companyTypes = ref([
+    { name: 'HQ', value: 'hq' },
+    { name: 'Branch', value: 'branch' },
+]);
+
+// Map for O(1) lookup of company details by id
+const membersMap = computed(() => {
+    const map = new Map();
+    availableMembers.value.forEach((m) => map.set(Number(m.id), m));
+    return map;
+});
+
+const getCompany = (id) => membersMap.value.get(Number(id)) || null;
+
+const buildLocation = (c) => [c?.city, c?.countryName].filter(Boolean).join(', ');
+
+// Picker options: same company but with extra info so similar names can be told apart.
+// - location: "City, Country"
+// - meta: "ID #12"  (+ "Already added" if it is already in the group)
+const addedIds = computed(() => new Set((item.value.companies || []).map((c) => Number(c.id_company))));
+
+const companyOptions = computed(() =>
+    availableMembers.value.map((m) => ({
+        ...m,
+        location: buildLocation(m) || 'No location',
+        meta: `ID #${m.id}` + (addedIds.value.has(Number(m.id)) ? ' · Already added' : ''),
+    })),
+);
+
+// Options available for the "add" picker (hide the ones already in the group)
+const draftOptions = computed(() => companyOptions.value.filter((m) => !addedIds.value.has(Number(m.id))));
+
+// Display info for a row (falls back to API data if the company is not in the loaded list)
+const rowInfo = (member) => {
+    const c = getCompany(member.id_company) || member.company || {};
+    return {
+        name: c.name || `Company #${member.id_company}`,
+        location: buildLocation(c),
+        imageUrl: c.imageUrl || c.image_url || null,
+        initial: (c.name || '?').trim().charAt(0).toUpperCase(),
+    };
+};
+
+// Companies list for the UI: HQ first, then by name, filtered by the search box.
+// Each entry keeps a reference to the real object so edits go straight to item.companies.
+const visibleCompanies = computed(() => {
+    const q = companySearch.value.trim().toLowerCase();
+    return (item.value.companies || [])
+        .map((member) => ({ member, info: rowInfo(member) }))
+        .filter(({ info }) => !q || info.name.toLowerCase().includes(q) || info.location.toLowerCase().includes(q))
+        .sort((a, b) => {
+            const aHq = a.member.type_company === 'hq' ? 0 : 1;
+            const bHq = b.member.type_company === 'hq' ? 0 : 1;
+            return aHq - bHq || a.info.name.localeCompare(b.info.name);
+        });
+});
+
+const hqCount = computed(() => (item.value.companies || []).filter((c) => c.type_company === 'hq').length);
+const branchCount = computed(() => (item.value.companies || []).filter((c) => c.type_company === 'branch').length);
+
 watch(
     () => item.value.user_id,
     async (userId, previousUserId) => {
@@ -261,9 +332,8 @@ watch(
     },
 );
 
-async function updateItem() {
-    // تحويل البيانات للصيغة المطلوبة من الباك
-    const payload = {
+function buildPayload() {
+    return {
         name: item.value.name,
         user_id: canChooseNetwork.value ? item.value.user_id : userStore.getUserId,
         companies: item.value.companies.map((company) => ({
@@ -271,10 +341,12 @@ async function updateItem() {
             typeCompany: company.type_company,
         })),
     };
+}
 
+async function updateItem() {
     const { data, error } = await useApiFetch(`/api/group/${item.value?.id}`, {
         method: 'PATCH',
-        body: payload,
+        body: buildPayload(),
         lazy: true,
     });
     if (data.value) {
@@ -288,19 +360,9 @@ async function updateItem() {
 }
 
 async function addItem() {
-    // تحويل البيانات للصيغة المطلوبة من الباك
-    const payload = {
-        name: item.value.name,
-        user_id: canChooseNetwork.value ? item.value.user_id : userStore.getUserId,
-        companies: item.value.companies.map((company) => ({
-            idCompany: company.id_company,
-            typeCompany: company.type_company,
-        })),
-    };
-
     const { data, error } = await useApiFetch(`/api/group`, {
         method: 'POST',
-        body: payload,
+        body: buildPayload(),
         lazy: true,
     });
     if (data.value) {
@@ -386,25 +448,29 @@ async function restoreItems() {
 }
 
 function addRow() {
+    if (!companyDraft.value.id_company || !companyDraft.value.type_company) return;
     if (!item.value.companies) {
         item.value.companies = [];
     }
-    item.value.companies.push({
-        id_company: null,
-        type_company: null,
-    });
-}
-
-function removeRow(index) {
-    if (item.value.companies && Array.isArray(item.value.companies)) {
-        item.value.companies.splice(index, 1);
+    // منع التكرار
+    if (addedIds.value.has(Number(companyDraft.value.id_company))) {
+        useToast({ title: 'Warning', message: 'This company is already in the group', type: 'error', duration: 4000 });
+        return;
     }
+    item.value.companies.push({
+        id_company: companyDraft.value.id_company,
+        type_company: companyDraft.value.type_company,
+        company: null,
+    });
+    companyDraft.value = { id_company: null, type_company: null };
 }
 
-const companyTypes = ref([
-    { name: 'HQ', value: 'hq' },
-    { name: 'Branch', value: 'branch' },
-]);
+// الحذف بالـ id بدل الـ index لأن القائمة بتتفلتر وتترتب
+function removeCompany(idCompany) {
+    if (!Array.isArray(item.value.companies)) return;
+    const index = item.value.companies.findIndex((c) => Number(c.id_company) === Number(idCompany));
+    if (index !== -1) item.value.companies.splice(index, 1);
+}
 </script>
 
 <template>
@@ -568,51 +634,100 @@ const companyTypes = ref([
                         searchable
                     />
 
+                    <!-- Companies -->
                     <div v-if="editMode" class="col-span-12 pt-8 border-slate-200 border-t">
-                        <div class="flex justify-between items-center mb-4">
+                        <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
                             <h3 class="font-medium text-lg">Companies</h3>
-                            <button v-if="useCheckPermission(['update-members-data-groups'])" type="button" class="btn btn-dark btn-sm btn-rounded px-3" @click="addRow">
-                                <Icon name="solar:add-square-linear" class="size-4 mr-1" />
-                                Add Company
-                            </button>
+                            <div class="flex items-center gap-2 text-xs">
+                                <span class="rounded-full bg-amber-100 text-amber-800 px-2.5 py-1 font-medium">{{ hqCount }} HQ</span>
+                                <span class="rounded-full bg-slate-100 text-slate-700 px-2.5 py-1 font-medium">{{ branchCount }} Branch</span>
+                                <span class="text-slate-500 ml-1">{{ item.companies.length }} total</span>
+                            </div>
                         </div>
-                        <div class="space-y-4">
-                            <div v-for="(member, index) in item.companies" :key="index" class="grid xl:grid-cols-4 grid-cols-1 gap-6 items-end">
-                                <FormSelectField
-                                    v-model="member.id_company"
-                                    labelvalue="name"
-                                    secondlabelvalue="city"
-                                    thirdlabelvalue="countryName"
-                                    :disabled="!useCheckPermission(['update-members-data-groups'])"
-                                    imgvalue="imageUrl"
-                                    keyvalue="id"
-                                    :select-data="availableMembers"
-                                    class="col-span-2"
-                                    :name="'company-' + index"
-                                    :placeholder="'Search and Select Member ' + (index + 1)"
-                                    label="Company"
-                                    searchable
-                                    filterable
-                                />
-                                <FormSelectField
-                                    v-model="member.type_company"
-                                    :disabled="!useCheckPermission(['update-members-data-groups'])"
-                                    labelvalue="name"
-                                    keyvalue="value"
-                                    :select-data="companyTypes"
-                                    class="col-span-1"
-                                    name="company-type-company"
-                                    placeholder="Select Type"
-                                    label="Type"
-                                />
-                                <div>
-                                    <button :disabled="!useCheckPermission(['update-members-data-groups'])" type="button" class="btn btn-danger btn-sm btn-rounded px-3" @click="removeRow(index)">
-                                        <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-4" />
-                                        Remove
+
+                        <!-- Add company (sticky) -->
+                        <div v-if="useCheckPermission(['update-members-data-groups'])" class="sticky top-0 z-20 mb-4 grid grid-cols-1 xl:grid-cols-12 gap-4 items-end rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                            <FormSelectField
+                                v-model="companyDraft.id_company"
+                                labelvalue="name"
+                                secondlabelvalue="location"
+                                thirdlabelvalue="meta"
+                                imgvalue="imageUrl"
+                                keyvalue="id"
+                                :select-data="draftOptions"
+                                class="xl:col-span-6"
+                                name="company-draft"
+                                placeholder="Search by name, city or country"
+                                label="Company"
+                                searchable
+                                filterable
+                            />
+                            <FormSelectField v-model="companyDraft.type_company" labelvalue="name" keyvalue="value" :select-data="companyTypes" class="xl:col-span-3" name="company-type-draft" placeholder="Select type" label="Type" />
+                            <div class="xl:col-span-3 xl:flex xl:justify-end">
+                                <button :disabled="!companyDraft.id_company || !companyDraft.type_company" type="button" class="btn btn-dark btn-sm btn-rounded px-4 disabled:opacity-50" @click="addRow">
+                                    <Icon name="solar:add-square-linear" class="size-4 mr-1" />
+                                    Add Company
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Search inside the list -->
+                        <div v-if="item.companies.length > 5" class="relative mb-3">
+                            <Icon name="solar:rounded-magnifer-line-duotone" class="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input v-model="companySearch" type="text" placeholder="Filter added companies..." class="w-full rounded-full border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm outline-none focus:border-slate-400" />
+                        </div>
+
+                        <!-- Compact list -->
+                        <div v-if="visibleCompanies.length" class="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 overflow-hidden">
+                            <div v-for="{ member, info } in visibleCompanies" :key="member.id_company" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
+                                <!-- Logo / initial -->
+                                <img v-if="info.imageUrl" :src="info.imageUrl" alt="" class="size-10 rounded-full object-cover border border-slate-200 shrink-0" />
+                                <div v-else class="size-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-sm font-medium shrink-0">
+                                    {{ info.initial }}
+                                </div>
+
+                                <!-- Name + location + id -->
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-sm font-medium text-slate-800 truncate">{{ info.name }}</div>
+                                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                                        <span class="flex items-center gap-1 truncate">
+                                            <Icon name="solar:map-point-linear" class="size-3.5 shrink-0" />
+                                            <span class="truncate">{{ info.location || 'No location' }}</span>
+                                        </span>
+                                        <span class="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500">ID #{{ member.id_company }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Type toggle -->
+                                <div class="inline-flex rounded-full bg-slate-100 p-0.5 text-xs font-medium shrink-0">
+                                    <button
+                                        v-for="t in companyTypes"
+                                        :key="t.value"
+                                        type="button"
+                                        :disabled="!useCheckPermission(['update-members-data-groups'])"
+                                        class="rounded-full px-3 py-1 transition disabled:cursor-not-allowed"
+                                        :class="member.type_company === t.value ? (t.value === 'hq' ? 'bg-amber-400 text-amber-950 shadow-sm' : 'bg-white text-slate-800 shadow-sm') : 'text-slate-500 hover:text-slate-700'"
+                                        @click="member.type_company = t.value"
+                                    >
+                                        {{ t.name }}
                                     </button>
                                 </div>
+
+                                <!-- Remove -->
+                                <button
+                                    :disabled="!useCheckPermission(['update-members-data-groups'])"
+                                    type="button"
+                                    title="Remove from group"
+                                    class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-40 shrink-0"
+                                    @click="removeCompany(member.id_company)"
+                                >
+                                    <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5" />
+                                </button>
                             </div>
-                            <div v-if="!item.companies || item.companies.length === 0" class="text-center py-4 text-gray-400">No companies added yet. Click "Add Company" to add one.</div>
+                        </div>
+
+                        <div v-else class="rounded-xl border border-dashed border-slate-200 text-center py-8 text-sm text-gray-400">
+                            {{ item.companies.length ? 'No companies match your filter.' : 'No companies added yet. Pick a company above and click "Add Company".' }}
                         </div>
                     </div>
                 </div>
