@@ -182,7 +182,7 @@ async function updateItem() {
         image: item.value.image || null,
     };
 
-    const { data, error } = await useApiFetch(`/api/contact-person-network/${item.value.id}`, {
+    const { data, error } = await useApiFetch(`/api/contact-people/${item.value.id}`, {
         method: 'PUT',
         body: payload,
     });
