@@ -69,6 +69,19 @@ watch(
 
 const refresh = () => fetchCompany(route.params?.id);
 
+const associatedNetworks = computed(() => {
+    const networks = [...(Array.isArray(company.value?.users) ? company.value.users : [])];
+    const primaryNetwork = company.value?.user;
+
+    if (primaryNetwork && !networks.some((network) => String(network.id) === String(primaryNetwork.id))) {
+        networks.unshift(primaryNetwork);
+    }
+
+    return networks.filter((network, index, list) => network?.id != null && list.findIndex((item) => String(item.id) === String(network.id)) === index);
+});
+
+const isAssociatedNetworkActive = (network) => network?.active === true || network?.active === 1 || network?.active === '1';
+
 const sendWelcomeEmail = async () => {
     const { data, error } = await useApiFetch('/api/email-approved', {
         lazy: true,
@@ -295,13 +308,24 @@ async function deleteContactPerson(id) {
                         </div>
                     </div>
 
-                    <!-- عرض الـ User المرتبط -->
-                    <div v-if="company.user" class="mt-3 pt-3 border-t border-dashed">
-                        <div class="flex items-center gap-2 text-xs opacity-75">
+                    <!-- عرض كل الشبكات المرتبطة -->
+                    <div v-if="associatedNetworks.length" class="mt-3 border-t border-dashed pt-3">
+                        <div class="mb-2 flex items-center gap-2 text-xs opacity-75">
                             <Icon name="solar:user-circle-outline" class="size-4" />
-                            <span class="font-medium">Associated Network:</span>
-                            <NuxtImg :src="company.user.imageUrl" class="w-5 h-5 rounded-full object-cover ring-1 ring-slate-200" />
-                            <span class="font-medium">{{ company.user.name }}</span>
+                            <span class="font-medium">Associated Networks:</span>
+                            <span class="rounded-full bg-slate-100 px-2 py-0.5">{{ associatedNetworks.length }}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <div v-for="network in associatedNetworks" :key="network.id" class="inline-flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5">
+                                <NuxtImg v-if="network.imageUrl" :src="network.imageUrl" :alt="network.name" class="h-5 w-5 shrink-0 rounded-full bg-white object-contain ring-1 ring-slate-200" />
+                                <span class="max-w-48 truncate text-xs font-medium">{{ network.name }}</span>
+                                <span
+                                    class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                                    :class="isAssociatedNetworkActive(network) ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'"
+                                >
+                                    {{ isAssociatedNetworkActive(network) ? 'Active' : 'Inactive' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -395,12 +419,24 @@ async function deleteContactPerson(id) {
                                                 {{ company.active === true ? 'Active' : 'Inactive' }}
                                             </span>
                                         </div>
-                                        <div v-if="company.user" class="mt-1 opacity-75">
-                                            <span class="font-normal mr-2">Associated Network:</span>
-                                            <span class="flex items-center gap-1.5">
-                                                <NuxtImg :src="company.user.imageUrl" class="w-5 h-5 rounded-full object-cover" />
-                                                {{ company.user.name }}
-                                            </span>
+                                        <div v-if="associatedNetworks.length" class="mt-2 opacity-75">
+                                            <span class="font-normal mr-2">Associated Networks:</span>
+                                            <div class="mt-1 flex flex-wrap gap-2">
+                                                <span
+                                                    v-for="network in associatedNetworks"
+                                                    :key="network.id"
+                                                    class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2 py-1"
+                                                >
+                                                    <NuxtImg v-if="network.imageUrl" :src="network.imageUrl" :alt="network.name" class="h-4 w-4 shrink-0 rounded-full bg-white object-contain" />
+                                                    <span class="max-w-48 truncate">{{ network.name }}</span>
+                                                    <span
+                                                        class="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                                                        :class="isAssociatedNetworkActive(network) ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-600'"
+                                                    >
+                                                        {{ isAssociatedNetworkActive(network) ? 'Active' : 'Inactive' }}
+                                                    </span>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

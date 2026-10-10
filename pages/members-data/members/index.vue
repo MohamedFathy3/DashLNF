@@ -95,13 +95,135 @@ const usersOptions = computed(() => {
     }));
 });
 
+const getAssociatedNetworkIds = (company) => {
+    if (!userStore.isSuperAdmin) {
+        return userStore.getUserId === null || userStore.getUserId === undefined ? [] : [userStore.getUserId];
+    }
+
+    const associations = Array.isArray(company?.users) ? company.users : [];
+    const userIds = associations
+        .map((association) => association.id ?? association.user_id)
+        .filter((userId) => userId !== null && userId !== undefined);
+    const fallbackUserId = company?.user?.id ?? company?.user_id;
+
+    if (fallbackUserId !== null && fallbackUserId !== undefined && !userIds.some((userId) => String(userId) === String(fallbackUserId))) {
+        userIds.push(fallbackUserId);
+    }
+
+    return [...new Set(userIds)];
+};
+
+const isAssociationActive = (active) => active === true || active === 1 || active === '1';
+
+const getAssociatedNetworkStates = (company) => {
+    const associations = [...(Array.isArray(company?.users) ? company.users : [])];
+    const primaryNetwork = company?.user;
+
+    if (primaryNetwork && !associations.some((association) => String(association.id ?? association.user_id) === String(primaryNetwork.id))) {
+        associations.push(primaryNetwork);
+    }
+
+    return Object.fromEntries(associations.filter((association) => association.id ?? association.user_id).map((association) => [association.id ?? association.user_id, isAssociationActive(association.active)]));
+};
+
+const buildAssociatedUsersPayload = (company, userIds) => {
+    const associations = Array.isArray(company?.users) ? company.users : [];
+    const preservedUserIds = userStore.isSuperAdmin
+        ? []
+        : associations.map((association) => association.id ?? association.user_id).filter((userId) => userId !== null && userId !== undefined);
+
+    return [...new Set([...preservedUserIds, ...userIds])]
+        .filter((userId) => userId !== null && userId !== undefined)
+        .map((userId) => {
+            const association = associations.find((item) => String(item.id ?? item.user_id) === String(userId));
+            const editableState = userIds.some((id) => String(id) === String(userId)) ? company.network_user_states?.[userId] : undefined;
+            const active = editableState ?? association?.active ?? false;
+            return {
+                user_id: userId,
+                active: isAssociationActive(active),
+            };
+        });
+};
+
+const getAssociatedNetworkActive = (userId) => {
+    if (!selectedNetwork.value) return false;
+
+    const state = selectedNetwork.value.network_user_states?.[userId];
+    if (state !== undefined) return isAssociationActive(state);
+
+    const association = selectedNetwork.value.users?.find((user) => String(user.id ?? user.user_id) === String(userId));
+    return isAssociationActive(association?.active);
+};
+
+const setAssociatedNetworkActive = (userId, active) => {
+    if (!selectedNetwork.value) return;
+
+    selectedNetwork.value.network_user_states = {
+        ...selectedNetwork.value.network_user_states,
+        [userId]: active,
+    };
+};
+
+const addAssociatedNetwork = (userId) => {
+    if (userId === null || userId === undefined || !selectedNetwork.value || !userStore.isSuperAdmin) return;
+
+    const networkIds = selectedNetwork.value.network_user_ids || [];
+    if (!networkIds.some((id) => String(id) === String(userId))) {
+        selectedNetwork.value.network_user_ids = [...networkIds, userId];
+    }
+    if (selectedNetwork.value.network_user_states?.[userId] === undefined) {
+        setAssociatedNetworkActive(userId, false);
+    }
+    networkSearch.value = '';
+    showNetworkOptions.value = false;
+};
+
+const removeAssociatedNetwork = (userId) => {
+    if (!selectedNetwork.value) return;
+    selectedNetwork.value.network_user_ids = (selectedNetwork.value.network_user_ids || []).filter((id) => String(id) !== String(userId));
+};
+
+const getAssociatedNetwork = (userId) => {
+    const option = usersOptions.value.find((user) => String(user.id) === String(userId));
+    if (option) return option;
+
+    const association = selectedNetwork.value?.users?.find((user) => String(user.id ?? user.user_id) === String(userId));
+    if (association) return association;
+
+    const network = selectedNetwork.value?.user;
+    if (network && String(network.id) === String(userId)) return network;
+
+    return { id: userId, name: `Network #${userId}` };
+};
+
+const availableNetworkOptions = computed(() => {
+    const selectedIds = selectedNetwork.value?.network_user_ids || [];
+    const query = networkSearch.value.trim().toLowerCase();
+
+    return usersOptions.value.filter(
+        (network) =>
+            !selectedIds.some((id) => String(id) === String(network.id)) &&
+            (!query || network.name?.toLowerCase().includes(query)),
+    );
+});
+
 const resources = useResourceStore();
 const showFilter = ref(false);
 const formLoading = ref(false);
 const networkModalOpen = ref(false);
 const selectedNetwork = ref(null);
+const networkSearch = ref('');
+const showNetworkOptions = ref(false);
 const isEditMode = ref(false);
 const isOpen = ref(false);
+const companySearchResults = ref([]);
+const companySearchLoading = ref(false);
+const showCompanySearchResults = ref(false);
+const companySearchCompleted = ref(false);
+const selectedCompanySearchName = ref('');
+const selectedExistingCompanyId = ref(null);
+let companySearchDebounce;
+let companySearchRequestId = 0;
 
 // جلب الإحصائيات من API
 const networkStatistics = ref({});
@@ -432,6 +554,13 @@ async function restoreItems() {
 function openAddModal() {
     isEditMode.value = false;
     formLoading.value = false;
+    networkSearch.value = '';
+    showNetworkOptions.value = false;
+    selectedExistingCompanyId.value = null;
+    companySearchResults.value = [];
+    companySearchCompleted.value = false;
+    showCompanySearchResults.value = false;
+    selectedCompanySearchName.value = '';
     selectedNetwork.value = {
         name: '',
         address: '',
@@ -445,17 +574,166 @@ function openAddModal() {
         status: 'pending',
         type: 'member',
         unhashed_password: '',
-        // 🔒 لو أدمن عادي → user_id بتاعه، ولو سوبر → فاضي
-        user_id: forcedUserId.value || null,
+        // Prefer the logged-in account's network ID when creating a company.
+        user_id: userStore.getUserId || forcedUserId.value || null,
+        network_user_ids: userStore.getUserId ? [userStore.getUserId] : [],
+        network_user_states: userStore.getUserId ? { [userStore.getUserId]: false } : {},
+        users: [],
         phone_key_id: 1,
         image: null,
     };
     networkModalOpen.value = true;
 }
 
+const fillNetworkFromCompany = (company) => {
+    if (!selectedNetwork.value || !company) return;
+
+    selectedExistingCompanyId.value = company.id ?? null;
+    selectedNetwork.value = {
+        ...selectedNetwork.value,
+        name: company.name ?? '',
+        address: company.address ?? '',
+        city: company.city ?? '',
+        status: company.status ?? selectedNetwork.value.status,
+        company_email: company.company_email ?? '',
+        type: company.type ?? selectedNetwork.value.type,
+        email: company.email ?? '',
+        phone: company.phone ?? '',
+        website: company.website ?? '',
+        type_company: company.type_company ?? selectedNetwork.value.type_company,
+        phone_key_id: company.phone_key_id ?? company.phoneKeyId ?? selectedNetwork.value.phone_key_id ?? 1,
+        country_id: company.country_id ?? company.country?.id ?? null,
+        image: company.image || null,
+        user_id: userStore.getUserId ?? selectedNetwork.value.user_id ?? company.user_id ?? null,
+        users: company.users || [],
+        network_user_ids: getAssociatedNetworkIds(company),
+        network_user_states: getAssociatedNetworkStates(company),
+    };
+    selectedCompanySearchName.value = company.name || '';
+    companySearchResults.value = [];
+    companySearchCompleted.value = false;
+    showCompanySearchResults.value = false;
+};
+
+const searchCompaniesForNetwork = async (query) => {
+    const requestId = ++companySearchRequestId;
+    companySearchLoading.value = true;
+
+    try {
+        const { data, error } = await useApiFetch('/api/get-companies', {
+            method: 'GET',
+            query: { name: query },
+            lazy: true,
+        });
+
+        if (requestId !== companySearchRequestId) return;
+        if (error.value) {
+            companySearchResults.value = [];
+            companySearchCompleted.value = true;
+            showCompanySearchResults.value = false;
+            useToast({ title: 'Error', message: error.value.message || 'Failed to search companies', type: 'error', duration: 5000 });
+            return;
+        }
+
+        const companies = Array.isArray(data.value?.data) ? data.value.data : Array.isArray(data.value?.data?.data) ? data.value.data.data : [];
+        const results = companies.filter((company) => company.name?.toLowerCase().includes(query.toLowerCase()));
+        companySearchResults.value = results;
+        companySearchCompleted.value = true;
+        showCompanySearchResults.value = results.length > 0;
+
+        const exactMatches = results.filter((company) => company.name?.trim().toLowerCase() === query.trim().toLowerCase());
+        if (exactMatches.length === 1) {
+            await selectCompanySearchResult(exactMatches[0]);
+        }
+    } catch (error) {
+        if (requestId === companySearchRequestId) {
+            companySearchResults.value = [];
+            companySearchCompleted.value = true;
+            showCompanySearchResults.value = false;
+            useToast({ title: 'Error', message: error.message || 'Failed to search companies', type: 'error', duration: 5000 });
+        }
+    } finally {
+        if (requestId === companySearchRequestId) {
+            companySearchLoading.value = false;
+        }
+    }
+};
+
+watch(
+    () => selectedNetwork.value?.name,
+    (name) => {
+        clearTimeout(companySearchDebounce);
+        companySearchRequestId += 1;
+        companySearchLoading.value = false;
+        if (isEditMode.value || !networkModalOpen.value || !name?.trim()) {
+            selectedExistingCompanyId.value = null;
+            companySearchResults.value = [];
+            companySearchCompleted.value = false;
+            showCompanySearchResults.value = false;
+            return;
+        }
+        if (name === selectedCompanySearchName.value) return;
+
+        selectedExistingCompanyId.value = null;
+        selectedCompanySearchName.value = '';
+        companySearchCompleted.value = false;
+        companySearchDebounce = setTimeout(() => {
+            searchCompaniesForNetwork(name.trim());
+        }, 300);
+    },
+);
+
+const selectCompanySearchResult = async (company) => {
+    if (!company?.id) return;
+
+    clearTimeout(companySearchDebounce);
+    const requestId = ++companySearchRequestId;
+    companySearchLoading.value = false;
+    showCompanySearchResults.value = false;
+    formLoading.value = true;
+
+    try {
+        const { data, error } = await useApiFetch(`/api/member-network/${company.id}`, {
+            method: 'GET',
+            lazy: true,
+        });
+
+        if (requestId !== companySearchRequestId || !networkModalOpen.value) return;
+        if (error.value) {
+            useToast({ title: 'Error', message: error.value.message || 'Failed to load company details', type: 'error', duration: 5000 });
+            return;
+        }
+
+        const companyDetails = data.value?.data;
+        if (!companyDetails) {
+            useToast({ title: 'Error', message: 'Company details were not returned', type: 'error', duration: 5000 });
+            return;
+        }
+
+        fillNetworkFromCompany(companyDetails);
+    } catch (error) {
+        if (requestId === companySearchRequestId && networkModalOpen.value) {
+            useToast({ title: 'Error', message: error.message || 'Failed to load company details', type: 'error', duration: 5000 });
+        }
+    } finally {
+        if (requestId === companySearchRequestId) {
+            formLoading.value = false;
+        }
+    }
+};
+
 async function openEditModal(id) {
     isEditMode.value = true;
     formLoading.value = true;
+    networkSearch.value = '';
+    showNetworkOptions.value = false;
+    selectedExistingCompanyId.value = null;
+    clearTimeout(companySearchDebounce);
+    companySearchRequestId += 1;
+    companySearchLoading.value = false;
+    companySearchResults.value = [];
+    companySearchCompleted.value = false;
+    showCompanySearchResults.value = false;
     networkModalOpen.value = true;
 
     const { data, error } = await useApiFetch(`/api/member-network/${id}`, {
@@ -486,6 +764,9 @@ async function openEditModal(id) {
             ...data.value.data,
             country_id: data.value.data.country?.id || null,
             user_id: data.value.data.user?.id || null,
+            users: data.value.data.users || [],
+            network_user_ids: getAssociatedNetworkIds(data.value.data),
+            network_user_states: getAssociatedNetworkStates(data.value.data),
             phone_key_id: data.value.data.phone_key_id ?? data.value.data.phoneKeyId ?? data.value.data.phone_key ?? 1,
             image: imageData,
         };
@@ -500,6 +781,15 @@ async function openEditModal(id) {
 
 function closeModal() {
     networkModalOpen.value = false;
+    networkSearch.value = '';
+    showNetworkOptions.value = false;
+    selectedExistingCompanyId.value = null;
+    clearTimeout(companySearchDebounce);
+    companySearchRequestId += 1;
+    companySearchLoading.value = false;
+    companySearchResults.value = [];
+    companySearchCompleted.value = false;
+    showCompanySearchResults.value = false;
     setTimeout(() => {
         selectedNetwork.value = null;
         formLoading.value = false;
@@ -511,9 +801,17 @@ async function submitNetwork() {
     if (!selectedNetwork.value) return;
 
     formLoading.value = true;
+    const linkingExistingCompany = !isEditMode.value && selectedExistingCompanyId.value !== null;
+    const selectedNetworkUserIds = selectedNetwork.value.network_user_ids || [];
+    if (linkingExistingCompany && !userStore.getUserId && selectedNetworkUserIds.length === 0) {
+        formLoading.value = false;
+        useToast({ title: 'Error', message: 'Select at least one associated network', type: 'error', duration: 5000 });
+        return;
+    }
+
     const url = isEditMode.value ? `/api/member-network/${selectedNetwork.value.id}` : '/api/member-network';
 
-    const method = isEditMode.value ? 'PUT' : 'POST';
+    const method = isEditMode.value || linkingExistingCompany ? 'PUT' : 'POST';
 
     let imageId = null;
     if (selectedNetwork.value.image) {
@@ -526,26 +824,37 @@ async function submitNetwork() {
         }
     }
 
-    const payload = {
-        name: selectedNetwork.value.name,
-        address: selectedNetwork.value.address,
-        city: selectedNetwork.value.city,
-        status: selectedNetwork.value.status,
-        company_email: selectedNetwork.value.company_email,
-        type: selectedNetwork.value.type,
-        email: selectedNetwork.value.email,
-        phone: selectedNetwork.value.phone,
-        website: selectedNetwork.value.website,
-        unhashed_password: selectedNetwork.value.unhashed_password,
-        type_company: selectedNetwork.value.type_company,
-        phone_key_id: selectedNetwork.value.phone_key_id || 1,
-        country_id: selectedNetwork.value.country_id,
-        // 🔒 الأدمن العادي يبعت user_id بتاعه إجباري
-        user_id: forcedUserId.value || selectedNetwork.value.user_id,
-        image: imageId,
-    };
+    const associatedUserIds = selectedNetwork.value.network_user_ids || getAssociatedNetworkIds(selectedNetwork.value);
+    if (linkingExistingCompany && userStore.getUserId && !associatedUserIds.some((userId) => String(userId) === String(userStore.getUserId))) {
+        associatedUserIds.push(userStore.getUserId);
+    }
 
-    const { data, error } = await useApiFetch(url, {
+    const payload = linkingExistingCompany
+        ? { users: buildAssociatedUsersPayload(selectedNetwork.value, associatedUserIds) }
+        : {
+              name: selectedNetwork.value.name,
+              address: selectedNetwork.value.address,
+              city: selectedNetwork.value.city,
+              status: selectedNetwork.value.status,
+              company_email: selectedNetwork.value.company_email,
+              type: selectedNetwork.value.type,
+              email: selectedNetwork.value.email,
+              phone: selectedNetwork.value.phone,
+              website: selectedNetwork.value.website,
+              unhashed_password: selectedNetwork.value.unhashed_password,
+              type_company: selectedNetwork.value.type_company,
+              phone_key_id: selectedNetwork.value.phone_key_id || 1,
+              country_id: selectedNetwork.value.country_id,
+              // 🔒 الأدمن العادي يبعت user_id بتاعه إجباري
+              user_id: isEditMode.value
+                  ? forcedUserId.value || (userStore.isSuperAdmin ? associatedUserIds[0] ?? null : selectedNetwork.value.user_id)
+                  : userStore.getUserId || forcedUserId.value || selectedNetwork.value.network_user_ids?.[0] || selectedNetwork.value.user_id,
+              image: imageId,
+              ...(associatedUserIds.length > 0 ? { users: buildAssociatedUsersPayload(selectedNetwork.value, associatedUserIds) } : {}),
+          };
+
+    const requestUrl = linkingExistingCompany ? `/api/member-network/${selectedExistingCompanyId.value}` : url;
+    const { data, error } = await useApiFetch(requestUrl, {
         method: method,
         body: payload,
         lazy: true,
@@ -554,7 +863,7 @@ async function submitNetwork() {
     if (data.value) {
         useToast({
             title: 'Success',
-            message: isEditMode.value ? 'Company updated successfully' : 'Company created successfully',
+            message: linkingExistingCompany ? 'Company linked to your network successfully' : isEditMode.value ? 'Company updated successfully' : 'Company created successfully',
             type: 'success',
             duration: 5000,
         });
@@ -927,7 +1236,24 @@ onMounted(async () => {
                     <div class="lg:col-span-12">
                         <h4 class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-4">Basic Information</h4>
                         <div class="grid lg:grid-cols-12 gap-5">
-                            <FormInputField v-model="selectedNetwork.name" class="lg:col-span-6" label="Company Name *" placeholder="Enter company name" required />
+                            <div class="lg:col-span-6 relative">
+                                <FormInputField v-model="selectedNetwork.name" label="Company Name *" placeholder="Enter company name" required />
+                                <div
+                                    v-if="!isEditMode && (companySearchLoading || showCompanySearchResults || companySearchCompleted)"
+                                    class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg"
+                                >
+                                    <div v-if="companySearchLoading" class="px-4 py-3 text-sm text-slate-500">Searching companies...</div>
+                                    <template v-else-if="showCompanySearchResults">
+                                        <button v-for="company in companySearchResults" :key="company.id" type="button" class="block w-full px-4 py-3 text-left text-sm hover:bg-slate-50" @click="selectCompanySearchResult(company)">
+                                            <span class="block font-medium">{{ company.name }}</span>
+                                            <span v-if="company.city || company.country?.name" class="mt-0.5 block text-xs text-slate-500">
+                                                {{ [company.city, company.country?.name].filter(Boolean).join(', ') }}
+                                            </span>
+                                        </button>
+                                    </template>
+                                    <div v-else-if="companySearchCompleted" class="px-4 py-3 text-sm text-slate-500">No matching companies found</div>
+                                </div>
+                            </div>
                             <FormInputField v-model="selectedNetwork.company_email" class="lg:col-span-6" label="Company Email *" placeholder="Enter company email" type="email" required />
                             <FormInputField v-model="selectedNetwork.email" class="lg:col-span-6" label="Login Email *" placeholder="Enter login email" type="email" required />
                             <FormInputField v-model="selectedNetwork.unhashed_password" class="lg:col-span-6" label="Password" placeholder="Enter password" type="password" />
@@ -976,20 +1302,93 @@ onMounted(async () => {
                         <h4 class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-4">Company Settings</h4>
                         <div class="grid lg:grid-cols-12 gap-5">
                             <!-- 🔒 بيظهر بس للسوبر أدمن -->
-                            <FormSelectField
-                                v-if="userStore.isSuperAdmin"
-                                id="add-network-user"
-                                v-model="selectedNetwork.user_id"
-                                name="add-network-user"
-                                class="lg:col-span-6"
-                                label="Associated User (Network) *"
-                                placeholder="Select user"
-                                :select-data="usersOptions"
-                                labelvalue="name"
-                                keyvalue="id"
-                                imgvalue="imageUrl"
-                                required
-                            />
+                            <div class="lg:col-span-6">
+                                <label for="add-network-user" class="form-label opacity-75 font-light">
+                                    <span>Associated Network{{ userStore.isSuperAdmin ? 's' : '' }}</span>
+                                    <span class="ml-1 text-sm text-danger">*</span>
+                                </label>
+                                <div v-if="userStore.isSuperAdmin" class="relative">
+                                    <input
+                                        id="add-network-user"
+                                        name="add-network-user"
+                                        v-model="networkSearch"
+                                        class="form-control form-control-rounded"
+                                        autocomplete="off"
+                                        placeholder="Search and select a network to add"
+                                        @focus="showNetworkOptions = true"
+                                        @input="showNetworkOptions = true"
+                                    />
+                                    <div
+                                        v-if="showNetworkOptions"
+                                        class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg"
+                                    >
+                                        <button
+                                            v-for="network in availableNetworkOptions"
+                                            :key="network.id"
+                                            type="button"
+                                            class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-slate-50"
+                                            @click="addAssociatedNetwork(network.id)"
+                                        >
+                                            <img
+                                                v-if="network.imageUrl"
+                                                :src="network.imageUrl"
+                                                :alt="network.name"
+                                                class="h-7 w-7 shrink-0 rounded-full border border-slate-100 bg-white object-contain"
+                                            />
+                                            <span v-else class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-500">
+                                                {{ network.name?.charAt(0) || '?' }}
+                                            </span>
+                                            <span class="truncate">{{ network.name }}</span>
+                                        </button>
+                                        <div v-if="availableNetworkOptions.length === 0" class="px-4 py-3 text-sm text-slate-500">
+                                            {{ networkSearch ? 'No matching networks found' : 'All networks are already selected' }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="selectedNetwork.network_user_ids?.length" class="mt-3 flex flex-wrap gap-2">
+                                    <div
+                                        v-for="userId in selectedNetwork.network_user_ids"
+                                        :key="userId"
+                                        class="inline-flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-2 pr-1.5 shadow-sm"
+                                    >
+                                        <div class="flex min-w-0 items-center gap-2">
+                                            <img
+                                                v-if="getAssociatedNetwork(userId).imageUrl"
+                                                :src="getAssociatedNetwork(userId).imageUrl"
+                                                :alt="getAssociatedNetwork(userId).name"
+                                                class="h-6 w-16 shrink-0 rounded-full border border-slate-100 bg-white object-contain"
+                                            />
+                                            <span v-else class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-500">
+                                                {{ getAssociatedNetwork(userId).name?.charAt(0) || '?' }}
+                                            </span>
+                                            <span class="max-w-56 truncate text-sm font-medium text-slate-700">{{ getAssociatedNetwork(userId).name }}</span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            role="switch"
+                                            class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                            :class="getAssociatedNetworkActive(userId) ? 'bg-green-600' : 'bg-slate-300'"
+                                            :aria-checked="getAssociatedNetworkActive(userId)"
+                                            :aria-label="`${getAssociatedNetwork(userId).name}: ${getAssociatedNetworkActive(userId) ? 'active' : 'inactive'}. Click to change`"
+                                            @click="setAssociatedNetworkActive(userId, !getAssociatedNetworkActive(userId))"
+                                        >
+                                            <span
+                                                class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
+                                                :class="getAssociatedNetworkActive(userId) ? 'translate-x-6' : 'translate-x-1'"
+                                            />
+                                        </button>
+                                        <button
+                                            v-if="userStore.isSuperAdmin"
+                                            type="button"
+                                            class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                                            :aria-label="`Remove ${getAssociatedNetwork(userId).name}`"
+                                            @click="removeAssociatedNetwork(userId)"
+                                        >
+                                            <Icon name="solar:close-circle-linear" class="size-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                             <FormSelectField
                                 id="add-network-type-company"
                                 v-model="selectedNetwork.type_company"
