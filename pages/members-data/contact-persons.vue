@@ -696,7 +696,7 @@ onMounted(async () => {
                             <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                             <td class="text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <button v-if="useCheckPermission(['network_contact_person_update'])" class="btn btn-secondary btn-rounded btn-sm gap-2" @click="openEditModal(row.id)">
+                                    <button v-if="useCheckPermission(['update-members-data-contact-persons'])" class="btn btn-secondary btn-rounded btn-sm gap-2" @click="openEditModal(row.id)">
                                         <Icon name="solar:pen-new-round-outline" class="size-3.5" />
                                         Edit
                                     </button>

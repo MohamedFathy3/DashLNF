@@ -28,10 +28,8 @@ export const useUserStore = defineStore('user', () => {
     const setToken = (data?: string) => {
         if (data) {
             token.value = data;
-            console.log('✅ Token stored in cookie:', data.substring(0, 20) + '...');
         } else {
             token.value = null;
-            console.log('🗑️ Token removed from cookie');
         }
     };
 
@@ -41,51 +39,44 @@ export const useUserStore = defineStore('user', () => {
 
     const login = async (data: Credentials, path?: LocationQueryValue) => {
         try {
-            console.log('📝 Attempting login...');
-
-            // 1. جلب CSRF cookie
             await useApiFetch('/sanctum/csrf-cookie');
 
-            // 2. تسجيل الدخول
             const { data: userData, error } = await useApiFetch(`/api/admin/login`, {
                 method: 'POST',
                 body: data,
             });
 
-            if (userData.value) {
-                const responseData = userData.value as ApiResponse;
-                setUser(responseData.data as Admin);
-
-                // 👈 الأهم هنا: خزن التوكن من الـ response في الكوكيز
-                if (responseData.token) {
-                    setToken(responseData.token);
-
-                    // تحقق أن التوكن اتحط في الكوكيز
-                    if (process.client) {
-                        console.log('🍪 All cookies after login:', document.cookie);
-                    }
-                }
-
-                // التوجيه بعد النجاح
-                if (path) {
-                    navigateTo(path);
-                } else {
-                    navigateTo('/');
-                }
-
-                useToast({
-                    title: 'Welcome',
-                    message: 'Logged in Successfully',
-                    type: 'success',
-                    duration: 5000,
-                });
-            }
-
             if (error.value) {
                 throw new Error(error.value.data?.message || 'Login failed');
             }
+            if (!userData.value) {
+                throw new Error('Login failed: no response from the server');
+            }
+
+            const responseData = userData.value as ApiResponse;
+            if (!responseData.token) {
+                throw new Error('Login failed: the server did not return an authentication token');
+            }
+
+            setToken(responseData.token);
+            setUser();
+
+            if (!(await fetchAuthUser())) {
+                setToken();
+                setUser();
+                throw new Error('Unable to load your account permissions');
+            }
+
+            await navigateTo(path || '/');
+
+            useToast({
+                title: 'Welcome',
+                message: 'Logged in Successfully',
+                type: 'success',
+                duration: 5000,
+            });
         } catch (error: any) {
-            console.error('❌ Login error:', error);
+            console.error('Login error:', error);
             useToast({
                 title: 'Error',
                 message: error.message || 'Login failed',
@@ -96,13 +87,9 @@ export const useUserStore = defineStore('user', () => {
     };
 
     const fetchAuthUser = async () => {
-        // 👈 تحقق من وجود التوكن في الكوكيز
         if (!token.value) {
-            console.log('❌ No token in cookies');
             return false;
         }
-
-        console.log('🔍 Fetching user with token:', token.value.substring(0, 20) + '...');
 
         try {
             // CSRF للـ Sanctum
@@ -121,14 +108,11 @@ export const useUserStore = defineStore('user', () => {
 
             if (res.value) {
                 setUser(res.value as Admin);
-                console.log('✅ User fetched successfully');
 
-                // جدد التوكن في الكوكيز (لو السيرفر بعت توكن جديد)
                 if (process.client) {
                     const newToken = useCookie('LNF_ADMIN_AUTH_TOKEN').value;
                     if (newToken && newToken !== token.value) {
                         token.value = newToken;
-                        console.log('🔄 Token refreshed in cookie');
                     }
                 }
 
@@ -138,10 +122,8 @@ export const useUserStore = defineStore('user', () => {
             if (error.value) {
                 console.error('❌ Error fetching user:', error.value);
 
-                // لو الـ error 401، امسح التوكن من الكوكيز
                 if (error.value.status === 401) {
-                    console.log('🔴 Token invalid or expired');
-                    setToken(); // مسح التوكن من الكوكيز
+                    setToken();
                     await logout();
                 }
                 return false;
