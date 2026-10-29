@@ -249,16 +249,8 @@ const { data: usersData } = await useApiFetch('/api/user/index', {
 });
 
 const userOptions = computed(() => usersData.value?.data || []);
-const selectedUserId = computed(() => (canChooseNetwork.value ? item.value.user_id : userStore.getUserId));
 const availableMembers = computed(() => {
-    const members = Array.isArray(activeMembers.value?.data) ? activeMembers.value.data : activeMembers.value?.data?.data || [];
-    if (canChooseNetwork.value && !selectedUserId.value) return members;
-    if (!selectedUserId.value) return [];
-
-    return members.filter((member) => {
-        const memberUserId = member.user_id ?? member.userId ?? member.user?.id ?? member.user?.user_id ?? member.memberNetwork?.user_id ?? member.memberNetwork?.userId;
-        return Number(memberUserId) === Number(selectedUserId.value);
-    });
+    return Array.isArray(activeMembers.value?.data) ? activeMembers.value.data : activeMembers.value?.data?.data || [];
 });
 
 /* ---------- Company helpers ---------- */
@@ -633,7 +625,7 @@ function removeCompany(idCompany) {
                     />
 
                     <!-- Companies -->
-                    <div v-if="editMode" class="col-span-12 pt-8 border-slate-200 border-t">
+                    <div class="col-span-12 pt-8 border-slate-200 border-t">
                         <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
                             <h3 class="font-medium text-lg">Companies</h3>
                             <div class="flex items-center gap-2 text-xs">
@@ -644,7 +636,10 @@ function removeCompany(idCompany) {
                         </div>
 
                         <!-- Add company (sticky) -->
-                        <div v-if="useCheckPermission(['update-members-data-groups'])" class="sticky top-0 z-20 mb-4 grid grid-cols-1 xl:grid-cols-12 gap-4 items-end rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <div
+                            v-if="editMode ? useCheckPermission(['update-members-data-groups']) : useCheckPermission(['create-members-data-groups'])"
+                            class="sticky top-0 z-20 mb-4 grid grid-cols-1 xl:grid-cols-12 gap-4 items-end rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                        >
                             <FormSelectField
                                 v-model="companyDraft.id_company"
                                 labelvalue="name"
@@ -700,7 +695,7 @@ function removeCompany(idCompany) {
                                         v-for="t in companyTypes"
                                         :key="t.value"
                                         type="button"
-                                        :disabled="!useCheckPermission(['update-members-data-groups'])"
+                                        :disabled="editMode ? !useCheckPermission(['update-members-data-groups']) : !useCheckPermission(['create-members-data-groups'])"
                                         class="rounded-full px-3 py-1 transition disabled:cursor-not-allowed"
                                         :class="member.type_company === t.value ? (t.value === 'hq' ? 'bg-amber-400 text-amber-950 shadow-sm' : 'bg-white text-slate-800 shadow-sm') : 'text-slate-500 hover:text-slate-700'"
                                         @click="member.type_company = t.value"
@@ -711,7 +706,7 @@ function removeCompany(idCompany) {
 
                                 <!-- Remove -->
                                 <button
-                                    :disabled="!useCheckPermission(['update-members-data-groups'])"
+                                    :disabled="editMode ? !useCheckPermission(['update-members-data-groups']) : !useCheckPermission(['create-members-data-groups'])"
                                     type="button"
                                     title="Remove from group"
                                     class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-40 shrink-0"
