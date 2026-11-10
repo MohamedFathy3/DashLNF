@@ -1,6 +1,7 @@
 <script setup>
 import { required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import { memberTypes } from '~/utils/member-types';
 const formLoading = ref(false);
 const resources = useResourceStore();
 const props = defineProps({
@@ -87,14 +88,6 @@ const membershipStatues = ref([
     { name: 'Suspended', value: 'suspended' },
     { name: 'Blacklisted', value: 'blacklisted' },
 ]);
-const membershipTypes = ref([
-    { name: 'Member', value: 'member' },
-    { name: 'Founder', value: 'founder' },
-    { name: 'Partner', value: 'partner' },
-    { name: 'Vendor', value: 'vendor' },
-    { name: 'Non Member', value: 'non_member' },
-    { name: 'LNF Team', value: 'wsa_team' },
-]);
 const internalReportTypes = ref([
     { name: 'Unpaid', value: 'free' },
     { name: 'Paid', value: 'paid' },
@@ -150,7 +143,7 @@ async function updateNetwork() {
                     name="network-name"
                     placeholder="Please select a network..."
                 />
-                <FormSelectField v-model="item.type" :errors="v$.type.$errors" labelvalue="name" keyvalue="value" :select-data="membershipTypes" class="lg:col-span-6" label="Type" name="network-membership-type" placeholder="Membership Type" />
+                <FormSelectField v-model="item.type" :errors="v$.type.$errors" labelvalue="name" keyvalue="value" :select-data="memberTypes" class="lg:col-span-6" label="Type" name="network-membership-type" placeholder="Membership Type" />
                 <FormSelectField
                     v-model="item.status"
                     :errors="v$.status.$errors"

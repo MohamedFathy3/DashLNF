@@ -1,6 +1,7 @@
 <script setup>
 import * as XLSX from 'xlsx';
 import FileSaver from 'file-saver';
+import { memberTypes } from '~/utils/member-types';
 
 definePageMeta({
     middleware: ['auth', 'permission'],
@@ -24,18 +25,13 @@ const filter = ref({
     address: null,
     city: null,
     user_id: null,
+    member_service_ids: [],
 });
 
 const networkFilter = ref({
     status: null,
     typeCompany: null,
 });
-
-const membershipTypes = ref([
-    { name: 'Member', value: 'member' },
-    { name: 'Founder', value: 'founder' },
-    { name: 'Vendor', value: 'vendor' },
-]);
 
 const membershipStatuses = [
     { name: 'Approved', value: 'approved' },
@@ -85,6 +81,30 @@ const { data: usersData, refresh: refreshUsers } = await useApiFetch('/api/user/
     lazy: true,
 });
 
+const { data: memberServicesData, error: memberServicesError } = await useApiFetch('/api/member-servise/index', {
+    method: 'POST',
+    body: {
+        filters: {},
+        orderBy: 'name',
+        orderByDirection: 'asc',
+        perPage: 1000,
+        page: 1,
+        paginate: true,
+        deleted: false,
+    },
+    lazy: true,
+});
+
+const memberServiceOptions = computed(() => {
+    const response = memberServicesData.value?.data;
+    const services = Array.isArray(response) ? response : Array.isArray(response?.data) ? response.data : [];
+    return services;
+});
+
+watch(memberServicesError, (error) => {
+    if (error) useToast({ title: 'Error', message: error.data?.message ?? error.message ?? 'Failed to load services.', type: 'error', duration: 5000 });
+});
+
 // ✅ نسخة مختصرة من اليوزرز (الاسم + الصورة بس)
 const usersOptions = computed(() => {
     if (!usersData.value?.data) return [];
@@ -101,9 +121,7 @@ const getAssociatedNetworkIds = (company) => {
     }
 
     const associations = Array.isArray(company?.users) ? company.users : [];
-    const userIds = associations
-        .map((association) => association.id ?? association.user_id)
-        .filter((userId) => userId !== null && userId !== undefined);
+    const userIds = associations.map((association) => association.id ?? association.user_id).filter((userId) => userId !== null && userId !== undefined);
     const fallbackUserId = company?.user?.id ?? company?.user_id;
 
     if (fallbackUserId !== null && fallbackUserId !== undefined && !userIds.some((userId) => String(userId) === String(fallbackUserId))) {
@@ -128,9 +146,7 @@ const getAssociatedNetworkStates = (company) => {
 
 const buildAssociatedUsersPayload = (company, userIds) => {
     const associations = Array.isArray(company?.users) ? company.users : [];
-    const preservedUserIds = userStore.isSuperAdmin
-        ? []
-        : associations.map((association) => association.id ?? association.user_id).filter((userId) => userId !== null && userId !== undefined);
+    const preservedUserIds = userStore.isSuperAdmin ? [] : associations.map((association) => association.id ?? association.user_id).filter((userId) => userId !== null && userId !== undefined);
 
     return [...new Set([...preservedUserIds, ...userIds])]
         .filter((userId) => userId !== null && userId !== undefined)
@@ -200,11 +216,7 @@ const availableNetworkOptions = computed(() => {
     const selectedIds = selectedNetwork.value?.network_user_ids || [];
     const query = networkSearch.value.trim().toLowerCase();
 
-    return usersOptions.value.filter(
-        (network) =>
-            !selectedIds.some((id) => String(id) === String(network.id)) &&
-            (!query || network.name?.toLowerCase().includes(query)),
-    );
+    return usersOptions.value.filter((network) => !selectedIds.some((id) => String(id) === String(network.id)) && (!query || network.name?.toLowerCase().includes(query)));
 });
 
 const resources = useResourceStore();
@@ -224,6 +236,9 @@ const selectedCompanySearchName = ref('');
 const selectedExistingCompanyId = ref(null);
 let companySearchDebounce;
 let companySearchRequestId = 0;
+
+const normalizeServiceIds = (services) =>
+    Array.isArray(services) ? services.map((service) => (typeof service === 'object' && service !== null ? (service.id ?? service.service_id ?? service.member_service_id) : service)).filter((id) => id !== null && id !== undefined) : [];
 
 // جلب الإحصائيات من API
 const networkStatistics = ref({});
@@ -347,6 +362,7 @@ const resetServerParams = async () => {
         address: null,
         city: null,
         user_id: null,
+        member_service_ids: [],
     };
     networkFilter.value = {
         status: null,
@@ -405,7 +421,7 @@ watch(
                 continue;
             }
             const value = newVal[key];
-            if (value !== null && value !== '') {
+            if (Array.isArray(value) ? value.length > 0 : value !== null && value !== '') {
                 serverParams.value.filters[key] = value;
             } else {
                 delete serverParams.value.filters[key];
@@ -576,6 +592,7 @@ function openAddModal() {
         unhashed_password: '',
         // Prefer the logged-in account's network ID when creating a company.
         user_id: userStore.getUserId || forcedUserId.value || null,
+        services: [],
         network_user_ids: userStore.getUserId ? [userStore.getUserId] : [],
         network_user_states: userStore.getUserId ? { [userStore.getUserId]: false } : {},
         users: [],
@@ -604,11 +621,13 @@ const fillNetworkFromCompany = (company) => {
         phone_key_id: company.phone_key_id ?? company.phoneKeyId ?? selectedNetwork.value.phone_key_id ?? 1,
         country_id: company.country_id ?? company.country?.id ?? null,
         image: company.image || null,
+        services: normalizeServiceIds(company.member_services ?? company.services ?? company.member_service_ids),
         user_id: userStore.getUserId ?? selectedNetwork.value.user_id ?? company.user_id ?? null,
         users: company.users || [],
         network_user_ids: getAssociatedNetworkIds(company),
         network_user_states: getAssociatedNetworkStates(company),
     };
+
     selectedCompanySearchName.value = company.name || '';
     companySearchResults.value = [];
     companySearchCompleted.value = false;
@@ -763,6 +782,7 @@ async function openEditModal(id) {
         selectedNetwork.value = {
             ...data.value.data,
             country_id: data.value.data.country?.id || null,
+            services: normalizeServiceIds(data.value.data.member_services ?? data.value.data.services ?? data.value.data.member_service_ids),
             user_id: data.value.data.user?.id || null,
             users: data.value.data.users || [],
             network_user_ids: getAssociatedNetworkIds(data.value.data),
@@ -830,7 +850,7 @@ async function submitNetwork() {
     }
 
     const payload = linkingExistingCompany
-        ? { users: buildAssociatedUsersPayload(selectedNetwork.value, associatedUserIds) }
+        ? { users: buildAssociatedUsersPayload(selectedNetwork.value, associatedUserIds), member_service_ids: selectedNetwork.value.services || [] }
         : {
               name: selectedNetwork.value.name,
               address: selectedNetwork.value.address,
@@ -847,9 +867,10 @@ async function submitNetwork() {
               country_id: selectedNetwork.value.country_id,
               // 🔒 الأدمن العادي يبعت user_id بتاعه إجباري
               user_id: isEditMode.value
-                  ? forcedUserId.value || (userStore.isSuperAdmin ? associatedUserIds[0] ?? null : selectedNetwork.value.user_id)
+                  ? forcedUserId.value || (userStore.isSuperAdmin ? (associatedUserIds[0] ?? null) : selectedNetwork.value.user_id)
                   : userStore.getUserId || forcedUserId.value || selectedNetwork.value.network_user_ids?.[0] || selectedNetwork.value.user_id,
               image: imageId,
+              member_service_ids: selectedNetwork.value.services || [],
               ...(associatedUserIds.length > 0 ? { users: buildAssociatedUsersPayload(selectedNetwork.value, associatedUserIds) } : {}),
           };
 
@@ -1029,12 +1050,29 @@ onMounted(async () => {
                         imgvalue="imageUrl"
                     />
 
+                    <div class="lg:col-span-12 rounded-lg border border-slate-100 bg-slate-50/50 p-5">
+                        <label class="form-label opacity-75 font-light">Services</label>
+                        <fieldset class="grid grid-cols-1 gap-5 px-1 sm:grid-cols-2 lg:grid-cols-4">
+                            <label v-for="service in memberServiceOptions" :key="service.id" class="relative flex cursor-pointer items-start gap-3 text-sm">
+                                <input
+                                    :id="`filter-service-${service.id}`"
+                                    v-model="filter.member_service_ids"
+                                    :name="`filter-service-${service.id}`"
+                                    :value="service.id"
+                                    type="checkbox"
+                                    class="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-500 text-primary focus:ring-primary"
+                                />
+                                <span>{{ service.name }}</span>
+                            </label>
+                        </fieldset>
+                    </div>
+
                     <div class="lg:col-span-12">
                         <div class="border border-slate-100 bg-slate-50/50 rounded-lg grid grid-cols-12 p-5 gap-5">
                             <div class="sm:col-span-12">
                                 <label class="form-label opacity-75 font-light">Member Type</label>
                                 <fieldset class="px-5 grid lg:grid-cols-3 sm:grid-cols-2 gap-5 grid-cols-1 duration-300 ease-in-out">
-                                    <div v-for="option in membershipTypes" :key="option.value" class="relative flex items-start">
+                                    <div v-for="option in memberTypes" :key="option.value" class="relative flex items-start">
                                         <div class="flex items-center h-6">
                                             <input
                                                 :id="'type-' + option.value"
@@ -1301,6 +1339,25 @@ onMounted(async () => {
                     <div class="lg:col-span-12">
                         <h4 class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-4">Company Settings</h4>
                         <div class="grid lg:grid-cols-12 gap-5">
+                            <div class="lg:col-span-12 rounded-lg border border-slate-100 bg-slate-50/50 p-5">
+                                <div class="mb-4 border-b border-dashed border-slate-200 pb-3">
+                                    <h5 class="text-sm font-medium text-slate-700">Services</h5>
+                                    <p class="mt-1 text-sm text-slate-500">Please indicate the services your company provides.</p>
+                                </div>
+                                <fieldset class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
+                                    <label v-for="service in memberServiceOptions" :key="service.id" class="relative flex cursor-pointer items-start gap-3 text-sm">
+                                        <input
+                                            :id="`company-service-${service.id}`"
+                                            v-model="selectedNetwork.services"
+                                            :name="`company-service-${service.id}`"
+                                            :value="service.id"
+                                            type="checkbox"
+                                            class="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-500 text-primary focus:ring-primary"
+                                        />
+                                        <span>{{ service.name }}</span>
+                                    </label>
+                                </fieldset>
+                            </div>
                             <!-- 🔒 بيظهر بس للسوبر أدمن -->
                             <div class="lg:col-span-6">
                                 <label for="add-network-user" class="form-label opacity-75 font-light">
@@ -1310,18 +1367,15 @@ onMounted(async () => {
                                 <div v-if="userStore.isSuperAdmin" class="relative">
                                     <input
                                         id="add-network-user"
-                                        name="add-network-user"
                                         v-model="networkSearch"
+                                        name="add-network-user"
                                         class="form-control form-control-rounded"
                                         autocomplete="off"
                                         placeholder="Search and select a network to add"
                                         @focus="showNetworkOptions = true"
                                         @input="showNetworkOptions = true"
                                     />
-                                    <div
-                                        v-if="showNetworkOptions"
-                                        class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg"
-                                    >
+                                    <div v-if="showNetworkOptions" class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
                                         <button
                                             v-for="network in availableNetworkOptions"
                                             :key="network.id"
@@ -1329,12 +1383,7 @@ onMounted(async () => {
                                             class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-slate-50"
                                             @click="addAssociatedNetwork(network.id)"
                                         >
-                                            <img
-                                                v-if="network.imageUrl"
-                                                :src="network.imageUrl"
-                                                :alt="network.name"
-                                                class="h-7 w-7 shrink-0 rounded-full border border-slate-100 bg-white object-contain"
-                                            />
+                                            <img v-if="network.imageUrl" :src="network.imageUrl" :alt="network.name" class="h-7 w-7 shrink-0 rounded-full border border-slate-100 bg-white object-contain" />
                                             <span v-else class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-500">
                                                 {{ network.name?.charAt(0) || '?' }}
                                             </span>
@@ -1346,11 +1395,7 @@ onMounted(async () => {
                                     </div>
                                 </div>
                                 <div v-if="selectedNetwork.network_user_ids?.length" class="mt-3 flex flex-wrap gap-2">
-                                    <div
-                                        v-for="userId in selectedNetwork.network_user_ids"
-                                        :key="userId"
-                                        class="inline-flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-2 pr-1.5 shadow-sm"
-                                    >
+                                    <div v-for="userId in selectedNetwork.network_user_ids" :key="userId" class="inline-flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-2 pr-1.5 shadow-sm">
                                         <div class="flex min-w-0 items-center gap-2">
                                             <img
                                                 v-if="getAssociatedNetwork(userId).imageUrl"
@@ -1372,10 +1417,7 @@ onMounted(async () => {
                                             :aria-label="`${getAssociatedNetwork(userId).name}: ${getAssociatedNetworkActive(userId) ? 'active' : 'inactive'}. Click to change`"
                                             @click="setAssociatedNetworkActive(userId, !getAssociatedNetworkActive(userId))"
                                         >
-                                            <span
-                                                class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
-                                                :class="getAssociatedNetworkActive(userId) ? 'translate-x-6' : 'translate-x-1'"
-                                            />
+                                            <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform" :class="getAssociatedNetworkActive(userId) ? 'translate-x-6' : 'translate-x-1'" />
                                         </button>
                                         <button
                                             v-if="userStore.isSuperAdmin"

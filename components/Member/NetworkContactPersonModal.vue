@@ -5,7 +5,9 @@ import useVuelidate from '@vuelidate/core';
 const props = defineProps({
     open: { type: Boolean, default: false },
     personId: { type: Number, default: null },
-    networkId: { type: Number, required: true },
+    networkId: { type: Number, default: null },
+    networkOptions: { type: Array, default: () => [] },
+    showNetworkSelector: { type: Boolean, default: false },
 });
 const emit = defineEmits(['close', 'refresh']);
 const resources = useResourceStore();
@@ -13,6 +15,7 @@ const formLoading = ref(false);
 const loadingModal = ref(false);
 const isEditMode = computed(() => Boolean(props.personId));
 const item = ref({
+    user_id: props.networkId,
     title: 'mr',
     first_name: '',
     last_name: '',
@@ -40,6 +43,7 @@ const v$ = useVuelidate(rules, item);
 
 const resetItem = () => {
     item.value = {
+        user_id: props.networkId,
         title: 'mr',
         first_name: '',
         last_name: '',
@@ -70,6 +74,7 @@ const fetchItem = async (id) => {
     const person = data.value?.data || data.value;
     if (person) {
         item.value = {
+            user_id: person.userId ?? person.user_id ?? person.network?.id ?? person.memberNetwork?.id ?? props.networkId,
             title: person.title || 'mr',
             first_name: person.firstName || person.first_name || '',
             last_name: person.lastName || person.last_name || '',
@@ -100,8 +105,15 @@ const submit = async () => {
         return;
     }
 
+    const networkId = item.value.user_id ?? props.networkId;
+    if (!networkId) {
+        formLoading.value = false;
+        useToast({ title: 'Error', message: 'Please select a network', type: 'error', duration: 5000 });
+        return;
+    }
+
     const payload = {
-        user_id: props.networkId,
+        user_id: networkId,
         title: item.value.title,
         first_name: item.value.first_name,
         last_name: item.value.last_name,
@@ -136,6 +148,7 @@ watch(
         if (props.personId) fetchItem(props.personId);
         else {
             resetItem();
+            item.value.user_id = props.networkId;
             loadingModal.value = false;
         }
     },
@@ -154,12 +167,39 @@ watch(
         <template #content>
             <div v-if="loadingModal" class="flex justify-center py-20"><Icon name="svg-spinners:3-dots-fade" class="w-12 h-12 text-primary" /></div>
             <div v-else class="grid lg:grid-cols-12 gap-5">
+                <FormSelectField
+                    v-if="props.showNetworkSelector"
+                    v-model="item.user_id"
+                    :select-data="props.networkOptions"
+                    labelvalue="name"
+                    keyvalue="id"
+                    imgvalue="imageUrl"
+                    class="lg:col-span-12"
+                    label="Network"
+                    name="network-contact-network"
+                    placeholder="Select a network"
+                    required
+                />
                 <div class="lg:col-span-4 flex flex-col gap-5">
                     <FormUploader v-model="item.image" :allowed-types="['image']" label="Profile Image" name="network-contact-image" />
-                    <FormUploader v-model="item.passport" :allowed-types="['image']" label="Passport Image" name="network-contact-passport" />
+                    <!-- <FormUploader v-model="item.passport" :allowed-types="['image']" label="Passport Image" name="network-contact-passport" /> -->
                 </div>
                 <div class="lg:col-span-8 grid lg:grid-cols-12 gap-5">
-                    <FormSelectField v-model="item.title" :select-data="[{ name: 'Mr', value: 'mr' }, { name: 'Mrs', value: 'mrs' }, { name: 'Ms', value: 'ms' } ]" labelvalue="name" keyvalue="value" :errors="v$.title.$errors" class="lg:col-span-4" label="Title" name="network-contact-title" required />
+                    <FormSelectField
+                        v-model="item.title"
+                        :select-data="[
+                            { name: 'Mr', value: 'mr' },
+                            { name: 'Mrs', value: 'mrs' },
+                            { name: 'Ms', value: 'ms' },
+                        ]"
+                        labelvalue="name"
+                        keyvalue="value"
+                        :errors="v$.title.$errors"
+                        class="lg:col-span-4"
+                        label="Title"
+                        name="network-contact-title"
+                        required
+                    />
                     <FormInputField v-model="item.first_name" :errors="v$.first_name.$errors" class="lg:col-span-4" label="First Name" name="network-contact-first-name" required />
                     <FormInputField v-model="item.last_name" :errors="v$.last_name.$errors" class="lg:col-span-4" label="Last Name" name="network-contact-last-name" required />
                     <FormInputField v-model="item.job_title" :errors="v$.job_title.$errors" class="lg:col-span-6" label="Job Title" name="network-contact-job-title" required />

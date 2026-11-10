@@ -1,6 +1,7 @@
 <script setup>
 import { email, numeric, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import { memberTypes } from '~/utils/member-types';
 const formLoading = ref(false);
 const resources = useResourceStore();
 const years = useYearArray(199);
@@ -133,20 +134,6 @@ const resetMemberValues = async () => {
         membershipType: null,
     };
 };
-const nonMembershipTypes = ref([
-    { name: 'Vendor', value: 'vendor' },
-    { name: 'Non Member', value: 'non_member' },
-    { name: 'LNF Team', value: 'wsa_team' },
-]);
-const membershipTypes = ref([
-    { name: 'Member', value: 'member' },
-    { name: 'Founder', value: 'founder' },
-    { name: 'Partner', value: 'partner' },
-    { name: 'Vendor', value: 'vendor' },
-    { name: 'Non Member', value: 'non_member' },
-    { name: 'LNF Team', value: 'wsa_team' },
-]);
-
 async function closeModal() {
     emit('close');
     v$.value.$reset();
@@ -241,7 +228,7 @@ const companyTypes = ref([
                             labelvalue="name"
                             keyvalue="value"
                             :clearable="false"
-                            :select-data="props.member.networks.length === 0 ? nonMembershipTypes : membershipTypes"
+                            :select-data="memberTypes"
                             class="col-span-12 lg:col-span-4"
                             label="Membership Type"
                             name="company-membership-type"

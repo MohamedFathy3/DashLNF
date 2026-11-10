@@ -2,6 +2,7 @@
 <script setup>
 import { email, required } from '@vuelidate/validators';
 import useVuelidate from '@vuelidate/core';
+import { memberTypes } from '~/utils/member-types';
 
 const formLoading = ref(false);
 const resources = useResourceStore();
@@ -49,19 +50,13 @@ const item = ref({
     active: false,
     users: [],
     network_user_ids: [],
+    services: [],
     network_user_states: {},
 });
 
 const companyTypes = ref([
     { name: 'Headquarters', value: 'hq' },
     { name: 'Branch', value: 'branch' },
-]);
-
-const memberTypes = ref([
-    { name: 'Member', value: 'member' },
-    { name: 'Founder', value: 'founder' },
-    { name: 'Vendor', value: 'vendor' },
-    { name: 'Partner', value: 'partner' },
 ]);
 
 const statuses = ref([
@@ -88,17 +83,39 @@ const { data: usersData } = await useApiFetch('/api/user/index', {
     lazy: true,
 });
 
+const { data: memberServicesData, error: memberServicesError } = await useApiFetch('/api/member-servise/index', {
+    method: 'POST',
+    body: {
+        filters: {},
+        orderBy: 'name',
+        orderByDirection: 'asc',
+        perPage: 1000,
+        page: 1,
+        paginate: true,
+        deleted: false,
+    },
+    lazy: true,
+});
+
+const memberServiceOptions = computed(() => {
+    const response = memberServicesData.value?.data;
+    return Array.isArray(response) ? response : Array.isArray(response?.data) ? response.data : [];
+});
+
+watch(memberServicesError, (error) => {
+    if (error) useToast({ title: 'Error', message: error.data?.message ?? error.message ?? 'Failed to load services.', type: 'error', duration: 5000 });
+});
+
+const normalizeServiceIds = (services) =>
+    Array.isArray(services) ? services.map((service) => (typeof service === 'object' && service !== null ? (service.id ?? service.service_id ?? service.member_service_id) : service)).filter((id) => id !== null && id !== undefined) : [];
+
 const isAssociationActive = (active) => active === true || active === 1 || active === '1';
 
 const availableNetworks = computed(() => {
     const selectedIds = item.value.network_user_ids || [];
     const query = networkSearch.value.trim().toLowerCase();
 
-    return (usersData.value?.data || []).filter(
-        (network) =>
-            !selectedIds.some((id) => String(id) === String(network.id)) &&
-            (!query || network.name?.toLowerCase().includes(query)),
-    );
+    return (usersData.value?.data || []).filter((network) => !selectedIds.some((id) => String(id) === String(network.id)) && (!query || network.name?.toLowerCase().includes(query)));
 });
 
 const getNetworkActive = (networkId) => {
@@ -182,16 +199,9 @@ function fillData(company) {
         fpp: company.fpp === true || company.fpp === 'yes',
         active: company.active === true,
         users: Array.isArray(company.users) ? company.users : [],
-        network_user_ids: [
-            ...new Set(
-                (Array.isArray(company.users) ? company.users : [])
-                    .map((network) => network.id ?? network.user_id)
-                    .filter((networkId) => networkId !== null && networkId !== undefined),
-            ),
-        ],
-        network_user_states: Object.fromEntries(
-            (Array.isArray(company.users) ? company.users : []).map((network) => [network.id ?? network.user_id, isAssociationActive(network.active)]),
-        ),
+        network_user_ids: [...new Set((Array.isArray(company.users) ? company.users : []).map((network) => network.id ?? network.user_id).filter((networkId) => networkId !== null && networkId !== undefined))],
+        services: normalizeServiceIds(company.member_services ?? company.services ?? company.member_service_ids),
+        network_user_states: Object.fromEntries((Array.isArray(company.users) ? company.users : []).map((network) => [network.id ?? network.user_id, isAssociationActive(network.active)])),
     };
     const primaryNetworkId = company.user?.id ?? company.user_id;
     if (primaryNetworkId !== null && primaryNetworkId !== undefined && !item.value.network_user_ids.some((id) => String(id) === String(primaryNetworkId))) {
@@ -249,6 +259,7 @@ const resetItemValues = async () => {
         active: false,
         users: [],
         network_user_ids: [],
+        services: [],
         network_user_states: {},
     };
     showPassword.value = false;
@@ -302,6 +313,7 @@ async function updateCompany() {
             user_id: networkId,
             active: getNetworkActive(networkId),
         })),
+        member_service_ids: item.value.services,
     };
 
     // ✅ لو الباسورد اتغير (مش فاضي) نبعت الجديد
@@ -392,6 +404,25 @@ async function resendPassword() {
                         <FormInputField v-model="item.name" :errors="v$.name.$errors" class="col-span-12 lg:col-span-6" label="Company Name *" name="company-name" placeholder="Company Name" required />
                         <FormInputField v-model="item.company_email" :errors="v$.company_email.$errors" class="col-span-12 lg:col-span-6" label="Company Email" name="company-email" placeholder="Company Email" type="email" />
                         <FormInputField v-model="item.website" class="col-span-12 lg:col-span-6" label="Website" name="company-website" placeholder="Website" />
+                        <div class="col-span-12 rounded-lg border border-slate-100 bg-slate-50/50 p-5">
+                            <div class="mb-4 border-b border-dashed border-slate-200 pb-3">
+                                <h5 class="text-sm font-medium text-slate-700">Services</h5>
+                                <p class="mt-1 text-sm text-slate-500">Please indicate the services your company provides.</p>
+                            </div>
+                            <fieldset class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
+                                <label v-for="service in memberServiceOptions" :key="service.id" class="relative flex cursor-pointer items-start gap-3 text-sm">
+                                    <input
+                                        :id="`edit-company-service-${service.id}`"
+                                        v-model="item.services"
+                                        :name="`edit-company-service-${service.id}`"
+                                        :value="service.id"
+                                        type="checkbox"
+                                        class="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-500 text-primary focus:ring-primary"
+                                    />
+                                    <span>{{ service.name }}</span>
+                                </label>
+                            </fieldset>
+                        </div>
 
                         <FormSelectField
                             id="edit-company-country"
@@ -442,23 +473,9 @@ async function resendPassword() {
                                 @focus="showNetworkOptions = true"
                                 @input="showNetworkOptions = true"
                             />
-                            <div
-                                v-if="showNetworkOptions"
-                                class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg"
-                            >
-                                <button
-                                    v-for="network in availableNetworks"
-                                    :key="network.id"
-                                    type="button"
-                                    class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-slate-50"
-                                    @click="addNetwork(network.id)"
-                                >
-                                    <img
-                                        v-if="network.imageUrl"
-                                        :src="network.imageUrl"
-                                        :alt="network.name"
-                                        class="h-7 w-7 shrink-0 rounded-full border border-slate-100 bg-white object-contain"
-                                    />
+                            <div v-if="showNetworkOptions" class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+                                <button v-for="network in availableNetworks" :key="network.id" type="button" class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-slate-50" @click="addNetwork(network.id)">
+                                    <img v-if="network.imageUrl" :src="network.imageUrl" :alt="network.name" class="h-7 w-7 shrink-0 rounded-full border border-slate-100 bg-white object-contain" />
                                     <span v-else class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-500">
                                         {{ network.name?.charAt(0) || '?' }}
                                     </span>
@@ -469,11 +486,7 @@ async function resendPassword() {
                                 </div>
                             </div>
                             <div v-if="item.network_user_ids.length" class="mt-3 flex flex-col gap-2">
-                                <div
-                                    v-for="networkId in item.network_user_ids"
-                                    :key="networkId"
-                                    class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2"
-                                >
+                                <div v-for="networkId in item.network_user_ids" :key="networkId" class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
                                     <div class="flex min-w-0 items-center gap-2">
                                         <img
                                             v-if="getNetworkDetails(networkId).imageUrl"

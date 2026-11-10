@@ -412,6 +412,8 @@ type Admin = {
     name: string;
     email: string;
     superAdmin: boolean;
+    showNonUser?: boolean;
+    user_id?: number | null;
     roleId: number | null | undefined;
     role: Role | null;
     extra_permissions?: Permission[];

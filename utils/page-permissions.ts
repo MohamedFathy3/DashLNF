@@ -31,7 +31,7 @@ export const SITE_MENU_GROUPS: SiteMenuGroup[] = [
     {
         name: 'Master Data',
         icon: 'solar:server-outline',
-        items: [page('Countries', '/master-data/countries', 'solar:asteroid-linear'), page('Cities', '/master-data/cities', 'solar:map-linear')],
+        items: [page('Countries', '/master-data/countries', 'solar:asteroid-linear'), page('Cities', '/master-data/cities', 'solar:map-linear'), page('Services', '/master-data/services', 'solar:star-circle-linear')],
     },
     {
         name: "Member's Data",

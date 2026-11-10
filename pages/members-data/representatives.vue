@@ -3,7 +3,7 @@ definePageMeta({
     middleware: ['auth', 'permission'],
     permissions: ['list-contact-people'],
 });
-import ContactPersonModalNetowrk from '@/components/Member/ContactPersonModalNetowrk.vue';
+import NetworkContactPersonModal from '@/components/Member/NetworkContactPersonModal.vue';
 
 // 🔒 User Store للفلتر الإجباري
 const userStore = useUserStore();
@@ -114,7 +114,6 @@ watch(
     filter,
     (newVal) => {
         for (const key in newVal) {
-            // 🚫 الأدمن العادي ميقدرش يغير user_id
             if (key === 'user_id' && !canShowUserFilter.value) {
                 continue;
             }
@@ -125,7 +124,6 @@ watch(
                 delete serverParams.value.filters[key];
             }
         }
-        // 🔒 تأكيد الفلتر الإجباري دايماً
         if (forcedUserId.value) {
             serverParams.value.filters.user_id = forcedUserId.value;
         }
@@ -201,9 +199,7 @@ async function closeModal() {
 
 async function openModal(id) {
     formLoading.value = true;
-    if (id) {
-        selectedId.value = id;
-    }
+    selectedId.value = id ?? null;
     isOpen.value = true;
     formLoading.value = false;
 }
@@ -287,6 +283,10 @@ onMounted(async () => {
                 <div>{{ serverParams.deleted ? 'Deleted Representatives' : 'Representatives' }}</div>
             </div>
             <div class="md:flex md:items-center md:gap-5 md:space-y-0 space-y-5">
+                <button v-if="!serverParams.deleted" class="btn btn-primary btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" type="button" @click="openModal(null)">
+                    <Icon name="solar:add-circle-line-duotone" class="size-5 opacity-75" />
+                    Add Representative
+                </button>
                 <template v-if="selectedRows.length > 0">
                     <button v-if="serverParams.deleted && useCheckPermission(['forceDelete-members-data-contact-persons'])" class="btn btn-danger btn-rounded px-6 btn-sm gap-3 md:w-fit w-full md:mt-0 mt-5" @click="forceDeleteItems">
                         <Icon name="solar:trash-bin-minimalistic-line-duotone" class="size-5 opacity-75" />
@@ -418,6 +418,6 @@ onMounted(async () => {
         </table>
         <!-- Pagination -->
         <TablePagination :pending="status === 'pending'" :rows="rows" :page="serverParams.page" @change-page="changePage" />
-        <ContactPersonModalNetowrk v-if="isOpen" :open="isOpen" :person-id="selectedId ? selectedId : null" @close="closeModal" @refresh="refresh" />
+        <NetworkContactPersonModal v-if="isOpen" :open="isOpen" :person-id="selectedId" :network-id="forcedUserId" :network-options="usersOptions" :show-network-selector="canShowUserFilter" @close="closeModal" @refresh="refresh" />
     </div>
 </template>

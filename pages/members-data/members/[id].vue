@@ -80,6 +80,13 @@ const associatedNetworks = computed(() => {
     return networks.filter((network, index, list) => network?.id != null && list.findIndex((item) => String(item.id) === String(network.id)) === index);
 });
 
+const companyServices = computed(() => {
+    const services = company.value?.member_services ?? company.value?.services ?? [];
+    if (!Array.isArray(services)) return [];
+
+    return services.map((service) => (typeof service === 'object' && service !== null ? (service.name ?? service.service?.name ?? service.member_service?.name) : service)).filter((name) => name !== null && name !== undefined && name !== '');
+});
+
 const isAssociatedNetworkActive = (network) => network?.active === true || network?.active === 1 || network?.active === '1';
 
 const sendWelcomeEmail = async () => {
@@ -418,6 +425,18 @@ async function deleteContactPerson(id) {
                                             <span :class="company.active === true ? 'text-green-600 font-medium' : 'text-red-600 font-medium'">
                                                 {{ company.active === true ? 'Active' : 'Inactive' }}
                                             </span>
+                                        </div>
+                                        <div class="mt-3">
+                                            <div class="mb-2 flex items-center gap-2 font-normal text-slate-600">
+                                                <Icon name="solar:widget-5-linear" class="size-4 text-primary" />
+                                                <span>Services</span>
+                                            </div>
+                                            <div v-if="companyServices.length" class="mt-1 flex flex-wrap gap-2">
+                                                <span v-for="(service, index) in companyServices" :key="`${service}-${index}`" class="inline-flex items-center rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-white shadow-sm">
+                                                    {{ service }}
+                                                </span>
+                                            </div>
+                                            <span v-else class="text-sm text-slate-400">N/A</span>
                                         </div>
                                         <div v-if="associatedNetworks.length" class="mt-2 opacity-75">
                                             <span class="font-normal mr-2">Associated Networks:</span>

@@ -23,6 +23,12 @@ export const useUserStore = defineStore('user', () => {
         path: '/',
         domain: process.env.NODE_ENV === 'production' ? '.lnfederation.com' : '',
     });
+    const legacyToken = useCookie('token', {
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        domain: process.env.NODE_ENV === 'production' ? '.lnfederation.com' : '',
+    });
 
     // دوال بسيطة للتعامل مع الكوكيز
     const setToken = (data?: string) => {
@@ -39,6 +45,9 @@ export const useUserStore = defineStore('user', () => {
 
     const login = async (data: Credentials, path?: LocationQueryValue) => {
         try {
+            setToken();
+            legacyToken.value = null;
+            setUser();
             await useApiFetch('/sanctum/csrf-cookie');
 
             const { data: userData, error } = await useApiFetch(`/api/admin/login`, {
@@ -152,19 +161,10 @@ export const useUserStore = defineStore('user', () => {
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
-            // 👈 مهم جداً: امسح التوكن من الكوكيز
-            setToken(); // مسح التوكن
-            setUser(); // مسح اليوزر
-
-            // امسح كل الكوكيز المتعلقة بالموقع
-            if (process.client) {
-                // مسح كل الكوكيز
-                document.cookie.split(';').forEach((c) => {
-                    document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname);
-                });
-
-                console.log('🍪 All cookies cleared');
-            }
+            setToken();
+            xsrfToken.value = null;
+            legacyToken.value = null;
+            setUser();
 
             navigateTo('/login');
         }
