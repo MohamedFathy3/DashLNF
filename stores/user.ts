@@ -11,7 +11,6 @@ export const useUserStore = defineStore('user', () => {
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
         path: '/',
-        domain: process.env.NODE_ENV === 'production' ? '.lnfederation.com' : '',
         // 👇 الأوبشنز دي بتضمن إن الكوكيز تشتغل مع كل الطلبات
         httpOnly: false, // عشان نقدر نقراها من JavaScript
     });
@@ -21,13 +20,11 @@ export const useUserStore = defineStore('user', () => {
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
         path: '/',
-        domain: process.env.NODE_ENV === 'production' ? '.lnfederation.com' : '',
     });
     const legacyToken = useCookie('token', {
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
         path: '/',
-        domain: process.env.NODE_ENV === 'production' ? '.lnfederation.com' : '',
     });
 
     // دوال بسيطة للتعامل مع الكوكيز

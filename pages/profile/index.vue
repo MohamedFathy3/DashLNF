@@ -157,15 +157,6 @@ async function updatePassword() {
             </section>
         </form>
 
-        <div v-if="userStore.user" class="box mb-6 p-5">
-            <h2 class="mb-4 text-lg font-medium">Account permissions</h2>
-            <ul v-if="permissions.length" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <li v-for="permission in permissions" :key="permission.id" class="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">
-                    <p class="font-medium">{{ permission.name }}</p>
-                    <p class="mt-1 break-all text-xs text-slate-500">{{ permission.slug }}</p>
-                </li>
-            </ul>
-            <p v-else class="text-sm text-slate-500">No permissions were returned for this account.</p>
-        </div>
+      
     </div>
 </template>
