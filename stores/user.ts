@@ -21,6 +21,11 @@ export const useUserStore = defineStore('user', () => {
         secure: process.env.NODE_ENV === 'production',
         path: '/',
     });
+    const sessionCookie = useCookie('logistic_network_federation_session', {
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+    });
     const legacyToken = useCookie('token', {
         sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
@@ -160,6 +165,7 @@ export const useUserStore = defineStore('user', () => {
         } finally {
             setToken();
             xsrfToken.value = null;
+            sessionCookie.value = null;
             legacyToken.value = null;
             setUser();
 
