@@ -1228,10 +1228,7 @@ onMounted(async () => {
                             <td v-if="serverParams.deleted" class="text-sm">{{ row.deletedAt }}</td>
                             <td v-if="!serverParams.deleted" class="text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <button v-if="useCheckPermission(['network_member_update'])" class="btn btn-secondary btn-rounded btn-sm gap-3" @click="openEditModal(row.id)">
-                                        <Icon name="solar:pen-outline" class="size-4" />
-                                        Edit
-                                    </button>
+                                  
                                     <NuxtLink :to="'/members-data/members/' + row.id">
                                         <button class="btn btn-secondary btn-rounded btn-sm gap-3">
                                             <Icon name="solar:eye-outline" class="size-4" />
